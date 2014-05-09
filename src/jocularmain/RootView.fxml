@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import org.gillius.jfxutils.chart.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jocularmain.RootViewController">
+    <children>
+        <LineChart fx:id="chart" alternativeRowFillVisible="false" animated="true" horizontalZeroLineVisible="false" layoutX="-120.0" layoutY="-112.0" legendVisible="false" onContextMenuRequested="#respondToRightButtonClick" prefHeight="461.0" prefWidth="900.0" title="Observation Plot" verticalGridLinesVisible="false" verticalZeroLineVisible="false" AnchorPane.bottomAnchor="137.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
+            <xAxis>
+                <StableTicksAxis animated="true" forceZeroInRange="false" label="Observation number" lowerBound="-10.0" side="BOTTOM" />
+            </xAxis>
+            <yAxis>
+                <StableTicksAxis animated="true" autoRanging="true" label="Intensity" side="LEFT" />
+            </yAxis>
+        </LineChart>
+        <HBox layoutX="38.0" layoutY="360.0" spacing="10.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="38.0">
+            <children>
+                <Button fx:id="newDataButton" layoutX="38.0" layoutY="360.0" maxHeight="-Infinity" mnemonicParsing="false" onAction="#addSampleData" text="Show Sample Data" HBox.hgrow="NEVER" />
+            </children>
+        </HBox>
+        <Label fx:id="outputLabel" layoutX="582.0" layoutY="473.0" prefHeight="18.0" prefWidth="210.0" AnchorPane.bottomAnchor="108.0" AnchorPane.leftAnchor="580.0" />
+        <RadioButton fx:id="markerRBtrimRight" contentDisplay="TOP" layoutX="256.0" layoutY="325.0" mnemonicParsing="false" onAction="#trimRightRBaction" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="266.0">
+            <toggleGroup>
+                <ToggleGroup fx:id="markerPlacementSelection" />
+            </toggleGroup>
+        </RadioButton>
+        <RadioButton fx:id="markerRBrRight" contentDisplay="TOP" layoutX="223.0" layoutY="325.0" mnemonicParsing="false" onAction="#rRightRBaction" toggleGroup="$markerPlacementSelection" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="228.0" />
+        <RadioButton fx:id="markerRBrLeft" contentDisplay="TOP" layoutX="190.0" layoutY="325.0" mnemonicParsing="false" onAction="#rLeftRBaction" toggleGroup="$markerPlacementSelection" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="195.0" />
+        <RadioButton fx:id="markerRBdRight" contentDisplay="TOP" layoutX="157.0" layoutY="325.0" mnemonicParsing="false" onAction="#dRightRBaction" toggleGroup="$markerPlacementSelection" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="162.0" />
+        <RadioButton fx:id="markerRBdLeft" contentDisplay="TOP" layoutX="124.0" layoutY="325.0" mnemonicParsing="false" onAction="#dLeftRBaction" toggleGroup="$markerPlacementSelection" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="129.0" />
+        <RadioButton fx:id="markerRBtrimLeft" contentDisplay="TOP" layoutX="91.0" layoutY="325.0" mnemonicParsing="false" onAction="#trimLeftRBaction" toggleGroup="$markerPlacementSelection" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="91.0" />
+        <RadioButton fx:id="markerRBnone" contentDisplay="TOP" layoutX="38.0" layoutY="325.0" mnemonicParsing="false" onAction="#noneRBaction" selected="true" toggleGroup="$markerPlacementSelection" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="38.0" />
+        <Label layoutX="41.0" layoutY="304.0" text="none" AnchorPane.bottomAnchor="132.0" AnchorPane.leftAnchor="31.0" />
+        <Label layoutX="124.0" layoutY="304.0" snapToPixel="false" text="D limits" AnchorPane.bottomAnchor="132.0" AnchorPane.leftAnchor="129.0" />
+        <Label layoutX="191.0" layoutY="304.0" text="R limits" AnchorPane.bottomAnchor="132.0" AnchorPane.leftAnchor="196.0" />
+        <Label layoutX="86.0" layoutY="307.0" text="trim" AnchorPane.bottomAnchor="132.0" AnchorPane.leftAnchor="86.0" />
+        <Label layoutX="266.0" layoutY="307.0" text="trim" AnchorPane.bottomAnchor="132.0" AnchorPane.leftAnchor="260.0" />
+        <Label layoutX="32.0" layoutY="498.0" text="Select marker to place by left click" AnchorPane.bottomAnchor="88.0" AnchorPane.leftAnchor="34.0" />
+<HBox layoutX="309.33837890625" layoutY="469.0" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="309.33837890625">
+<children>
+        <Button fx:id="eraseSelectionButton" layoutX="309.33837890625" layoutY="469.0" mnemonicParsing="false" onAction="#eraseSelection" text="Erase Selected Marker" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="309.33837890625" />
+        <ToggleButton fx:id="hideToggleButton" layoutX="442.0" layoutY="469.0" mnemonicParsing="false" onAction="#hideUnhideMarkers" text="Hide/Unhide" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="425.0" />
+</children>
+</HBox><ImageView fx:id="chatHelpIcon" fitHeight="18.0" fitWidth="13.0" layoutX="85.0" layoutY="140.0" onMouseClicked="#displayChartZoomPanMarkHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="55.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image></ImageView><MenuBar layoutX="-23.0" prefHeight="29.0" prefWidth="900.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+  <menus>
+    <Menu mnemonicParsing="false" text="File">
+      <items>
+        <MenuItem mnemonicParsing="false" text="Close" /><MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" text="Open Recent" />
+      </items>
+    </Menu>
+    <Menu mnemonicParsing="false" text="Edit">
+      <items>
+        <MenuItem mnemonicParsing="false" text="Delete" />
+      </items>
+    </Menu>
+    <Menu mnemonicParsing="false" text="Help">
+      <items>
+        <MenuItem mnemonicParsing="false" text="About" />
+      </items>
+    </Menu>
+  </menus>
+<effect>
+<DropShadow />
+</effect>
+</MenuBar><ImageView fx:id="markerSelectionHelp" fitHeight="18.0" fitWidth="13.0" layoutX="54.0" layoutY="474.0" onMouseClicked="#displayMarkerSelectionHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="112.0" AnchorPane.leftAnchor="12.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image>
+</ImageView>
+    </children>
+</AnchorPane>

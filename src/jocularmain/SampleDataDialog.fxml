@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="360.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jocularmain.SampleDataDialogController">
+    <children>
+<VBox layoutX="235.353271484375" layoutY="42.0" spacing="15.0" AnchorPane.leftAnchor="220.0" AnchorPane.topAnchor="70.0">
+<children><Label layoutX="235.353271484375" layoutY="42.0" text="sigmaB (baseline noise level)" /><Label layoutX="235.70654296875" layoutY="69.0" text="sigmaA (event noise level)" /><Label layoutX="235.70654296875" layoutY="101.0" text="B (baseline intensity)" /><Label layoutX="236.059814453125" layoutY="132.0" text="A (event intensity)" /><Label layoutX="236.4130859375" layoutY="160.0" text="D (disappearance reading value)" /><Label layoutX="235.70654296875" layoutY="184.0" text="R (re-appearance reading value)" /><Label layoutX="236.766357421875" layoutY="211.0" text="number of observation points" />
+</children>
+</VBox>
+<VBox layoutX="63.96875" layoutY="36.0" spacing="5.0" AnchorPane.leftAnchor="64.0" AnchorPane.topAnchor="66.0">
+<children><TextField fx:id="sigmaBtext" layoutX="63.96875" layoutY="36.0" promptText="sigmaB" /><TextField fx:id="sigmaAtext" layoutX="64.4375" layoutY="69.0" promptText="sigmaA" /><TextField fx:id="baselineIntensityText" layoutX="64.90625" layoutY="102.0" promptText="baseline intensity" /><TextField fx:id="eventIntensityText" layoutX="65.375" layoutY="137.0" promptText="event intensity" /><TextField fx:id="dTimeText" layoutX="65.84375" layoutY="174.0" promptText="D" /><TextField fx:id="rTimeText" layoutX="66.3125" layoutY="206.0" promptText="R" /><TextField fx:id="numberOfDataPointsText" layoutX="66.78125" layoutY="238.0" promptText="number of points" />
+</children>
+</VBox><Button layoutX="103.33837890625" layoutY="269.0" mnemonicParsing="false" onKeyPressed="#handleKeyPress" onMouseClicked="#handleMouseClick" text="Display Sample Data" AnchorPane.leftAnchor="64.0" AnchorPane.topAnchor="290.0" /><Rectangle arcHeight="5.0" fill="DODGERBLUE" height="40.0" layoutX="74.0" layoutY="3.0" stroke="BLACK" strokeType="INSIDE" width="500.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<effect>
+<DropShadow />
+</effect></Rectangle><Label layoutX="44.0" layoutY="11.0" text="Set parameter values for sample observation creation" textFill="WHITE">
+<font>
+<Font name="System Bold" size="14.0" />
+</font></Label><Label fx:id="errorLabel" layoutX="75.353271484375" layoutY="326.0" text="       " textFill="RED" AnchorPane.leftAnchor="64.0" AnchorPane.topAnchor="326.0" /><ImageView fitHeight="16.0" fitWidth="16.0" layoutX="306.0" layoutY="295.0" onMouseClicked="#showRandGenSeedHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="296.0">
+<image>
+<Image url="@questionMark.png" />
+</image></ImageView><TextField fx:id="randSeedText" layoutX="272.0" layoutY="290.0" prefHeight="26.0" prefWidth="86.0" AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="292.0" /><Label layoutX="389.353271484375" layoutY="295.0" text="RandGenSeed" AnchorPane.leftAnchor="392.0" AnchorPane.topAnchor="296.0" />
+    </children>
+</AnchorPane>

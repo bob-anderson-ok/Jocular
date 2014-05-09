@@ -1,0 +1,37 @@
+/* 
+    Created on : Apr 17, 2014, 9:41:48 PM
+    Author     : Bob Anderson
+*/
+
+
+.chart-series-line {
+    -fx-stroke-width: 1px;
+}
+
+.chart-alternative-row-fill {
+    -fx-fill: #ececec;
+    -fx-stroke: transparent;
+    -fx-stroke-width: 0;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke:red;
+}
+
+.default-color0.chart-series-line { -fx-stroke:gray }
+.default-color0.chart-line-symbol { -fx-background-color:transparent,black}
+
+.default-color1.chart-series-line { -fx-stroke:red }
+.default-color1.chart-line-symbol { -fx-background-color:transparent,transparent}
+
+.chart-line-symbol {
+    -fx-background-radius: 2px;
+    -fx-padding: 4px;
+}
+
+/*
+.button {
+    -fx-pref-height: 26.0;
+    -fx-background-radius: 0,0,0,0;
+}
+*/
