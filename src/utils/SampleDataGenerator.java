@@ -142,20 +142,12 @@ public class SampleDataGenerator {
 
         int dTransitionIndex = -1;  // Set out-of-range to the left
         if (!Double.isNaN(dEventTime)) {
-            if (dEventTime == Math.ceil(dEventTime)) {
-                dTransitionIndex = (int) Math.ceil(dEventTime) + 1;
-            } else {
-                dTransitionIndex = (int) Math.ceil(dEventTime);
-            }
+            dTransitionIndex = calculateTransitionIndex(dEventTime);
         }
 
         int rTransitionIndex = filledObservation.lengthOfDataColumns;  // Set out-of-range to the right
         if (!Double.isNaN(rEventTime)) {
-            if (rEventTime == Math.ceil(rEventTime)) {
-                rTransitionIndex = (int) Math.ceil(rEventTime) + 1;
-            } else {
-                rTransitionIndex = (int) Math.ceil(rEventTime);
-            }
+            rTransitionIndex = calculateTransitionIndex(rEventTime);
         }
 
         for (int i = 0; i < filledObservation.lengthOfDataColumns; i++) {
@@ -181,6 +173,16 @@ public class SampleDataGenerator {
             double rTransitionValue = gaussianVariate(mSigma) + mValue;
             filledObservation.obsData[rTransitionIndex] = rTransitionValue;
         }
+    }
+
+    private int calculateTransitionIndex(double eventTime) {
+        int transitionIndex;
+        if (eventTime == Math.ceil(eventTime)) {
+            transitionIndex = (int) Math.ceil(eventTime) + 1;
+        } else {
+            transitionIndex = (int) Math.ceil(eventTime);
+        }
+        return transitionIndex;
     }
 
     private boolean isInDataRange(int index) {
