@@ -2,6 +2,7 @@ package joculartest;
 
 import jocularmain.SqModel;
 import static org.fest.assertions.api.Assertions.assertThat;
+import org.junit.Before;
 import org.junit.Test;
 import utils.Observation;
 import utils.SampleDataGenerator;
@@ -10,9 +11,11 @@ public class SqModelTest {
 
     public SqModelTest() {
     }
-
-    @Test
-    public void sqmodel_shouldCountEventAndBaselinePoints_whenDandRinrange() {
+    
+    Observation specialObservation;
+    
+    @Before
+    public void setUp() {
         SampleDataGenerator dataGen = new SampleDataGenerator("testSetTwo");
 
         dataGen.setDevent(1.5)
@@ -24,7 +27,12 @@ public class SqModelTest {
             .setNumDataPoints(8)
             .setParams();
 
-        Observation specialObservation = dataGen.build();
+        specialObservation = dataGen.build();
+    }
+
+    @Test
+    public void sqmodel_shouldCountEventAndBaselinePoints_whenDandRinrange() {
+
         SqModel sqmodel = new SqModel(specialObservation);
 
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
@@ -35,18 +43,7 @@ public class SqModelTest {
     
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDonEdgeRinrange() {
-        SampleDataGenerator dataGen = new SampleDataGenerator("testSetTwo");
-
-        dataGen.setDevent(1.5)
-            .setRevent(4.5)
-            .setSigmaA(1.0)
-            .setSigmaB(1.0)
-            .setAintensity(1.0)
-            .setBintensity(11.0)
-            .setNumDataPoints(8)
-            .setParams();
-
-        Observation specialObservation = dataGen.build();
+        
         SqModel sqmodel = new SqModel(specialObservation);
 
         double logLcalculated = sqmodel.setDtransition(0).setRtransition(5).calcLogL();
@@ -57,18 +54,7 @@ public class SqModelTest {
     
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDoutofrangeRinrange() {
-        SampleDataGenerator dataGen = new SampleDataGenerator("testSetTwo");
-
-        dataGen.setDevent(1.5)
-            .setRevent(4.5)
-            .setSigmaA(1.0)
-            .setSigmaB(1.0)
-            .setAintensity(1.0)
-            .setBintensity(11.0)
-            .setNumDataPoints(8)
-            .setParams();
-
-        Observation specialObservation = dataGen.build();
+        
         SqModel sqmodel = new SqModel(specialObservation);
 
         double logLcalculated = sqmodel.setDtransition(-2000).setRtransition(5).calcLogL();
@@ -79,18 +65,7 @@ public class SqModelTest {
     
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDinrangeRonedge() {
-        SampleDataGenerator dataGen = new SampleDataGenerator("testSetTwo");
-
-        dataGen.setDevent(1.5)
-            .setRevent(4.5)
-            .setSigmaA(1.0)
-            .setSigmaB(1.0)
-            .setAintensity(1.0)
-            .setBintensity(11.0)
-            .setNumDataPoints(8)
-            .setParams();
-
-        Observation specialObservation = dataGen.build();
+        
         SqModel sqmodel = new SqModel(specialObservation);
 
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(7).calcLogL();
@@ -101,18 +76,7 @@ public class SqModelTest {
     
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDinrangeRoutofrange() {
-        SampleDataGenerator dataGen = new SampleDataGenerator("testSetTwo");
-
-        dataGen.setDevent(1.5)
-            .setRevent(4.5)
-            .setSigmaA(1.0)
-            .setSigmaB(1.0)
-            .setAintensity(1.0)
-            .setBintensity(11.0)
-            .setNumDataPoints(8)
-            .setParams();
-
-        Observation specialObservation = dataGen.build();
+        
         SqModel sqmodel = new SqModel(specialObservation);
 
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(2000).calcLogL();
@@ -123,18 +87,7 @@ public class SqModelTest {
 
 //    @Test
 //    public void sqmodelCalcLogL_shouldGiveCorrectResult() {
-//        SampleDataGenerator dataGen = new SampleDataGenerator("testSetTwo");
-//
-//        dataGen.setDevent(1.5)
-//                .setRevent(4.5)
-//                .setSigmaA(1.0)
-//                .setSigmaB(1.0)
-//                .setAintensity(1.0)
-//                .setBintensity(11.0)
-//                .setNumDataPoints(8)
-//                .setParams();
-//
-//        Observation specialObservation = dataGen.build();
+//    
 //        SqModel sqmodel = new SqModel( specialObservation );
 //        
 //        double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
