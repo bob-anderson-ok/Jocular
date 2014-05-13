@@ -303,12 +303,12 @@ public class Observation {
     public void reloadObsAndSecData() {
         // Trim changes are applied to readingNumbers first.
         int begin = leftTrimPoint;
-        if (begin == Integer.MIN_VALUE) { // not set by client
+        if (begin == Integer.MIN_VALUE) { // indicates hasn't been set by client
             begin = 0;
         }
 
         int end = rightTrimPoint;
-        if (end == Integer.MAX_VALUE) { // not set by client
+        if (end == Integer.MAX_VALUE) { // indicates hasn't been set by client
             end = lengthOfDataColumns - 1;
         }
 
