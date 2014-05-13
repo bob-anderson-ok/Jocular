@@ -19,13 +19,13 @@ public class ObservationTest {
     final double SOME_SIGMAB_VALUE = 2.0;
     final int SOME_DATA_LENGTH = 1254;
 
-    @Test
-    public void demoToString() {
-        Observation anObs = new Observation("demoOfToString",
-                                            Paths.get("some-directory", "some-filename")
-        );
-        System.out.println(anObs);
-    }
+//    @Test
+//    public void demoToString() {
+//        Observation anObs = new Observation("demoOfToString",
+//                                            Paths.get("some-directory", "some-filename")
+//        );
+//        System.out.println(anObs);
+//    }
 
     @Test
     public void settingTrimPoints_shouldChangeObsDataLengthAndReadingNumbers() {
@@ -74,7 +74,7 @@ public class ObservationTest {
 
         assertThat(trialObs.obsData.length).isEqualTo(correctLengthOfObsData);
 
-        System.out.println(trialObs);
+        //System.out.println(trialObs);
     }
 
 }

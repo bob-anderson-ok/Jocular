@@ -53,22 +53,25 @@ public class SqModel {
         calculateBandA();
         calculateSigmas();
         double logLbaseline = calcBaselineLogL();
-        System.out.println("logLbaseline=" + logLbaseline);
+        //System.out.println("logLbaseline=" + logLbaseline);
 
         double logLevent = calcEventLogL();
-        System.out.println("logLevent=" + logLevent);
+        //System.out.println("logLevent=" + logLevent);
 
         TransitionData dTranData = calcDtranLogL();
         dSolution = dTranData.position;
         double logLdTran = dTranData.logLcontribution;
-        System.out.println("logLdTran=" + logLdTran);
+        //System.out.println("logLdTran=" + logLdTran);
         
         TransitionData rTranData = calcRtranLogL();
         rSolution = rTranData.position;
         double logLrTran = rTranData.logLcontribution;
-        System.out.println("logLrTran=" + logLrTran);
+        //System.out.println("logLrTran=" + logLrTran);
 
-        return logLevent + logLbaseline + logLdTran + logLrTran;
+        double sumLogL = logLevent + logLbaseline + logLdTran + logLrTran;
+        //System.out.println("sumLogL=" + sumLogL);
+        
+        return sumLogL;
     }
 
     private double logL(double value, double reference, double sigma) {
@@ -115,11 +118,7 @@ public class SqModel {
         double sigmaM = sigmaA + (sigmaB - sigmaA) * ((obsValue - A) / (B - A));
         double logLagainstM = logL(B, B, sigmaM);
 
-        System.out.println("againstB " + logLagainstB);
-        System.out.println("againstM " + logLagainstM);
-        System.out.println("againstA " + logLagainstA);
-
-        double margin = 1.0; // Minimum AIC margin to justify using M
+        double margin = 1.0; // Minimum AIC margin to justify using M for sub-frame timing
 
         if (((logLagainstM - margin) > logLagainstA) && ((logLagainstM - margin) > logLagainstB)) {
             // We have an AIC validated mid-value (sub frame timing justified)
@@ -164,11 +163,7 @@ public class SqModel {
         double sigmaM = sigmaA + (sigmaB - sigmaA) * ((obsValue - A) / (B - A));
         double logLagainstM = logL(B, B, sigmaM);
 
-        System.out.println("againstB " + logLagainstB);
-        System.out.println("againstM " + logLagainstM);
-        System.out.println("againstA " + logLagainstA);
-
-        double margin = 1.0; // Minimum AIC margin to justify using M
+        double margin = 1.0; // Minimum AIC margin to justify using M for sub-frame timing.
 
         if (((logLagainstM - margin) > logLagainstA) && ((logLagainstM - margin) > logLagainstB)) {
             // We have an AIC validated mid-value (sub frame timing justified)

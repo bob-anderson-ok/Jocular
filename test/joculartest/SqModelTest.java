@@ -117,16 +117,56 @@ public class SqModelTest {
     }
 
     @Test
-    public void sqmodelCalcLogL_shouldGiveCorrectResult() {
+    public void sqmodelCalcLogL_shouldGiveCorrectSubframeResults() {
     
-        specialObservation.obsData[2] = 5.0;
-        specialObservation.obsData[5] = -18.5;
+        specialObservation.obsData[2] = 7.0;
+        specialObservation.obsData[5] = 7.0;
         SqModel sqmodel = new SqModel( specialObservation );
         
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
         
-        System.out.println("dSolution=" + sqmodel.getDsolution());
-        System.out.println("rSolution=" + sqmodel.getRsolution());
-        //assertThat(logLcalculated).isEqualTo(-12345.6);
+//        System.out.println("dSolution=" + sqmodel.getDsolution());
+//        System.out.println("rSolution=" + sqmodel.getRsolution());
+//        System.out.println("logLcalculated=" + logLcalculated);
+        
+        assertThat(logLcalculated).isEqualTo(-11.069532766246901,offset(1e-7));
+        assertThat(sqmodel.getDsolution()).isEqualTo(1.625);
+        assertThat(sqmodel.getRsolution()).isEqualTo(4.375);
+    }
+    
+    @Test
+    public void sqmodelCalcLogL_shouldGiveCorrectIntegerResults_givenMcloseToB() {
+    
+        specialObservation.obsData[2] = 9.0;
+        specialObservation.obsData[5] = 9.0;
+        SqModel sqmodel = new SqModel( specialObservation );
+        
+        double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
+        
+//        System.out.println("dSolution=" + sqmodel.getDsolution());
+//        System.out.println("rSolution=" + sqmodel.getRsolution());
+//        System.out.println("logLcalculated=" + logLcalculated);
+        
+        assertThat(logLcalculated).isEqualTo(-11.657701663552672,offset(1e-7));
+        assertThat(sqmodel.getDsolution()).isEqualTo(2.0);
+        assertThat(sqmodel.getRsolution()).isEqualTo(4.0);
+    }
+    
+    @Test
+    public void sqmodelCalcLogL_shouldGiveCorrectIntegerResults_givenMcloseToA() {
+    
+        specialObservation.obsData[2] = 3.0;
+        specialObservation.obsData[5] = 3.0;
+        SqModel sqmodel = new SqModel( specialObservation );
+        
+        double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
+        
+//        System.out.println("dSolution=" + sqmodel.getDsolution());
+//        System.out.println("rSolution=" + sqmodel.getRsolution());
+//        System.out.println("logLcalculated=" + logLcalculated);
+        
+        assertThat(logLcalculated).isEqualTo(-11.813166771660836,offset(1e-7));
+        assertThat(sqmodel.getDsolution()).isEqualTo(1.0);
+        assertThat(sqmodel.getRsolution()).isEqualTo(5.0);
     }
 }

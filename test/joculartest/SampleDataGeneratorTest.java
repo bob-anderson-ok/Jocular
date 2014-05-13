@@ -42,7 +42,7 @@ public class SampleDataGeneratorTest {
         assertThat(trialObs.getsecDataColumn()).isEqualTo(1);
         assertThat(trialObs.addedInfo.size()).isEqualTo(0);
 
-        System.out.println(trialObs);
+        //System.out.println(trialObs);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class SampleDataGeneratorTest {
 
         Observation trialObs = dataGen.build();
 
-        System.out.println(trialObs);
+        //System.out.println(trialObs);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -102,7 +102,7 @@ public class SampleDataGeneratorTest {
         
         assertThat(trialObs.columnData[currentColumn+1][0]).isEqualTo(trialObs.obsData[0]);
 
-        System.out.println(trialObs);
+        //System.out.println(trialObs);
     }
     
     @Test
@@ -153,6 +153,7 @@ public class SampleDataGeneratorTest {
         assertThat(trialObs.obsData[0]).isEqualTo(12.0);
         assertThat(trialObs.obsData[199]).isEqualTo(2.0);
     }
+    
     @Test
     public void valuesSurroundingValidNegativeDTransition_shouldBeCorrect() {
         SampleDataGenerator dataGen = new SampleDataGenerator("testSetSeven");
