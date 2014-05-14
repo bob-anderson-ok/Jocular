@@ -1,6 +1,5 @@
 package jocularmain;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import javafx.application.Application;
@@ -14,6 +13,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import utils.Observation;
+import utils.SqSolution;
 
 /**
  *
@@ -24,7 +25,10 @@ public class JocularMain extends Application {
     public Stage primaryStage;
     public RootViewController rootViewControllerInstance;
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
-
+    
+    public Observation obsInMainPlot;
+    public SqSolution  currentSqSolution;
+    
     public static void main(String[] args) {
         launch(args);
     }

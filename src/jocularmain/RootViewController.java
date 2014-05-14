@@ -22,7 +22,7 @@ import utils.SampleDataGenerator;
 import utils.SqSolution;
 
 public class RootViewController implements Initializable {
-    
+
     ManagedChart smartChart;
     private static JocularMain mainApp;
 
@@ -64,12 +64,12 @@ public class RootViewController implements Initializable {
     void respondToRightButtonClick() {
         revertToOriginal();
     }
-   
+
     @FXML
     void showSampleDataDialog() {
         mainApp.buildSampleDataDialog();
     }
-    
+
     private Observation createStandardSampleData(String title) {
 
         SampleDataGenerator dataGen = new SampleDataGenerator(title);
@@ -91,29 +91,71 @@ public class RootViewController implements Initializable {
      * a node which displays a value on hover, but is otherwise empty
      */
     class HoveredNode extends StackPane {
+
         HoveredNode(int readingNumber, double intensity) {
             setOnMouseEntered(e -> outputLabel.setText(String.format("RdgNbr %d Intensity %.2f", readingNumber, intensity)));
             setOnMouseExited(e -> outputLabel.setText(""));
         }
     }
-    
+
     @FXML
     public void computeCandidates() {
         System.out.println("computeCandidates() called.");
     }
-    
+
     @FXML
-    public void applyTrims(){
+    public void applyTrims() {
         System.out.println("applyTrims() called.");
+        int leftTrim;
+        XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
+        if (leftTrimMarker.isInUse()) {
+            leftTrim = (int) Math.ceil(leftTrimMarker.getXValue());
+        } else {
+            leftTrim = 0;
+        }
+
+        if (!inRange(leftTrim)) {
+            leftTrim = 0;
+        }
+
+        int rightTrim;
+        XYChartMarker rightTrimMarker = smartChart.getMarker("trimRight");
+        if (rightTrimMarker.isInUse()) {
+            rightTrim = (int) Math.floor(rightTrimMarker.getXValue());
+        } else {
+            rightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+        }
+
+        if (!inRange(rightTrim)) {
+            rightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+        }
+
+        if (rightTrim < leftTrim) {
+            int temp;
+            temp = leftTrim;
+            leftTrim = rightTrim;
+            rightTrim = temp;
+        }
+
+        mainApp.obsInMainPlot.setLeftTrimPoint(leftTrim);
+        mainApp.obsInMainPlot.setRightTrimPoint(rightTrim);
+        showArtificialData(mainApp.obsInMainPlot, mainApp.currentSqSolution);
+        System.out.println(mainApp.obsInMainPlot);
     }
-    
+
+    private boolean inRange(int index) {
+        return (index >= 0) && (index < mainApp.obsInMainPlot.lengthOfDataColumns);
+    }
+
     public void showArtificialData(Observation sampleData, SqSolution solution) {
-        XYChart.Series<Number,Number> series;
+        XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
         series.setName("Data");
         XYChart.Data<Number, Number> data;
 
-        for (int i = 0; i < sampleData.lengthOfDataColumns; i++) {
+        int numDataPoints = sampleData.obsData.length;
+
+        for (int i = 0; i < numDataPoints; i++) {
             data = new XYChart.Data(sampleData.readingNumbers[i], sampleData.obsData[i]);
             HoveredNode hNode = new HoveredNode(sampleData.readingNumbers[i], sampleData.obsData[i]);
             data.setNode(hNode);
@@ -122,37 +164,40 @@ public class RootViewController implements Initializable {
 
         chart.getData().clear();
         chart.getData().add(series);
-        
+
         series = new XYChart.Series<Number, Number>();
         series.setName("Solution");
-        
+
         // A dEvent in the range of -1.0 to 0.0 affects the value of
         // observation[0].  Therefore we need to plot the theoretical
         // light curve from -1 to righthand edge.  validLeftEdge provides
         // this adjustment.
         int validLeftEdge = -1;
-        
-        if ( Double.isNaN(solution.D) || solution.D < validLeftEdge)
-        {
-            data = new XYChart.Data(validLeftEdge, solution.A);
+
+        double firstRdgNbr = sampleData.readingNumbers[0];
+        double lastRdgNbr = sampleData.readingNumbers[numDataPoints - 1];
+
+        if (Double.isNaN(solution.D) || solution.D < validLeftEdge) {
+            data = new XYChart.Data(validLeftEdge + sampleData.readingNumbers[0], solution.A);
             series.getData().add(data);
             data = new XYChart.Data(solution.R, solution.A);
             series.getData().add(data);
             data = new XYChart.Data(solution.R, solution.B);
             series.getData().add(data);
-            data = new XYChart.Data(sampleData.lengthOfDataColumns-1, solution.B);
+            //data = new XYChart.Data(numDataPoints-1, solution.B);
+            data = new XYChart.Data(lastRdgNbr, solution.B);
             series.getData().add(data);
-        } else if (Double.isNaN(solution.R) || solution.R > sampleData.lengthOfDataColumns) {
-            data = new XYChart.Data(validLeftEdge, solution.B);
+        } else if (Double.isNaN(solution.R) || solution.R > numDataPoints) {
+            data = new XYChart.Data(validLeftEdge + sampleData.readingNumbers[0], solution.B);
             series.getData().add(data);
             data = new XYChart.Data(solution.D, solution.B);
             series.getData().add(data);
             data = new XYChart.Data(solution.D, solution.A);
             series.getData().add(data);
-            data = new XYChart.Data(sampleData.lengthOfDataColumns-1, solution.A);
+            data = new XYChart.Data(lastRdgNbr, solution.A);
             series.getData().add(data);
         } else {
-            data = new XYChart.Data(validLeftEdge, solution.B);
+            data = new XYChart.Data(validLeftEdge + sampleData.readingNumbers[0], solution.B);
             series.getData().add(data);
             data = new XYChart.Data(solution.D, solution.B);
             series.getData().add(data);
@@ -162,13 +207,13 @@ public class RootViewController implements Initializable {
             series.getData().add(data);
             data = new XYChart.Data(solution.R, solution.B);
             series.getData().add(data);
-            data = new XYChart.Data(sampleData.lengthOfDataColumns-1, solution.B);
+            data = new XYChart.Data(lastRdgNbr, solution.B);
             series.getData().add(data);
         }
-        
+
         chart.getData().add(series);
     }
-    
+
     @FXML
     void displayChartZoomPanMarkHelp() {
         mainApp.showHelpDialog("Help/chart.help.html");
@@ -258,6 +303,10 @@ public class RootViewController implements Initializable {
     private void eraseSelection() {
         if (!"none".equals(markerSelectedName)) {
             smartChart.getMarker(markerSelectedName).setInUse(false);
+
+            markerRBnone.setSelected(true);
+            markerRBnone.requestFocus();
+            markerSelectedName = "none";
         }
     }
 
@@ -290,41 +339,36 @@ public class RootViewController implements Initializable {
         }
         if (mouseEvent.getButton() == MouseButton.PRIMARY) {
             double x = (double) chart.getXAxis().getValueForDisplay(mouseEvent.getX());
+            x = Math.floor(x) + 0.5;
             smartChart.getMarker(markerSelectedName).setxValue(x).setInUse(true);
 
             switch (markerSelectedName) {
                 case "trimLeft":
-                    markerRBtrimLeft.setSelected(false);
                     markerRBdLeft.setSelected(true);
                     markerRBdLeft.requestFocus();
                     markerSelectedName = "dLeft";
                     break;
                 case "dLeft":
-                    markerRBdLeft.setSelected(false);
                     markerRBdRight.setSelected(true);
                     markerRBdRight.requestFocus();
                     markerSelectedName = "dRight";
                     break;
                 case "dRight":
-                    markerRBdRight.setSelected(false);
                     markerRBrLeft.setSelected(true);
                     markerRBrLeft.requestFocus();
                     markerSelectedName = "rLeft";
                     break;
                 case "rLeft":
-                    markerRBrLeft.setSelected(false);
                     markerRBrRight.setSelected(true);
                     markerRBrRight.requestFocus();
                     markerSelectedName = "rRight";
                     break;
                 case "rRight":
-                    markerRBrRight.setSelected(false);
                     markerRBtrimRight.setSelected(true);
                     markerRBtrimRight.requestFocus();
                     markerSelectedName = "trimRight";
                     break;
                 case "trimRight":
-                    markerRBtrimRight.setSelected(false);
                     markerRBnone.setSelected(true);
                     markerRBnone.requestFocus();
                     markerSelectedName = "none";

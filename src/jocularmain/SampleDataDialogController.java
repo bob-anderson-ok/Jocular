@@ -69,9 +69,12 @@ public class SampleDataDialogController {
                 sampleSolution.D = dTime;
                 sampleSolution.R = rTime;
                 
+                mainApp.obsInMainPlot = sampleObs;
+                mainApp.currentSqSolution = sampleSolution;
+                
                 mainApp.rootViewControllerInstance.showArtificialData(sampleObs, sampleSolution);
                 
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 errorLabel.setText("Error creating artificial data: " + e.getMessage());
             }
         }

@@ -173,6 +173,11 @@ public class SampleDataGenerator {
             double rTransitionValue = gaussianVariate(mSigma) + mValue;
             filledObservation.obsData[rTransitionIndex] = rTransitionValue;
         }
+        
+        // Copy obsData[] to columnData[0][]
+        System.arraycopy(filledObservation.obsData, 0,
+                         filledObservation.columnData[0], 0,
+                         numDataPoints);
     }
 
     private int calculateTransitionIndex(double eventTime) {

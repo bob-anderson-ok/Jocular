@@ -36,3 +36,16 @@
 
     Placing your cursor on a data point will cause its
     coordinate values to be reported below the plot.
+    
+##### Helpful hint ----
+
+    A 'fresh' plot --- meaning one that has not been panned
+    or zoomed --- is in an 'autoscale' state.  In this state,
+    plotting new data (for example, when you are generating
+    artificial data for test and learning purposes) will
+    cause the x and y axis to readjust to the new data.
+    
+    If you want to set a fixed scale for plots, do a small
+    'pan' (or 'zoom').  Any amount of 'pan' or 'zoom' will 
+    put the plot into a fixed x and y scale condition that
+    is quite useful for experiments.

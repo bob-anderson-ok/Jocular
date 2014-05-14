@@ -19,7 +19,13 @@
     captures the mouse event (so that it can display the coordinate
     values for you) and so will not respond to a mouse click intended
     to place a marker.
-     
+    
+#### Markers 'snap' ---
+
+    The position of markers is always adjusted (snaps) to fall
+    exactly between readings.  That is, marker position values
+    are always of the form: xxx.5 
+    
 #### Standard workflow ---
 
 It is expected that you will place the desired markers from left to right. To help with this process, as each marker is placed, the next one to the right will be automatically selected. To terminate the process, click the **None** radio button (if necessary).
