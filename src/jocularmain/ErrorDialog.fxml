@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jocularmain.ErrorDialogController">
+    <children>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ff1f3c" height="40.0" layoutX="142.0" layoutY="-40.0" stroke="BLACK" strokeType="INSIDE" width="500.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <effect>
+                <DropShadow />
+            </effect>
+        </Rectangle>
+        <Label layoutX="233" layoutY="12.0" text="Error ..." textFill="WHITE">
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font>
+        </Label>
+        <TextArea fx:id="errorText" layoutX="33.0" layoutY="60.0" prefHeight="124.0" prefWidth="444.0" text="What happens here if the line gets really really long? " wrapText="true" AnchorPane.bottomAnchor="30.0" AnchorPane.topAnchor="70.0">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </TextArea>
+    </children>
+</AnchorPane>

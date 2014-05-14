@@ -62,29 +62,14 @@ public class RootViewController implements Initializable {
 
     @FXML
     void respondToRightButtonClick() {
-        revertToOriginal();
+        revertToOriginalAxisScaling();
     }
 
     @FXML
     void showSampleDataDialog() {
         mainApp.buildSampleDataDialog();
-    }
-
-    private Observation createStandardSampleData(String title) {
-
-        SampleDataGenerator dataGen = new SampleDataGenerator(title);
-
-        dataGen
-            .setDevent(200.0)
-            .setRevent(500.0)
-            .setSigmaA(0.5)
-            .setSigmaB(0.5)
-            .setAintensity(2.0)
-            .setBintensity(12.0)
-            .setNumDataPoints(800)
-            .setParams();
-
-        return dataGen.build();
+        mainApp.buildErrorDialog();
+        mainApp.errorDialogControllerInstance.showError("Just a little test");
     }
 
     /**
@@ -110,16 +95,19 @@ public class RootViewController implements Initializable {
             return;
         }
 
+        int maxRightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+        int minLeftTrim = 0;
+
         int leftTrim;
         XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
         if (leftTrimMarker.isInUse()) {
             leftTrim = (int) Math.ceil(leftTrimMarker.getXValue());
         } else {
-            leftTrim = 0;
+            leftTrim = minLeftTrim;
         }
 
         if (!inRange(leftTrim)) {
-            leftTrim = 0;
+            leftTrim = minLeftTrim;
         }
 
         int rightTrim;
@@ -127,13 +115,15 @@ public class RootViewController implements Initializable {
         if (rightTrimMarker.isInUse()) {
             rightTrim = (int) Math.floor(rightTrimMarker.getXValue());
         } else {
-            rightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+            rightTrim = maxRightTrim;
         }
 
         if (!inRange(rightTrim)) {
-            rightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+            rightTrim = maxRightTrim;
         }
 
+        // Here we deal with the user setting the left trim to the right of
+        // the right trim.  We'll make it work rather than throwing an exception.
         if (rightTrim < leftTrim) {
             int temp;
             temp = leftTrim;
@@ -143,27 +133,28 @@ public class RootViewController implements Initializable {
 
         mainApp.obsInMainPlot.setLeftTrimPoint(leftTrim);
         mainApp.obsInMainPlot.setRightTrimPoint(rightTrim);
-        showArtificialData(mainApp.obsInMainPlot, mainApp.currentSqSolution);
-        //System.out.println(mainApp.obsInMainPlot);
+        showDataWithTheoreticalLightCurve(mainApp.obsInMainPlot, mainApp.currentSqSolution);
     }
 
     @FXML
     void undoTrims() {
-        
         if (mainApp.obsInMainPlot == null) {
             return;
         }
+
+        int maxRightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+        int minLeftTrim = 0;
         
-        mainApp.obsInMainPlot.setLeftTrimPoint(0);
-        mainApp.obsInMainPlot.setRightTrimPoint(mainApp.obsInMainPlot.lengthOfDataColumns - 1);
-        showArtificialData(mainApp.obsInMainPlot, mainApp.currentSqSolution);
+        mainApp.obsInMainPlot.setLeftTrimPoint(minLeftTrim);
+        mainApp.obsInMainPlot.setRightTrimPoint(maxRightTrim);
+        showDataWithTheoreticalLightCurve(mainApp.obsInMainPlot, mainApp.currentSqSolution);
     }
 
     private boolean inRange(int index) {
         return (index >= 0) && (index < mainApp.obsInMainPlot.lengthOfDataColumns);
     }
 
-    public void showArtificialData(Observation sampleData, SqSolution solution) {
+    public void showDataWithTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
         XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
         series.setName("Data");
@@ -185,10 +176,10 @@ public class RootViewController implements Initializable {
         chart.getData().add(series);
 
         // Add the theoretical light curve line plot --- no symbols at the data points
-        chart.getData().add(getSolutionSeries(sampleData, solution));
+        chart.getData().add(getTheoreticalLightCurve(sampleData, solution));
     }
 
-    private XYChart.Series<Number, Number> getSolutionSeries(Observation sampleData, SqSolution solution) {
+    private XYChart.Series<Number, Number> getTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
         XYChart.Series<Number, Number> series = new XYChart.Series<Number, Number>();
         series.setName("Solution");
         XYChart.Data<Number, Number> data;
@@ -301,7 +292,7 @@ public class RootViewController implements Initializable {
         }
     }
 
-    private void revertToOriginal() {
+    private void revertToOriginalAxisScaling() {
         chart.getXAxis().setAutoRanging(true);
         chart.getYAxis().setAutoRanging(true);
     }

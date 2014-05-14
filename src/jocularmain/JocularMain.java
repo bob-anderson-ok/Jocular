@@ -1,5 +1,6 @@
 package jocularmain;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import javafx.application.Application;
@@ -24,6 +25,8 @@ public class JocularMain extends Application {
 
     public Stage primaryStage;
     public RootViewController rootViewControllerInstance;
+    public ErrorDialogController errorDialogControllerInstance;
+    
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
     
     public Observation obsInMainPlot;
@@ -53,6 +56,7 @@ public class JocularMain extends Application {
 
         RootViewController.setMainApp(this);
         SampleDataDialogController.setMainApp(this);
+        ErrorDialogController.setMainApp(this);
 
         Scene scene = new Scene(root);
 
@@ -99,6 +103,35 @@ public class JocularMain extends Application {
             helpStage.show();
         } catch (Exception e) {
             System.out.println("in showHelpDialog(): " + e.toString());
+        }
+    }
+    
+    public Stage errorDialogStage;
+    
+    public void buildErrorDialog() {
+        if (errorDialogStage == null) {
+            try {
+                URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
+                FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+                AnchorPane page = fxmlLoader.load();
+
+                errorDialogControllerInstance = fxmlLoader.getController();
+                
+                Scene scene = new Scene(page);
+
+                errorDialogStage = new Stage(StageStyle.UTILITY);
+                errorDialogStage.initModality(Modality.APPLICATION_MODAL);
+                errorDialogStage.setResizable(false);
+
+                errorDialogStage.initOwner(primaryStage);
+                errorDialogStage.setScene(scene);
+
+                errorDialogStage.show();
+            } catch (Exception e) {
+                System.out.println("in buildErrorDialog(): " + e.toString());
+            }
+        } else {
+            errorDialogStage.show();
         }
     }
 

@@ -72,7 +72,7 @@ public class SampleDataDialogController {
                 mainApp.obsInMainPlot = sampleObs;
                 mainApp.currentSqSolution = sampleSolution;
                 
-                mainApp.rootViewControllerInstance.showArtificialData(sampleObs, sampleSolution);
+                mainApp.rootViewControllerInstance.showDataWithTheoreticalLightCurve(sampleObs, sampleSolution);
                 
             } catch (NumberFormatException e) {
                 errorLabel.setText("Error creating artificial data: " + e.getMessage());
