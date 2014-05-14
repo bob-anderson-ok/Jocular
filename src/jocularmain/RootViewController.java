@@ -105,7 +105,11 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void applyTrims() {
-        System.out.println("applyTrims() called.");
+
+        if (mainApp.obsInMainPlot == null) {
+            return;
+        }
+
         int leftTrim;
         XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
         if (leftTrimMarker.isInUse()) {
@@ -140,7 +144,19 @@ public class RootViewController implements Initializable {
         mainApp.obsInMainPlot.setLeftTrimPoint(leftTrim);
         mainApp.obsInMainPlot.setRightTrimPoint(rightTrim);
         showArtificialData(mainApp.obsInMainPlot, mainApp.currentSqSolution);
-        System.out.println(mainApp.obsInMainPlot);
+        //System.out.println(mainApp.obsInMainPlot);
+    }
+
+    @FXML
+    void undoTrims() {
+        
+        if (mainApp.obsInMainPlot == null) {
+            return;
+        }
+        
+        mainApp.obsInMainPlot.setLeftTrimPoint(0);
+        mainApp.obsInMainPlot.setRightTrimPoint(mainApp.obsInMainPlot.lengthOfDataColumns - 1);
+        showArtificialData(mainApp.obsInMainPlot, mainApp.currentSqSolution);
     }
 
     private boolean inRange(int index) {
@@ -162,11 +178,21 @@ public class RootViewController implements Initializable {
             series.getData().add(data);
         }
 
+        // Remove all series from the chart
         chart.getData().clear();
+
+        // Add the data curve --- this uses symbols at the data points
         chart.getData().add(series);
 
-        series = new XYChart.Series<Number, Number>();
+        // Add the theoretical light curve line plot --- no symbols at the data points
+        chart.getData().add(getSolutionSeries(sampleData, solution));
+    }
+
+    private XYChart.Series<Number, Number> getSolutionSeries(Observation sampleData, SqSolution solution) {
+        XYChart.Series<Number, Number> series = new XYChart.Series<Number, Number>();
         series.setName("Solution");
+        XYChart.Data<Number, Number> data;
+        int numDataPoints = sampleData.lengthOfDataColumns;
 
         // A dEvent in the range of -1.0 to 0.0 affects the value of
         // observation[0].  Therefore we need to plot the theoretical
@@ -174,30 +200,27 @@ public class RootViewController implements Initializable {
         // this adjustment.
         int validLeftEdge = -1;
 
-        double firstRdgNbr = sampleData.readingNumbers[0];
-        double lastRdgNbr = sampleData.readingNumbers[numDataPoints - 1];
-
+        // Create the series that plots the theoretical light curve without trims.
         if (Double.isNaN(solution.D) || solution.D < validLeftEdge) {
-            data = new XYChart.Data(validLeftEdge + sampleData.readingNumbers[0], solution.A);
+            data = new XYChart.Data(validLeftEdge, solution.A);
             series.getData().add(data);
             data = new XYChart.Data(solution.R, solution.A);
             series.getData().add(data);
             data = new XYChart.Data(solution.R, solution.B);
             series.getData().add(data);
-            //data = new XYChart.Data(numDataPoints-1, solution.B);
-            data = new XYChart.Data(lastRdgNbr, solution.B);
+            data = new XYChart.Data(numDataPoints - 1, solution.B);
             series.getData().add(data);
         } else if (Double.isNaN(solution.R) || solution.R > numDataPoints) {
-            data = new XYChart.Data(validLeftEdge + sampleData.readingNumbers[0], solution.B);
+            data = new XYChart.Data(validLeftEdge, solution.B);
             series.getData().add(data);
             data = new XYChart.Data(solution.D, solution.B);
             series.getData().add(data);
             data = new XYChart.Data(solution.D, solution.A);
             series.getData().add(data);
-            data = new XYChart.Data(lastRdgNbr, solution.A);
+            data = new XYChart.Data(numDataPoints - 1, solution.A);
             series.getData().add(data);
         } else {
-            data = new XYChart.Data(validLeftEdge + sampleData.readingNumbers[0], solution.B);
+            data = new XYChart.Data(validLeftEdge, solution.B);
             series.getData().add(data);
             data = new XYChart.Data(solution.D, solution.B);
             series.getData().add(data);
@@ -207,11 +230,11 @@ public class RootViewController implements Initializable {
             series.getData().add(data);
             data = new XYChart.Data(solution.R, solution.B);
             series.getData().add(data);
-            data = new XYChart.Data(lastRdgNbr, solution.B);
+            data = new XYChart.Data(numDataPoints - 1, solution.B);
             series.getData().add(data);
         }
 
-        chart.getData().add(series);
+        return series;
     }
 
     @FXML

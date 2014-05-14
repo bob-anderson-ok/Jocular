@@ -58,7 +58,7 @@
       </items>
     </Menu><Menu mnemonicParsing="false" text="Operations">
   <items>
-    <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#applyTrims" text="Apply Trims" /><MenuItem mnemonicParsing="false" onAction="#computeCandidates" text="Compute Candidates" />
+    <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#applyTrims" text="Apply Trims" /><MenuItem mnemonicParsing="false" onAction="#undoTrims" text="Undo Trims" /><MenuItem mnemonicParsing="false" onAction="#computeCandidates" text="Compute Candidates" />
   </items>
 </Menu>
     <Menu mnemonicParsing="false" text="Help">
