@@ -18,11 +18,7 @@
                 <StableTicksAxis animated="true" autoRanging="true" label="Intensity" side="LEFT" />
             </yAxis>
         </LineChart>
-        <HBox layoutX="38.0" layoutY="360.0" spacing="10.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="38.0">
-            <children>
-                <Button fx:id="newDataButton" layoutX="38.0" layoutY="360.0" maxHeight="-Infinity" mnemonicParsing="false" onAction="#addSampleData" text="Show Sample Data" HBox.hgrow="NEVER" />
-            </children>
-        </HBox>
+        <HBox layoutX="38.0" layoutY="360.0" spacing="10.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="38.0" />
         <Label fx:id="outputLabel" layoutX="582.0" layoutY="473.0" prefHeight="18.0" prefWidth="210.0" AnchorPane.bottomAnchor="108.0" AnchorPane.leftAnchor="580.0" />
         <RadioButton fx:id="markerRBtrimRight" contentDisplay="TOP" layoutX="256.0" layoutY="325.0" mnemonicParsing="false" onAction="#trimRightRBaction" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="266.0">
             <toggleGroup>
@@ -53,14 +49,18 @@
   <menus>
     <Menu mnemonicParsing="false" text="File">
       <items>
-        <MenuItem mnemonicParsing="false" text="Close" /><MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" text="Open Recent" />
+        <MenuItem mnemonicParsing="false" text="Close" /><MenuItem mnemonicParsing="false" text="Open Recent" />
       </items>
     </Menu>
     <Menu mnemonicParsing="false" text="Edit">
       <items>
         <MenuItem mnemonicParsing="false" text="Delete" />
       </items>
-    </Menu>
+    </Menu><Menu mnemonicParsing="false" text="Operations">
+  <items>
+    <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#applyTrims" text="Apply Trims" /><MenuItem mnemonicParsing="false" onAction="#computeCandidates" text="Compute Candidates" />
+  </items>
+</Menu>
     <Menu mnemonicParsing="false" text="Help">
       <items>
         <MenuItem mnemonicParsing="false" text="About" />

@@ -96,26 +96,15 @@ public class RootViewController implements Initializable {
             setOnMouseExited(e -> outputLabel.setText(""));
         }
     }
-
+    
     @FXML
-    void addSampleData() {
-        
-        XYChart.Series<Number,Number> series;
-
-        series = new XYChart.Series<Number, Number>();
-        series.setName("Data");
-
-        Observation sampleData = createStandardSampleData("standard sample data");
-
-        for (int i = 0; i < sampleData.lengthOfDataColumns; i++) {
-            XYChart.Data<Number, Number> data = new XYChart.Data(sampleData.readingNumbers[i], sampleData.obsData[i]);
-            HoveredNode hNode = new HoveredNode(sampleData.readingNumbers[i], sampleData.obsData[i]);
-            data.setNode(hNode);
-            series.getData().add(data);
-        }
-
-        chart.getData().clear();
-        chart.getData().add(series);
+    public void computeCandidates() {
+        System.out.println("computeCandidates() called.");
+    }
+    
+    @FXML
+    public void applyTrims(){
+        System.out.println("applyTrims() called.");
     }
     
     public void showArtificialData(Observation sampleData, SqSolution solution) {
