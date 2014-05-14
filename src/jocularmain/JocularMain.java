@@ -65,6 +65,7 @@ public class JocularMain extends Application {
         primaryStage.titleProperty().set("Jocular 0.1");
         primaryStage.setScene(scene);
         primaryStage.show();
+        buildErrorDialog();
     }
 
     private void closeAllRemainingHelpScreens(WindowEvent e) {
@@ -126,7 +127,9 @@ public class JocularMain extends Application {
                 errorDialogStage.initOwner(primaryStage);
                 errorDialogStage.setScene(scene);
 
-                errorDialogStage.show();
+                // We do not 'show' the dialog on the initial build, which was
+                // triggered through the main start() method.
+                
             } catch (Exception e) {
                 System.out.println("in buildErrorDialog(): " + e.toString());
             }

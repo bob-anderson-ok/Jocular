@@ -68,8 +68,12 @@ public class RootViewController implements Initializable {
     @FXML
     void showSampleDataDialog() {
         mainApp.buildSampleDataDialog();
-        mainApp.buildErrorDialog();
-        mainApp.errorDialogControllerInstance.showError("Just a little test");
+    }
+    
+    @FXML
+    void generateErrorMsg() {
+        System.out.println("generateErrorMsg() called");
+        mainApp.errorDialogControllerInstance.showError("So, you thought that you were getting away scott-free.  Think again.");
     }
 
     /**
