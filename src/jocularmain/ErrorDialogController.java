@@ -15,7 +15,7 @@ public class ErrorDialogController {
     private TextArea errorText;
     
     public void showError(String msg) {
-        mainApp.buildErrorDialog();
+        mainApp.showErrorDialog();
         errorText.setText(msg);
     }
 

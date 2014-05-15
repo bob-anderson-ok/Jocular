@@ -67,13 +67,13 @@ public class RootViewController implements Initializable {
 
     @FXML
     void showSampleDataDialog() {
-        mainApp.buildSampleDataDialog();
+        mainApp.showSampleDataDialog();
     }
     
     @FXML
     void generateErrorMsg() {
         System.out.println("generateErrorMsg() called");
-        mainApp.errorDialogControllerInstance.showError("So, you thought that you were getting away scott-free.  Think again.");
+        mainApp.errorDialogControllerInstance.showError("So, you thought that you were getting away scott-free.  Think again!");
     }
 
     /**

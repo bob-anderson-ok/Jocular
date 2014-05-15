@@ -23,14 +23,15 @@ import utils.SqSolution;
  */
 public class JocularMain extends Application {
 
-    public Stage primaryStage;
     public RootViewController rootViewControllerInstance;
     public ErrorDialogController errorDialogControllerInstance;
-    
-    private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
-    
     public Observation obsInMainPlot;
     public SqSolution  currentSqSolution;
+    
+    private Stage errorDialogStage;
+    private Stage sampleDataDialogStage;
+    private Stage primaryStage;
+    private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
     
     public static void main(String[] args) {
         launch(args);
@@ -65,7 +66,10 @@ public class JocularMain extends Application {
         primaryStage.titleProperty().set("Jocular 0.1");
         primaryStage.setScene(scene);
         primaryStage.show();
-        buildErrorDialog();
+        
+        // Create the dialogs that will be used
+        showErrorDialog();
+        showSampleDataDialog();
     }
 
     private void closeAllRemainingHelpScreens(WindowEvent e) {
@@ -106,10 +110,8 @@ public class JocularMain extends Application {
             System.out.println("in showHelpDialog(): " + e.toString());
         }
     }
-    
-    public Stage errorDialogStage;
-    
-    public void buildErrorDialog() {
+      
+    public void showErrorDialog() {
         if (errorDialogStage == null) {
             try {
                 URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
@@ -138,9 +140,7 @@ public class JocularMain extends Application {
         }
     }
 
-    public Stage sampleDataDialogStage;
-
-    public void buildSampleDataDialog() {
+    public void showSampleDataDialog() {
         if (sampleDataDialogStage == null) {
             try {
                 URL fxmlLocation = getClass().getResource("SampleDataDialog.fxml");
@@ -156,7 +156,8 @@ public class JocularMain extends Application {
                 sampleDataDialogStage.initOwner(primaryStage);
                 sampleDataDialogStage.setScene(scene);
 
-                sampleDataDialogStage.show();
+                // We do not 'show' the dialog on the initial build, which was
+                // triggered through the main start() method.
             } catch (Exception e) {
                 System.out.println("in buildSampleDataDialog(): " + e.toString());
             }
@@ -164,5 +165,4 @@ public class JocularMain extends Application {
             sampleDataDialogStage.show();
         }
     }
-
 }
