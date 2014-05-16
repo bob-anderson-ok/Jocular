@@ -1,5 +1,6 @@
 package jocularmain;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import javafx.application.Application;
@@ -21,25 +22,23 @@ import utils.SqSolution;
  */
 public class JocularMain extends Application {
 
-    public RootViewController rootViewControllerInstance;
-    public ErrorDialogController errorDialogControllerInstance;
     public Observation obsInMainPlot;
-    public SqSolution  currentSqSolution;
-    
-    private Stage errorDialogStage;
+    public SqSolution currentSqSolution;
+
+    private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
     private Stage primaryStage;
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
-    
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        
+
         // We save this reference because some other dialogs that we will be
-        // creating need to be able to provide a 'parent'
+        // creating need to be able to provide it as a 'parent'
         this.primaryStage = primaryStage;
 
         // We are using help screens that are 'unowned' stages. If the user left any
@@ -53,29 +52,29 @@ public class JocularMain extends Application {
         AnchorPane page = fxmlLoader.load();
         Scene scene = new Scene(page);
 
-        // Publish a reference to RootViewController
-        rootViewControllerInstance = fxmlLoader.getController();
-        
+        // Save a reference to RootViewController.  We will need to call
+        // public methods provided by RootViewController to make things
+        // happen on the main display screen.
+        rootViewController = fxmlLoader.getController();
+
         scene.getStylesheets().add(this.getClass().getResource("JocularStyleSheet.css").toExternalForm());
 
         primaryStage.titleProperty().set("Jocular 0.1");
         primaryStage.setScene(scene);
         primaryStage.show();
-        
+
         // Give view controllers a reference to JocularMain so that they
         // can invoke methods provided by this class. We give all view
         // controllers a static method that we can call to provide the
         // reference to JocularMain.
         RootViewController.setMainApp(this);
         SampleDataDialogController.setMainApp(this);
-        ErrorDialogController.setMainApp(this);
-        
-        // Create the dialogs that will be used.  This initial call does
-        // not cause them to be 'shown'.  This call is made because of an
-        // often needed side effect: the publishing of a reference to the
-        // dialog's controller instance (created by fxmlLoader()).
-        showErrorDialog();
-        showSampleDataDialog();
+
+        // Create the sample data dialog only once.  Don't display
+        // on build.  Only display when asked by a call to showSampleDataDialog()
+        // We do this so that the dialog is 'sticky' --- entries persist bewtween
+        // 'showings'.
+        buildSampleDataDialog();
     }
 
     private void closeAllRemainingHelpScreens(WindowEvent e) {
@@ -90,7 +89,7 @@ public class JocularMain extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
-            
+
             // Help dialogs are special in that we are not going to
             // give them an 'owner'.  That lets us move them around
             // the screen independently of RootView.  In particular, you
@@ -108,7 +107,6 @@ public class JocularMain extends Application {
             helpStage.initModality(Modality.NONE);
             helpStage.setResizable(true);
 
-
             WebView browser = (WebView) scene.lookup("#browser");
             WebEngine webEngine = browser.getEngine();
 
@@ -121,60 +119,61 @@ public class JocularMain extends Application {
             System.out.println("in showHelpDialog(): " + e.toString());
         }
     }
-      
-    public void showErrorDialog() {
-        if (errorDialogStage == null) {
-            try {
-                URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
-                FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
-                AnchorPane page = fxmlLoader.load();
-                Scene scene = new Scene(page);
-                
-                // Publish a reference to the view controller.
-                errorDialogControllerInstance = fxmlLoader.getController();
-                
 
-                errorDialogStage = new Stage(StageStyle.UTILITY);
-                errorDialogStage.initModality(Modality.APPLICATION_MODAL);
-                errorDialogStage.setResizable(false);
+    public void showErrorDialog(String msg) {
+        try {
+            URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
 
-                errorDialogStage.initOwner(primaryStage);
-                errorDialogStage.setScene(scene);
+            // Publish a reference to the view controller.
+            ErrorDialogController controller = fxmlLoader.getController();
+            controller.showError(msg);
 
-                // We do not 'show' the dialog on the initial build, which was
-                // triggered through the main start() method.
-                
-            } catch (Exception e) {
-                System.out.println("in buildErrorDialog(): " + e.toString());
-            }
-        } else {
-            errorDialogStage.show();
+            Stage stage = new Stage(StageStyle.UTILITY);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+
+            stage.initOwner(primaryStage);
+            stage.setScene(scene);
+
+            stage.show();
+        } catch (IOException e) {
+            System.out.println("in buildErrorDialog(): " + e.toString());
+        }
+    }
+
+    private void buildSampleDataDialog() {
+        try {
+            URL fxmlLocation = getClass().getResource("SampleDataDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+
+            Stage stage = new Stage(StageStyle.UTILITY);
+            stage.initModality(Modality.NONE);
+            stage.setResizable(false);
+
+            stage.initOwner(primaryStage);
+            stage.setScene(scene);
+
+            // We do not 'show' the dialog on the initial build.
+            // That is left to a call to showSampleDataDialog()
+            // Instead, we save a private refence to the 'stage' so
+            // that we can 'show' it when later asked by a call tp
+            // showSampleDataDialog()
+            sampleDataDialogStage = stage;
+        } catch (Exception e) {
+            System.out.println("in buildSampleDataDialog(): " + e.toString());
         }
     }
 
     public void showSampleDataDialog() {
-        if (sampleDataDialogStage == null) {
-            try {
-                URL fxmlLocation = getClass().getResource("SampleDataDialog.fxml");
-                FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
-                AnchorPane page = fxmlLoader.load();
-                Scene scene = new Scene(page);
-
-                sampleDataDialogStage = new Stage(StageStyle.UTILITY);
-                sampleDataDialogStage.initModality(Modality.NONE);
-                sampleDataDialogStage.setResizable(false);
-
-                sampleDataDialogStage.initOwner(primaryStage);
-                sampleDataDialogStage.setScene(scene);
-
-                // We do not 'show' the dialog on the initial build, which was
-                // triggered through the main start() method.
-                
-            } catch (Exception e) {
-                System.out.println("in buildSampleDataDialog(): " + e.toString());
-            }
-        } else {
-            sampleDataDialogStage.show();
-        }
+        sampleDataDialogStage.show();
+    }
+    
+    public void repaintObservationAndSolution(){
+        rootViewController.showDataWithTheoreticalLightCurve(obsInMainPlot, currentSqSolution);
     }
 }

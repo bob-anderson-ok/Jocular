@@ -24,10 +24,10 @@ import utils.SqSolution;
 public class RootViewController implements Initializable {
 
     ManagedChart smartChart;
-    private static JocularMain mainApp;
+    private static JocularMain jocularMain;
 
     public static void setMainApp(JocularMain main) {
-        mainApp = main;
+        jocularMain = main;
     }
 
     @FXML
@@ -67,20 +67,18 @@ public class RootViewController implements Initializable {
 
     @FXML
     void showSampleDataDialog() {
-        mainApp.showSampleDataDialog();
+        jocularMain.showSampleDataDialog();
     }
     
     @FXML
     void generateErrorMsg() {
-        System.out.println("generateErrorMsg() called");
-        mainApp.errorDialogControllerInstance.showError("So, you thought that you were getting away scott-free.  Think again!");
+        jocularMain.showErrorDialog("So, you thought that you were getting away scott-free.  Think again!");
     }
 
     /**
      * a node which displays a value on hover, but is otherwise empty
      */
     class HoveredNode extends StackPane {
-
         HoveredNode(int readingNumber, double intensity) {
             setOnMouseEntered(e -> outputLabel.setText(String.format("RdgNbr %d Intensity %.2f", readingNumber, intensity)));
             setOnMouseExited(e -> outputLabel.setText(""));
@@ -95,11 +93,11 @@ public class RootViewController implements Initializable {
     @FXML
     public void applyTrims() {
 
-        if (mainApp.obsInMainPlot == null) {
+        if (jocularMain.obsInMainPlot == null) {
             return;
         }
 
-        int maxRightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+        int maxRightTrim = jocularMain.obsInMainPlot.lengthOfDataColumns - 1;
         int minLeftTrim = 0;
 
         int leftTrim;
@@ -135,27 +133,27 @@ public class RootViewController implements Initializable {
             rightTrim = temp;
         }
 
-        mainApp.obsInMainPlot.setLeftTrimPoint(leftTrim);
-        mainApp.obsInMainPlot.setRightTrimPoint(rightTrim);
-        showDataWithTheoreticalLightCurve(mainApp.obsInMainPlot, mainApp.currentSqSolution);
+        jocularMain.obsInMainPlot.setLeftTrimPoint(leftTrim);
+        jocularMain.obsInMainPlot.setRightTrimPoint(rightTrim);
+        showDataWithTheoreticalLightCurve(jocularMain.obsInMainPlot, jocularMain.currentSqSolution);
     }
 
     @FXML
     void undoTrims() {
-        if (mainApp.obsInMainPlot == null) {
+        if (jocularMain.obsInMainPlot == null) {
             return;
         }
 
-        int maxRightTrim = mainApp.obsInMainPlot.lengthOfDataColumns - 1;
+        int maxRightTrim = jocularMain.obsInMainPlot.lengthOfDataColumns - 1;
         int minLeftTrim = 0;
         
-        mainApp.obsInMainPlot.setLeftTrimPoint(minLeftTrim);
-        mainApp.obsInMainPlot.setRightTrimPoint(maxRightTrim);
-        showDataWithTheoreticalLightCurve(mainApp.obsInMainPlot, mainApp.currentSqSolution);
+        jocularMain.obsInMainPlot.setLeftTrimPoint(minLeftTrim);
+        jocularMain.obsInMainPlot.setRightTrimPoint(maxRightTrim);
+        showDataWithTheoreticalLightCurve(jocularMain.obsInMainPlot, jocularMain.currentSqSolution);
     }
 
     private boolean inRange(int index) {
-        return (index >= 0) && (index < mainApp.obsInMainPlot.lengthOfDataColumns);
+        return (index >= 0) && (index < jocularMain.obsInMainPlot.lengthOfDataColumns);
     }
 
     public void showDataWithTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
@@ -234,12 +232,12 @@ public class RootViewController implements Initializable {
 
     @FXML
     void displayChartZoomPanMarkHelp() {
-        mainApp.showHelpDialog("Help/chart.help.html");
+        jocularMain.showHelpDialog("Help/chart.help.html");
     }
 
     @FXML
     void displayMarkerSelectionHelp() {
-        mainApp.showHelpDialog("Help/marker.help.html");
+        jocularMain.showHelpDialog("Help/marker.help.html");
     }
 
     private String markerSelectedName = "none";

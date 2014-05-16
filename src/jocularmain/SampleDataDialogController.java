@@ -12,10 +12,10 @@ import utils.SqSolution;
 
 public class SampleDataDialogController {
 
-    private static JocularMain mainApp;
+    private static JocularMain jocularMain;
 
     public static void setMainApp(JocularMain main) {
-        mainApp = main;
+        jocularMain = main;
     }
 
     @FXML
@@ -51,7 +51,7 @@ public class SampleDataDialogController {
     
     @FXML
     void showRandGenSeedHelp() {
-        mainApp.showHelpDialog("Help/randgenseed.help.html");
+        jocularMain.showHelpDialog("Help/randgenseed.help.html");
     }
 
     private void checkParametersAndDisplayIfValid() {
@@ -69,10 +69,9 @@ public class SampleDataDialogController {
                 sampleSolution.D = dTime;
                 sampleSolution.R = rTime;
                 
-                mainApp.obsInMainPlot = sampleObs;
-                mainApp.currentSqSolution = sampleSolution;
-                
-                mainApp.rootViewControllerInstance.showDataWithTheoreticalLightCurve(sampleObs, sampleSolution);
+                jocularMain.obsInMainPlot = sampleObs;
+                jocularMain.currentSqSolution = sampleSolution;
+                jocularMain.repaintObservationAndSolution();
                 
             } catch (NumberFormatException e) {
                 errorLabel.setText("Error creating artificial data: " + e.getMessage());
