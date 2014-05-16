@@ -88,6 +88,11 @@ public class RootViewController implements Initializable {
     @FXML
     public void computeCandidates() {
         System.out.println("computeCandidates() called.");
+        try {
+        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        } catch(IllegalArgumentException e) {
+            
+        }
     }
 
     @FXML
@@ -108,7 +113,7 @@ public class RootViewController implements Initializable {
             leftTrim = minLeftTrim;
         }
 
-        if (!inRange(leftTrim)) {
+        if (!jocularMain.inRange(leftTrim)) {
             leftTrim = minLeftTrim;
         }
 
@@ -120,7 +125,7 @@ public class RootViewController implements Initializable {
             rightTrim = maxRightTrim;
         }
 
-        if (!inRange(rightTrim)) {
+        if (!jocularMain.inRange(rightTrim)) {
             rightTrim = maxRightTrim;
         }
 
@@ -150,10 +155,6 @@ public class RootViewController implements Initializable {
         jocularMain.obsInMainPlot.setLeftTrimPoint(minLeftTrim);
         jocularMain.obsInMainPlot.setRightTrimPoint(maxRightTrim);
         showDataWithTheoreticalLightCurve(jocularMain.obsInMainPlot, jocularMain.currentSqSolution);
-    }
-
-    private boolean inRange(int index) {
-        return (index >= 0) && (index < jocularMain.obsInMainPlot.lengthOfDataColumns);
     }
 
     public void showDataWithTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
@@ -421,12 +422,17 @@ public class RootViewController implements Initializable {
 
     }
 
+    private XYChartMarker dLeftMarker;
+    private XYChartMarker dRightMarker;
+    private XYChartMarker rLeftMarker;
+    private XYChartMarker rRightMarker;
+    
     void createAndAddNamedVerticalMarkers() {
         XYChartMarker trimLeftMarker = new XYChartMarker("trimLeft", smartChart).setColor(Color.BLUE).setWidth(2);
-        XYChartMarker dLeftMarker = new XYChartMarker("dLeft", smartChart).setColor(Color.RED).setWidth(2);
-        XYChartMarker dRightMarker = new XYChartMarker("dRight", smartChart).setColor(Color.RED).setWidth(2);
-        XYChartMarker rLeftMarker = new XYChartMarker("rLeft", smartChart).setColor(Color.GREEN).setWidth(2);
-        XYChartMarker rRightMarker = new XYChartMarker("rRight", smartChart).setColor(Color.GREEN).setWidth(2);
+        dLeftMarker = new XYChartMarker("dLeft", smartChart).setColor(Color.RED).setWidth(2);
+        dRightMarker = new XYChartMarker("dRight", smartChart).setColor(Color.RED).setWidth(2);
+        rLeftMarker = new XYChartMarker("rLeft", smartChart).setColor(Color.GREEN).setWidth(2);
+        rRightMarker = new XYChartMarker("rRight", smartChart).setColor(Color.GREEN).setWidth(2);
         XYChartMarker trimRightMarker = new XYChartMarker("trimRight", smartChart).setColor(Color.BLUE).setWidth(2);
 
         smartChart.addMarker(trimLeftMarker);

@@ -176,4 +176,26 @@ public class JocularMain extends Application {
     public void repaintObservationAndSolution(){
         rootViewController.showDataWithTheoreticalLightCurve(obsInMainPlot, currentSqSolution);
     }
+    
+    public boolean inRange(int index) {
+        return (index >= 0) && (index < obsInMainPlot.lengthOfDataColumns);
+    }
+    
+    /**
+     * 
+     * @return
+     * the first readingNumber to the right of the trimmed observation.
+     */
+    public int getOutOfRangeOfObsOnTheRight() {
+        return obsInMainPlot.readingNumbers[obsInMainPlot.readingNumbers.length-1] + 1;
+    }
+    
+    /**
+     * 
+     * @return 
+     * the first readingNumber to the left of the trimmed observation.
+     */
+    public int getOutOfRangeOfObsOnTheLeft() {
+        return obsInMainPlot.readingNumbers[0] - 1;
+    }
 }
