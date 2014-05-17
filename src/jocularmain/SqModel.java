@@ -55,23 +55,18 @@ public class SqModel {
         calculateBandA();
         calculateSigmas();
         double logLbaseline = calcBaselineLogL();
-        //System.out.println("logLbaseline=" + logLbaseline);
 
         double logLevent = calcEventLogL();
-        //System.out.println("logLevent=" + logLevent);
 
         TransitionData dTranData = calcDtranLogL();
         dSolution = dTranData.position;
         double logLdTran = dTranData.logLcontribution;
-        //System.out.println("logLdTran=" + logLdTran);
         
         TransitionData rTranData = calcRtranLogL();
         rSolution = rTranData.position;
         double logLrTran = rTranData.logLcontribution;
-        //System.out.println("logLrTran=" + logLrTran);
 
         double sumLogL = logLevent + logLbaseline + logLdTran + logLrTran;
-        //System.out.println("sumLogL=" + sumLogL);
         
         return sumLogL;
     }
@@ -144,7 +139,7 @@ public class SqModel {
             return ans;
         }
 
-        double obsValue = obs.obsData[rTranIndex];
+        double obsValue = obs.obsData[rTranIndex - obs.readingNumbers[0]];
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
@@ -233,12 +228,12 @@ public class SqModel {
         int bPtr = 0;
         int ePtr = 0;
 
-        for (int i = 0; i < obs.lengthOfDataColumns; i++) {
-            if (i < dTranIndex) {
+        for (int i = 0; i < obs.obsData.length; i++) {
+            if (obs.readingNumbers[i] < dTranIndex) {
                 baselinePoints[bPtr++] = obs.obsData[i];
-            } else if (i > dTranIndex && i < rTranIndex) {
+            } else if (obs.readingNumbers[i] > dTranIndex && obs.readingNumbers[i] < rTranIndex) {
                 eventPoints[ePtr++] = obs.obsData[i];
-            } else if (i > rTranIndex) {
+            } else if (obs.readingNumbers[i] > rTranIndex) {
                 baselinePoints[bPtr++] = obs.obsData[i];
             }
         }
@@ -260,12 +255,12 @@ public class SqModel {
         } else if (inRange(rTranIndex)) {
             numEventPoints = rTranIndex;
         } else if (inRange(dTranIndex)) {
-            numEventPoints = obs.lengthOfDataColumns - dTranIndex - 1;
+            numEventPoints = obs.obsData.length - dTranIndex - 1;
         } else {
             throw new IllegalArgumentException("In SqModel: both transition indices are out of range -- there is no event");
         }
 
-        numBaselinePoints = obs.lengthOfDataColumns - numEventPoints;
+        numBaselinePoints = obs.obsData.length - numEventPoints;
         if (inRange(dTranIndex)) {
             numBaselinePoints--;
         }
@@ -275,10 +270,10 @@ public class SqModel {
     }
 
     private boolean inRange(int index) {
-        if (index < 0) {
+        if (index < obs.readingNumbers[0]) {
             return false;
         } else {
-            return index < obs.lengthOfDataColumns;
+            return index <= obs.readingNumbers[obs.readingNumbers.length-1];
         }
     }
 

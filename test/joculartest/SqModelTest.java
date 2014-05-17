@@ -51,6 +51,44 @@ public class SqModelTest {
         assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
         assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(4);
     }
+    
+    @Test
+    public void sqmodel_shouldCountEventAndBaselinePoints_whenDandRinrangeAndTrimmedLeft() {
+
+        specialObservation.setLeftTrimPoint(1);
+        SqModel sqmodel = new SqModel(specialObservation);
+
+        sqmodel.setDtransition(2).setRtransition(5).calcLogL();
+
+        assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
+        assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(3);
+    }
+    
+    @Test
+    public void sqmodel_shouldCalculateBandA_whenDandRinrangeAndTrimmedLeft() {
+
+        specialObservation.setLeftTrimPoint(1);
+        SqModel sqmodel = new SqModel(specialObservation);
+
+        sqmodel.setDtransition(2).setRtransition(5).calcLogL();
+
+        assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
+        assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(3);
+        assertThat(sqmodel.getB()).isEqualTo(10.0);
+        assertThat(sqmodel.getA()).isEqualTo(2.0);
+    }
+    
+    @Test
+    public void sqmodel_shouldCountEventAndBaselinePoints_whenDandRinrangeAndTrimmedRight() {
+
+        specialObservation.setRightTrimPoint(6);
+        SqModel sqmodel = new SqModel(specialObservation);
+
+        sqmodel.setDtransition(2).setRtransition(5).calcLogL();
+
+        assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
+        assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(3);
+    }
 
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDonEdgeRinrange() {

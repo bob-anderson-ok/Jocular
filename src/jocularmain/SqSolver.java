@@ -147,6 +147,7 @@ public class SqSolver {
 }
 
 class LogLcomparator implements Comparator<SqSolution> {
+    @Override
     public int compare(SqSolution one, SqSolution two) {
         // sort is largest to smallest
         return Double.compare(two.logL, one.logL);
