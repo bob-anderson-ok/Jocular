@@ -69,8 +69,8 @@ public class SampleDataDialogController {
                 sampleSolution.D = dTime;
                 sampleSolution.R = rTime;
                 
-                jocularMain.obsInMainPlot = sampleObs;
-                jocularMain.currentSqSolution = sampleSolution;
+                jocularMain.setCurrentObservation( sampleObs);
+                jocularMain.setCurrentSolution(sampleSolution);
                 jocularMain.repaintObservationAndSolution();
                 
             } catch (NumberFormatException e) {

@@ -305,5 +305,13 @@ public class SqModel {
     public double getSigmaA() {
         return sigmaA;
     }
+    
+    public double getB() {
+        return B;
+    }
+    
+    public double getA(){
+        return A;
+    }
 
 }

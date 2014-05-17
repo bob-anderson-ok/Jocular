@@ -1,12 +1,18 @@
 package jocularmain;
 
-import utils.Observation;
+import java.util.ArrayList;
+import java.util.List;
+import utils.SqSolution;
 
 public class SqSolver {
 
-    private int[] dTranCandidates;
-    private int[] rTranCandidates;
+    public static int[] dTranCandidates;  // made public to simplify testing
+    public static int[] rTranCandidates;  // made public to simplify testing
 
+    /* dLeft, dRight, rLeft, and rRight are made public to make it easier to
+     * test the class.
+     */
+    
     //private Observation obs;
     /**
      * is the left limit (inclusive) of candidate d transition indices.
@@ -43,7 +49,7 @@ public class SqSolver {
      */
     public static int rRight;
 
-    static public void computeCandidates(JocularMain jocularMain,
+    static public List<SqSolution> computeCandidates(JocularMain jocularMain,
                                          XYChartMarker dLeftMarker,
                                          XYChartMarker dRightMarker,
                                          XYChartMarker rLeftMarker,
@@ -71,28 +77,66 @@ public class SqSolver {
         } else {
             rRight = jocularMain.getOutOfRangeOfObsOnTheRight();
         }
-        
-        if ( dRight < dLeft) {
+
+        if (dRight < dLeft) {
             String errMsg = "D limits reversed: dLeft=" + dLeft + "  dRight=" + dRight;
             jocularMain.showErrorDialog(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
-        
-        if ( rRight < rLeft) {
+
+        if (rRight < rLeft) {
             String errMsg = "R limits reversed: rLeft=" + rLeft + "  rRight=" + rRight;
             jocularMain.showErrorDialog(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
-        
-        if ( dRight >= rLeft) {
+
+        if (dRight >= rLeft) {
             String errMsg = "R limits overlap D limits: dRight=" + dRight + "  rLeft=" + rLeft;
             jocularMain.showErrorDialog(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
+
+        System.out.println("dLeft: " + dLeft + "  dRight: " + dRight
+            + "  rLeft: " + rLeft + "  rRight: " + rRight);
+
+        dTranCandidates = new int[dRight - dLeft + 1];
+        rTranCandidates = new int[rRight - rLeft + 1];
+
+        for (int i = dLeft; i <= dRight; i++) {
+            dTranCandidates[i - dLeft] = i;
+        }
+
+        for (int i = rLeft; i <= rRight; i++) {
+            rTranCandidates[i - rLeft] = i;
+        }
         
-        System.out.println("dLeft: " + dLeft + "  dRight: " + dRight +
-            "  rLeft: " + rLeft + "  rRight: " + rRight);
-
+        List<SqSolution> sqsolutions = new ArrayList<>();
+        
+        SqModel sqmodel = new SqModel(jocularMain.getCurrentObservation());
+        
+        for (int i = 0; i < dTranCandidates.length; i++) {
+            for (int j=0; j<rTranCandidates.length;j++) {
+                
+                SqSolution newSolution = new SqSolution();
+                newSolution.dTransitionIndex = dTranCandidates[i];
+                newSolution.rTransitionIndex = rTranCandidates[j];
+                
+                newSolution.logL = sqmodel
+                    .setDtransition(newSolution.dTransitionIndex)
+                    .setRtransition(newSolution.rTransitionIndex)
+                    .calcLogL();
+                
+                newSolution.D = sqmodel.getDsolution();
+                newSolution.R = sqmodel.getRsolution();
+                newSolution.B = sqmodel.getB();
+                newSolution.A = sqmodel.getA();
+                newSolution.sigmaB = sqmodel.getSigmaB();
+                newSolution.sigmaA = sqmodel.getSigmaA();
+                
+                sqsolutions.add(newSolution);
+            }
+        }
+        
+        return sqsolutions;     
     }
-
 }

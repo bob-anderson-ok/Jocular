@@ -22,8 +22,8 @@ import utils.SqSolution;
  */
 public class JocularMain extends Application {
 
-    public Observation obsInMainPlot;
-    public SqSolution currentSqSolution;
+    private Observation obsInMainPlot;
+    private SqSolution currentSqSolution;
 
     private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
@@ -197,5 +197,21 @@ public class JocularMain extends Application {
      */
     public int getOutOfRangeOfObsOnTheLeft() {
         return obsInMainPlot.readingNumbers[0] - 1;
+    }
+    
+    public Observation getCurrentObservation() {
+        return obsInMainPlot;
+    }
+    
+    public void setCurrentObservation(Observation newObs) {
+        obsInMainPlot = newObs;
+    }
+    
+    public SqSolution getCurrentSolution() {
+        return currentSqSolution;
+    }
+    
+    public void setCurrentSolution( SqSolution newSolution) {
+        currentSqSolution = newSolution;
     }
 }

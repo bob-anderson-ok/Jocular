@@ -98,11 +98,11 @@ public class RootViewController implements Initializable {
     @FXML
     public void applyTrims() {
 
-        if (jocularMain.obsInMainPlot == null) {
+        if (jocularMain.getCurrentObservation() == null) {
             return;
         }
 
-        int maxRightTrim = jocularMain.obsInMainPlot.lengthOfDataColumns - 1;
+        int maxRightTrim = jocularMain.getCurrentObservation().lengthOfDataColumns - 1;
         int minLeftTrim = 0;
 
         int leftTrim;
@@ -138,23 +138,23 @@ public class RootViewController implements Initializable {
             rightTrim = temp;
         }
 
-        jocularMain.obsInMainPlot.setLeftTrimPoint(leftTrim);
-        jocularMain.obsInMainPlot.setRightTrimPoint(rightTrim);
-        showDataWithTheoreticalLightCurve(jocularMain.obsInMainPlot, jocularMain.currentSqSolution);
+        jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
+        jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
+        showDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
     }
 
     @FXML
     void undoTrims() {
-        if (jocularMain.obsInMainPlot == null) {
+        if (jocularMain.getCurrentObservation() == null) {
             return;
         }
 
-        int maxRightTrim = jocularMain.obsInMainPlot.lengthOfDataColumns - 1;
+        int maxRightTrim = jocularMain.getCurrentObservation().lengthOfDataColumns - 1;
         int minLeftTrim = 0;
         
-        jocularMain.obsInMainPlot.setLeftTrimPoint(minLeftTrim);
-        jocularMain.obsInMainPlot.setRightTrimPoint(maxRightTrim);
-        showDataWithTheoreticalLightCurve(jocularMain.obsInMainPlot, jocularMain.currentSqSolution);
+        jocularMain.getCurrentObservation().setLeftTrimPoint(minLeftTrim);
+        jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
+        showDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
     }
 
     public void showDataWithTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
