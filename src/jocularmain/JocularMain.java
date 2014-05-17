@@ -214,4 +214,8 @@ public class JocularMain extends Application {
     public void setCurrentSolution( SqSolution newSolution) {
         currentSqSolution = newSolution;
     }
+    
+    public void addSolutionPlotToCurrentObs(SqSolution solution) {
+        rootViewController.addSolutionCurve(obsInMainPlot, solution);
+    }
 }

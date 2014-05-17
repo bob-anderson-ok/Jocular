@@ -14,8 +14,8 @@ public class SqSolution {
 
     @Override
     public String toString() {
-        return "SqSolution: [" + dTransitionIndex + "," + rTransitionIndex
-            + "]  logL=" + logL + " D=" + D + " R=" + R + " B=" + B + " A=" + A
-            + " sigmaB=" + sigmaB + " sigmaA=" + sigmaA;
+        String tidy = String.format("SqSolution: [%d,%d] logL=%.2f D=%.2f R=%.2f B=%.2f A=%.2f sigmaB=%.2f sigmaA=%.2f", 
+                                    dTransitionIndex, rTransitionIndex, logL, D, R, B, A, sigmaB, sigmaA);
+        return tidy;
     }
 }

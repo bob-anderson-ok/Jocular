@@ -181,6 +181,10 @@ public class RootViewController implements Initializable {
         // Add the theoretical light curve line plot --- no symbols at the data points
         chart.getData().add(getTheoreticalLightCurve(sampleData, solution));
     }
+    
+    public void addSolutionCurve(Observation obs, SqSolution solution) {
+        chart.getData().add(getTheoreticalLightCurve(obs, solution));
+    }
 
     private XYChart.Series<Number, Number> getTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
         XYChart.Series<Number, Number> series = new XYChart.Series<Number, Number>();

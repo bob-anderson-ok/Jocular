@@ -1,6 +1,8 @@
 package jocularmain;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import utils.SqSolution;
 
@@ -137,6 +139,17 @@ public class SqSolver {
             }
         }
         
+        LogLcomparator logLcomparator = new LogLcomparator();
+        Collections.sort(sqsolutions, logLcomparator);
+        jocularMain.addSolutionPlotToCurrentObs(sqsolutions.get(0));
         return sqsolutions;     
     }
+}
+
+class LogLcomparator implements Comparator<SqSolution> {
+    public int compare(SqSolution one, SqSolution two) {
+        // sort is largest to smallest
+        return Double.compare(two.logL, one.logL);
+    }
+    
 }
