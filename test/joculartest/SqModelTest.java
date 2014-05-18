@@ -39,6 +39,12 @@ public class SqModelTest {
         specialObservation.obsData[5] = 6.0;
         specialObservation.obsData[6] = 11.0;
         specialObservation.obsData[7] = 9.0;
+
+        // We copy the obsData to columnData so that 'trim' operations
+        // will work properly.
+        for (int i = 0; i < specialObservation.obsData.length; i++) {
+            specialObservation.columnData[0][i] = specialObservation.obsData[i];
+        }
     }
 
     @Test
@@ -51,7 +57,7 @@ public class SqModelTest {
         assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
         assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(4);
     }
-    
+
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDandRinrangeAndTrimmedLeft() {
 
@@ -63,7 +69,7 @@ public class SqModelTest {
         assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
         assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(3);
     }
-    
+
     @Test
     public void sqmodel_shouldCalculateBandA_whenDandRinrangeAndTrimmedLeft() {
 
@@ -74,10 +80,10 @@ public class SqModelTest {
 
         assertThat(sqmodel.getNumEventPoints()).isEqualTo(2);
         assertThat(sqmodel.getNumBaselinePoints()).isEqualTo(3);
-        assertThat(sqmodel.getB()).isEqualTo(10.0);
+        assertThat(sqmodel.getB()).isEqualTo(29.0/3);
         assertThat(sqmodel.getA()).isEqualTo(2.0);
     }
-    
+
     @Test
     public void sqmodel_shouldCountEventAndBaselinePoints_whenDandRinrangeAndTrimmedRight() {
 
@@ -142,68 +148,88 @@ public class SqModelTest {
 
         // This test is only possible because of the use of 'canned'
         // known data values in specialObservation.
-        
-        assertThat(sqmodel.getSigmaB()).isEqualTo(Math.sqrt(4.0/3));
+        assertThat(sqmodel.getSigmaB()).isEqualTo(Math.sqrt(4.0 / 3));
         assertThat(sqmodel.getSigmaA()).isEqualTo(Math.sqrt(2.0));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void sqmodel_shouldThrowException_whenBothTransitionsAreOutOfRange() {
+    @Test
+    public void sqmodel_shouldRetrunNaN_whenBothTransitionsAreOutOfRange() {
         SqModel sqmodel = new SqModel(specialObservation);
 
-        sqmodel.setDtransition(-2).setRtransition(50).calcLogL();
+        double logL = sqmodel.setDtransition(-2).setRtransition(50).calcLogL();
+        
+        assertThat(logL).isEqualTo(Double.NaN);
     }
 
     @Test
     public void sqmodelCalcLogL_shouldGiveCorrectSubframeResults() {
-    
+
         specialObservation.obsData[2] = 7.0;
         specialObservation.obsData[5] = 7.0;
-        SqModel sqmodel = new SqModel( specialObservation );
-        
+        SqModel sqmodel = new SqModel(specialObservation);
+
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
-        
-//        System.out.println("dSolution=" + sqmodel.getDsolution());
-//        System.out.println("rSolution=" + sqmodel.getRsolution());
-//        System.out.println("logLcalculated=" + logLcalculated);
-        
-        assertThat(logLcalculated).isEqualTo(-11.069532766246901,offset(1e-7));
+
+        System.out.println("dSolution=" + sqmodel.getDsolution());
+        System.out.println("rSolution=" + sqmodel.getRsolution());
+        System.out.println("logLcalculated=" + logLcalculated);
+
+        assertThat(logLcalculated).isEqualTo(-11.069532766246901, offset(1e-7));
         assertThat(sqmodel.getDsolution()).isEqualTo(1.625);
         assertThat(sqmodel.getRsolution()).isEqualTo(4.375);
     }
-    
+
+    @Test
+    public void sqmodelCalcLogL_shouldGiveCorrectSubframeResults_whenTrimmed() {
+
+        specialObservation.obsData[2] = 7.0;
+        specialObservation.obsData[5] = 7.0;
+        SqModel sqmodel = new SqModel(specialObservation);
+
+        specialObservation.setLeftTrimPoint(1);
+        specialObservation.setRightTrimPoint(6);
+
+        double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
+
+        System.out.println("dSolution=" + sqmodel.getDsolution());
+        System.out.println("rSolution=" + sqmodel.getRsolution());
+        System.out.println("logLcalculated=" + logLcalculated);
+
+        assertThat(logLcalculated).isEqualTo(-8.593072740907873, offset(1e-7));
+        assertThat(sqmodel.getDsolution()).isEqualTo(1.5);
+        assertThat(sqmodel.getRsolution()).isEqualTo(4.5);
+    }
+
     @Test
     public void sqmodelCalcLogL_shouldGiveCorrectIntegerResults_givenMcloseToB() {
-    
+
         specialObservation.obsData[2] = 9.0;
         specialObservation.obsData[5] = 9.0;
-        SqModel sqmodel = new SqModel( specialObservation );
-        
+        SqModel sqmodel = new SqModel(specialObservation);
+
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
-        
+
 //        System.out.println("dSolution=" + sqmodel.getDsolution());
 //        System.out.println("rSolution=" + sqmodel.getRsolution());
 //        System.out.println("logLcalculated=" + logLcalculated);
-        
-        assertThat(logLcalculated).isEqualTo(-11.657701663552672,offset(1e-7));
+        assertThat(logLcalculated).isEqualTo(-11.657701663552672, offset(1e-7));
         assertThat(sqmodel.getDsolution()).isEqualTo(2.0);
         assertThat(sqmodel.getRsolution()).isEqualTo(4.0);
     }
-    
+
     @Test
     public void sqmodelCalcLogL_shouldGiveCorrectIntegerResults_givenMcloseToA() {
-    
+
         specialObservation.obsData[2] = 3.0;
         specialObservation.obsData[5] = 3.0;
-        SqModel sqmodel = new SqModel( specialObservation );
-        
+        SqModel sqmodel = new SqModel(specialObservation);
+
         double logLcalculated = sqmodel.setDtransition(2).setRtransition(5).calcLogL();
-        
+
 //        System.out.println("dSolution=" + sqmodel.getDsolution());
 //        System.out.println("rSolution=" + sqmodel.getRsolution());
 //        System.out.println("logLcalculated=" + logLcalculated);
-        
-        assertThat(logLcalculated).isEqualTo(-11.813166771660836,offset(1e-7));
+        assertThat(logLcalculated).isEqualTo(-11.813166771660836, offset(1e-7));
         assertThat(sqmodel.getDsolution()).isEqualTo(1.0);
         assertThat(sqmodel.getRsolution()).isEqualTo(5.0);
     }

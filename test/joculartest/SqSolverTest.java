@@ -111,6 +111,20 @@ public class SqSolverTest {
     }
     
     @Test
+    public void computeCandidates_getsDandRlimitsRight_whenRrightAndDleftNotInUse() {
+        
+        when (rRightMarker.isInUse()).thenReturn(false);
+        when (dLeftMarker.isInUse()).thenReturn(false);
+        
+        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        
+        assertThat(SqSolver.dLeft).isEqualTo(5);
+        assertThat(SqSolver.dRight).isEqualTo(15);
+        assertThat(SqSolver.rLeft).isEqualTo(71);
+        assertThat(SqSolver.rRight).isEqualTo(150);
+    }
+    
+    @Test
     public void computeCandidates_getsDandRlimitsRight_whenNoMarkersInUse() {
         
         when (dLeftMarker.isInUse()).thenReturn(false);

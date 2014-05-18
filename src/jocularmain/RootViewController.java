@@ -1,14 +1,19 @@
 package jocularmain;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 import java.util.ResourceBundle;
 import javafx.animation.AnimationTimer;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseButton;
@@ -18,7 +23,6 @@ import javafx.scene.paint.Color;
 import org.gillius.jfxutils.chart.ManagedChart;
 import org.gillius.jfxutils.chart.StableTicksAxis;
 import utils.Observation;
-import utils.SampleDataGenerator;
 import utils.SqSolution;
 
 public class RootViewController implements Initializable {
@@ -61,6 +65,9 @@ public class RootViewController implements Initializable {
     ToggleButton hideToggleButton;
 
     @FXML
+    ListView solutionList;
+
+    @FXML
     void respondToRightButtonClick() {
         revertToOriginalAxisScaling();
     }
@@ -69,7 +76,7 @@ public class RootViewController implements Initializable {
     void showSampleDataDialog() {
         jocularMain.showSampleDataDialog();
     }
-    
+
     @FXML
     void generateErrorMsg() {
         jocularMain.showErrorDialog("So, you thought that you were getting away scott-free.  Think again!");
@@ -79,6 +86,7 @@ public class RootViewController implements Initializable {
      * a node which displays a value on hover, but is otherwise empty
      */
     class HoveredNode extends StackPane {
+
         HoveredNode(int readingNumber, double intensity) {
             setOnMouseEntered(e -> outputLabel.setText(String.format("RdgNbr %d Intensity %.2f", readingNumber, intensity)));
             setOnMouseExited(e -> outputLabel.setText(""));
@@ -87,12 +95,23 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void computeCandidates() {
-        System.out.println("computeCandidates() called.");
         try {
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-        } catch(IllegalArgumentException e) {
+            List<SqSolution> solutions = SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            ObservableList<String> items = FXCollections.observableArrayList();
+            for (SqSolution solution: solutions) {
+               items.add(solution.toString());
+            }
             
+            solutionList.setItems(items);
+        } catch (IllegalArgumentException e) {
+            //jocularMain.showErrorDialog(e.getMessage());
         }
+    }
+    
+    public void clearSolutionList() {
+        ObservableList<String> items = FXCollections.observableArrayList();
+        items.add( "");
+        solutionList.setItems(items);
     }
 
     @FXML
@@ -151,7 +170,7 @@ public class RootViewController implements Initializable {
 
         int maxRightTrim = jocularMain.getCurrentObservation().lengthOfDataColumns - 1;
         int minLeftTrim = 0;
-        
+
         jocularMain.getCurrentObservation().setLeftTrimPoint(minLeftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
         showDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
@@ -181,7 +200,7 @@ public class RootViewController implements Initializable {
         // Add the theoretical light curve line plot --- no symbols at the data points
         chart.getData().add(getTheoreticalLightCurve(sampleData, solution));
     }
-    
+
     public void addSolutionCurve(Observation obs, SqSolution solution) {
         chart.getData().add(getTheoreticalLightCurve(obs, solution));
     }
@@ -365,10 +384,16 @@ public class RootViewController implements Initializable {
 
             switch (markerSelectedName) {
                 case "trimLeft":
-                    markerRBdLeft.setSelected(true);
-                    markerRBdLeft.requestFocus();
-                    markerSelectedName = "dLeft";
+                    markerRBtrimRight.setSelected(true);
+                    markerRBtrimRight.requestFocus();
+                    markerSelectedName = "trimRight";
                     break;
+                case "trimRight":
+                    markerRBnone.setSelected(true);
+                    markerRBnone.requestFocus();
+                    markerSelectedName = "none";
+                    break;
+                    
                 case "dLeft":
                     markerRBdRight.setSelected(true);
                     markerRBdRight.requestFocus();
@@ -385,11 +410,6 @@ public class RootViewController implements Initializable {
                     markerSelectedName = "rRight";
                     break;
                 case "rRight":
-                    markerRBtrimRight.setSelected(true);
-                    markerRBtrimRight.requestFocus();
-                    markerSelectedName = "trimRight";
-                    break;
-                case "trimRight":
                     markerRBnone.setSelected(true);
                     markerRBnone.requestFocus();
                     markerSelectedName = "none";
@@ -430,7 +450,7 @@ public class RootViewController implements Initializable {
     private XYChartMarker dRightMarker;
     private XYChartMarker rLeftMarker;
     private XYChartMarker rRightMarker;
-    
+
     void createAndAddNamedVerticalMarkers() {
         XYChartMarker trimLeftMarker = new XYChartMarker("trimLeft", smartChart).setColor(Color.BLUE).setWidth(2);
         dLeftMarker = new XYChartMarker("dLeft", smartChart).setColor(Color.RED).setWidth(2);

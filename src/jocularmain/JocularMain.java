@@ -218,4 +218,8 @@ public class JocularMain extends Application {
     public void addSolutionPlotToCurrentObs(SqSolution solution) {
         rootViewController.addSolutionCurve(obsInMainPlot, solution);
     }
+    
+    public void clearSolutionList() {
+        rootViewController.clearSolutionList();
+    }
 }

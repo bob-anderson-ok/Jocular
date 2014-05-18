@@ -51,11 +51,20 @@ public class SqModel {
     public double calcLogL() {
         resetCalculation();
         calculateNumberOfEventAndBaselinePoints();
+        
+        // The calculation of logL cannot be done when there are
+        // insufficient baseline or event points to permit the
+        // computation of sigmaA and sigmaB.  We return NaN and let
+        // the caller test for this.
+        if (numBaselinePoints < 2 || numEventPoints < 2) {
+            return Double.NaN;
+        }
+        
         generateBaselineAndEventArrays();
         calculateBandA();
         calculateSigmas();
+        
         double logLbaseline = calcBaselineLogL();
-
         double logLevent = calcEventLogL();
 
         TransitionData dTranData = calcDtranLogL();
@@ -94,7 +103,7 @@ public class SqModel {
             return ans;
         }
 
-        double obsValue = obs.obsData[dTranIndex];
+        double obsValue = obs.obsData[dTranIndex - obs.readingNumbers[0]];
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
@@ -257,7 +266,8 @@ public class SqModel {
         } else if (inRange(dTranIndex)) {
             numEventPoints = obs.obsData.length - dTranIndex - 1;
         } else {
-            throw new IllegalArgumentException("In SqModel: both transition indices are out of range -- there is no event");
+            //throw new IllegalArgumentException("In SqModel: both transition indices are out of range -- there is no event");
+            numEventPoints = 0;
         }
 
         numBaselinePoints = obs.obsData.length - numEventPoints;
