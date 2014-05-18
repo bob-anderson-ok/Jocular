@@ -51,6 +51,7 @@ public class SqSolver {
     public static int rRight;
 
     static public List<SqSolution> computeCandidates(JocularMain jocularMain,
+                                                     SolutionStats solutionStats,
                                                      XYChartMarker dLeftMarker,
                                                      XYChartMarker dRightMarker,
                                                      XYChartMarker rLeftMarker,
@@ -64,7 +65,7 @@ public class SqSolver {
             jocularMain.showErrorDialog(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
-        
+
         if (rLeftMarker.isInUse() != rRightMarker.isInUse()) {
             String errMsg = "R marker usage must be paired";
             jocularMain.showErrorDialog(errMsg);
@@ -80,14 +81,14 @@ public class SqSolver {
 
         if (dRightMarker.isInUse()) {
             dRight = (int) Math.floor(dRightMarker.getXValue());
-            dRight = Math.max(dRight, leftLimit);
+            dRight = Math.min(dRight, rightLimit);
         } else {
             dRight = leftLimit;
         }
 
         if (rLeftMarker.isInUse()) {
             rLeft = (int) Math.ceil(rLeftMarker.getXValue());
-            rLeft = Math.min(rLeft, rightLimit);
+            rLeft = Math.max(rLeft, leftLimit);
         } else {
             rLeft = rightLimit;
         }
@@ -96,7 +97,7 @@ public class SqSolver {
             rRight = (int) Math.floor(rRightMarker.getXValue());
             rRight = Math.min(rRight, rightLimit);
         } else {
-            rRight = jocularMain.getOutOfRangeOfObsOnTheRight();
+            rRight = rightLimit;
         }
 
         if (dRight < dLeft) {
@@ -110,18 +111,13 @@ public class SqSolver {
             jocularMain.showErrorDialog(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
-        
-        if ( Math.max(rLeft,rRight) < Math.min(dLeft, dRight)) {
-            String errMsg = "Invalid marker settings: reappearance is before disappearance";
+
+        if (Math.max(rLeft, rRight) < Math.min(dLeft, dRight)) {
+            String errMsg = "Invalid marker settings: specifies reappearance before disappearance";
             jocularMain.showErrorDialog(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
 
-//        if (dRight >= rLeft) {
-//            String errMsg = "R limits overlap D limits: dRight=" + dRight + "  rLeft=" + rLeft;
-//            jocularMain.showErrorDialog(errMsg);
-//            throw new IllegalArgumentException(errMsg);
-//        }
         System.out.println("dLeft: " + dLeft + "  dRight: " + dRight
             + "  rLeft: " + rLeft + "  rRight: " + rRight);
 
@@ -136,14 +132,17 @@ public class SqSolver {
             rTranCandidates[i - rLeft] = i;
         }
 
+        int numTranPairsConsidered = dTranCandidates.length * rTranCandidates.length;
+        int numValidTranPairs = 0;
+
         List<SqSolution> sqsolutions = new ArrayList<>();
 
         SqModel sqmodel = new SqModel(jocularMain.getCurrentObservation());
 
         for (int i = 0; i < dTranCandidates.length; i++) {
             for (int j = 0; j < rTranCandidates.length; j++) {
+                try {
 
-                //if (validEvent(dTranCandidates[i], rTranCandidates[j], leftLimit, rightLimit)) {
                 SqSolution newSolution = new SqSolution();
                 newSolution.dTransitionIndex = dTranCandidates[i];
                 newSolution.rTransitionIndex = rTranCandidates[j];
@@ -153,9 +152,15 @@ public class SqSolver {
                     .setRtransition(newSolution.rTransitionIndex)
                     .calcLogL();
 
+                // We let sqmodel determine when a dTran:rTran
+                // combination is valid.  It lets us know the combo
+                // is invalid (too few event or baseline points) by
+                // returning NaN for logL.
                 if (Double.isNaN(newSolution.logL)) {
                     continue;
                 }
+
+                numValidTranPairs++;
 
                 newSolution.D = sqmodel.getDsolution();
                 newSolution.R = sqmodel.getRsolution();
@@ -165,7 +170,11 @@ public class SqSolver {
                 newSolution.sigmaA = sqmodel.getSigmaA();
 
                 sqsolutions.add(newSolution);
-                //}
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println(e.toString());
+                    System.out.println(String.format("i=%d dTran=%d  j=%d rTran=%d",
+                                                     i, dTranCandidates[i],j,rTranCandidates[j]));
+                }
             }
         }
 
@@ -175,18 +184,11 @@ public class SqSolver {
             jocularMain.addSolutionPlotToCurrentObs(sqsolutions.get(0));
         }
 
+        solutionStats.numTransitionPairsConsidered = numTranPairsConsidered;
+        solutionStats.numValidTransitionPairs = numValidTranPairs;
+        
         return sqsolutions;
 
-    }
-
-    private static boolean validEvent(int dPos, int rPos, int leftLim, int rightLim) {
-        if (dPos == leftLim) {
-            return (rPos > leftLim + 2) && (rPos < rightLim - 2);
-        }
-        if (rPos == rightLim) {
-            return (dPos > leftLim + 2) && (dPos < rightLim - 2);
-        }
-        return (rPos - dPos > 2) && (rPos - dPos < rightLim - leftLim - 3);
     }
 }
 

@@ -60,8 +60,16 @@ public class SqModel {
             return Double.NaN;
         }
         
+        if ( dTranIndex > rTranIndex) {
+            return Double.NaN;
+        }
+        
         generateBaselineAndEventArrays();
         calculateBandA();
+        
+        if (B < A) {
+            return Double.NaN;
+        }
         calculateSigmas();
         
         double logLbaseline = calcBaselineLogL();
@@ -184,8 +192,7 @@ public class SqModel {
         }
         return ans;
     }
-
-    
+  
     private double calcBaselineLogL() {
         double result = 0.0;
         for (int i = 0; i < numBaselinePoints; i++) {

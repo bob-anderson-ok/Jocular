@@ -32,6 +32,10 @@
     -fx-padding: 4px;
 }
 
+.list-cell {
+    -fx-font: 10pt "Courier";
+}
+
 /*
 .button {
     -fx-pref-height: 26.0;

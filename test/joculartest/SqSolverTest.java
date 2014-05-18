@@ -2,6 +2,7 @@ package joculartest;
 
 import java.util.List;
 import jocularmain.JocularMain;
+import jocularmain.SolutionStats;
 import jocularmain.SqSolver;
 import jocularmain.XYChartMarker;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -23,6 +24,7 @@ public class SqSolverTest {
     private XYChartMarker dRightMarker = mock(XYChartMarker.class);
     private XYChartMarker rLeftMarker = mock(XYChartMarker.class);
     private XYChartMarker rRightMarker = mock(XYChartMarker.class);
+    private SolutionStats solStat = new SolutionStats();
 
     @Before
     public void setup() {
@@ -62,7 +64,8 @@ public class SqSolverTest {
     @Test
     public void computeCandidates_getsDandRlimitsRight_whenAllInBounds() {
         
-        List<SqSolution> answers = SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        List<SqSolution> answers = SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(8);
         assertThat(SqSolver.dRight).isEqualTo(15);
@@ -85,43 +88,44 @@ public class SqSolverTest {
     }
     
     @Test
-    public void computeCandidates_getsDandRlimitsRight_whenDleftNotInUse() {
+    public void computeCandidates_getsDandRlimitsRight_whenDmarkersNotInUse() {
         
         when (dLeftMarker.isInUse()).thenReturn(false);
+        when (dRightMarker.isInUse()).thenReturn(false);
         
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(5);
-        assertThat(SqSolver.dRight).isEqualTo(15);
+        assertThat(SqSolver.dRight).isEqualTo(5);
         assertThat(SqSolver.rLeft).isEqualTo(71);
         assertThat(SqSolver.rRight).isEqualTo(81);
     }
     
     @Test
-    public void computeCandidates_getsDandRlimitsRight_whenRrightNotInUse() {
+    public void computeCandidates_getsDandRlimitsRight_whenRmarkersNotInUse() {
         
+        when (rLeftMarker.isInUse()).thenReturn(false);
         when (rRightMarker.isInUse()).thenReturn(false);
         
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(8);
         assertThat(SqSolver.dRight).isEqualTo(15);
-        assertThat(SqSolver.rLeft).isEqualTo(71);
+        assertThat(SqSolver.rLeft).isEqualTo(150);
         assertThat(SqSolver.rRight).isEqualTo(150);
     }
     
-    @Test
-    public void computeCandidates_getsDandRlimitsRight_whenRrightAndDleftNotInUse() {
+    @Test(expected = IllegalArgumentException.class)
+    public void computeCandidates_throwsException_whenMarkersNotPaired() {
         
         when (rRightMarker.isInUse()).thenReturn(false);
         when (dLeftMarker.isInUse()).thenReturn(false);
         
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
-        assertThat(SqSolver.dLeft).isEqualTo(5);
-        assertThat(SqSolver.dRight).isEqualTo(15);
-        assertThat(SqSolver.rLeft).isEqualTo(71);
-        assertThat(SqSolver.rRight).isEqualTo(150);
     }
     
     @Test
@@ -132,7 +136,8 @@ public class SqSolverTest {
         when (rLeftMarker.isInUse()).thenReturn(false);
         when (rRightMarker.isInUse()).thenReturn(false);
         
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(5);
         assertThat(SqSolver.dRight).isEqualTo(5);
@@ -142,21 +147,25 @@ public class SqSolverTest {
     
     @Test(expected = IllegalArgumentException.class)
     public void computeCandidates_throwsException_whenDandRrangesOverlap() {
-        when (rLeftMarker.getXValue()).thenReturn(10.5);
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        when (rLeftMarker.getXValue()).thenReturn(1.5);
+        when (rRightMarker.getXValue()).thenReturn(1.5);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void computeCandidates_throwsException_whenDlimitsFlipped() {
         when (dLeftMarker.getXValue()).thenReturn(15.5);
         when (dRightMarker.getXValue()).thenReturn(7.5);
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void computeCandidates_throwsException_whenRlimitsFlipped() {
         when (rLeftMarker.getXValue()).thenReturn(81.5);
         when (rRightMarker.getXValue()).thenReturn(70.5);
-        SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+        SqSolver.computeCandidates(
+            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
 }

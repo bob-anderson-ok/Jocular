@@ -96,21 +96,28 @@ public class RootViewController implements Initializable {
     @FXML
     public void computeCandidates() {
         try {
-            List<SqSolution> solutions = SqSolver.computeCandidates(jocularMain, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            SolutionStats solutionStats = new SolutionStats();
+
+            List<SqSolution> solutions = SqSolver.computeCandidates(
+                jocularMain, solutionStats, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+
             ObservableList<String> items = FXCollections.observableArrayList();
-            for (SqSolution solution: solutions) {
-               items.add(solution.toString());
+            items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
+                                    solutionStats.numTransitionPairsConsidered,
+                                    solutionStats.numValidTransitionPairs));
+            for (SqSolution solution : solutions) {
+                items.add(solution.toString());
             }
-            
+
             solutionList.setItems(items);
         } catch (IllegalArgumentException e) {
             //jocularMain.showErrorDialog(e.getMessage());
         }
     }
-    
+
     public void clearSolutionList() {
         ObservableList<String> items = FXCollections.observableArrayList();
-        items.add( "");
+        items.add("");
         solutionList.setItems(items);
     }
 
@@ -393,7 +400,7 @@ public class RootViewController implements Initializable {
                     markerRBnone.requestFocus();
                     markerSelectedName = "none";
                     break;
-                    
+
                 case "dLeft":
                     markerRBdRight.setSelected(true);
                     markerRBdRight.requestFocus();
