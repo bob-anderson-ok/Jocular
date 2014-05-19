@@ -92,6 +92,16 @@ public class SqModel {
         return sumLogL;
     }
 
+    public double straightLineLogL() {
+        double sigma = RandUtils.calcSigma(obs.obsData);
+        double lineLevel = sumArray(obs.obsData) / obs.obsData.length;
+        double ans = 0.0;
+        for(int i = 0; i < obs.obsData.length;i++) {
+            ans += logL(obs.obsData[i], lineLevel, sigma);
+        }
+        return ans;    
+    }
+    
     private double logL(double value, double reference, double sigma) {
 
         double term1 = -log(sigma);        // == log(1/sigma)
@@ -277,7 +287,7 @@ public class SqModel {
         } else if (inRange(dTranIndex)) {
             numEventPoints = obs.obsData.length - (dTranIndex - trimOffset) - 1;
         } else {
-            //throw new IllegalArgumentException("In SqModel: both transition indices are out of range -- there is no event");
+            // Force a NaN return to the caller.
             numEventPoints = 0;
         }
 

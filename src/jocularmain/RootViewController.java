@@ -78,8 +78,28 @@ public class RootViewController implements Initializable {
     }
 
     @FXML
-    void generateErrorMsg() {
-        jocularMain.showErrorDialog("So, you thought that you were getting away scott-free.  Think again!");
+    public void estimateSigmaB() {
+        System.out.println("estimate sigmaB called");
+    }
+    
+    @FXML
+    public void estimateSigmaA() {
+        System.out.println("estimate sigmaA called");
+    }
+    
+    @FXML
+    public void displayNoiseHelp() {
+        System.out.println("noise help requested");
+    }
+    
+    @FXML
+    public void displayMinMaxEventHelp() {
+        System.out.println("event min max help requested");
+    }
+    
+    @FXML
+    public void locateLowSnrEvent() {
+        System.out.println("Locate Low SNR Event pressed");
     }
 
     /**
@@ -105,6 +125,7 @@ public class RootViewController implements Initializable {
             items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
                                     solutionStats.numTransitionPairsConsidered,
                                     solutionStats.numValidTransitionPairs));
+            items.add(String.format("logL for a straight line=%.2f", solutionStats.straightLineLogL));
             for (SqSolution solution : solutions) {
                 items.add(solution.toString());
             }

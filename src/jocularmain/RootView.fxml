@@ -6,6 +6,7 @@
 <?import javafx.scene.effect.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <?import org.gillius.jfxutils.chart.*?>
 
 <AnchorPane id="AnchorPane" prefHeight="900.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jocularmain.RootViewController">
@@ -35,10 +36,10 @@
         <Label layoutX="124.0" layoutY="304.0" snapToPixel="false" text="D limits" AnchorPane.bottomAnchor="432.0" AnchorPane.leftAnchor="152.0" />
         <Label layoutX="191.0" layoutY="304.0" text="R limits" AnchorPane.bottomAnchor="432.0" AnchorPane.leftAnchor="220.0" />
         <Label layoutX="86.0" layoutY="307.0" text="trim" AnchorPane.bottomAnchor="432.0" AnchorPane.leftAnchor="83.0" />
-        <Label layoutX="32.0" layoutY="498.0" text="Select marker to place" AnchorPane.bottomAnchor="388.0" AnchorPane.leftAnchor="74.0" />
+        <Label layoutX="32.0" layoutY="498.0" text="Marker selection" AnchorPane.bottomAnchor="455.0" AnchorPane.leftAnchor="94.0" />
         <HBox layoutX="309.33837890625" layoutY="469.0" AnchorPane.bottomAnchor="405.0" AnchorPane.leftAnchor="309.33837890625">
             <children>
-                <Button fx:id="eraseSelectionButton" layoutX="309.33837890625" layoutY="469.0" mnemonicParsing="false" onAction="#eraseSelection" text="Erase Selected Marker" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="309.33837890625" />
+                <Button fx:id="eraseSelectionButton" layoutX="309.33837890625" layoutY="469.0" mnemonicParsing="false" onAction="#eraseSelection" text="Erase Marker" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="309.33837890625" />
                 <ToggleButton fx:id="hideToggleButton" layoutX="442.0" layoutY="469.0" mnemonicParsing="false" onAction="#hideUnhideMarkers" text="Hide/Unhide" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="425.0" />
             </children>
         </HBox>
@@ -55,18 +56,12 @@
                         <MenuItem mnemonicParsing="false" text="Open Recent" />
                     </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Delete" />
-                    </items>
-                </Menu>
                 <Menu mnemonicParsing="false" text="Operations">
                     <items>
                         <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" />
                         <MenuItem mnemonicParsing="false" onAction="#applyTrims" text="Apply Trims" />
-                        <MenuItem mnemonicParsing="false" onAction="#undoTrims" text="Undo Trims" />
-                        <MenuItem mnemonicParsing="false" onAction="#computeCandidates" text="Compute Candidates" />
-                        <MenuItem mnemonicParsing="false" onAction="#generateErrorMsg" text="Generate Sample Error Message" />
+                        <MenuItem mnemonicParsing="false" onAction="#undoTrims" text="Undo Trims" /><MenuItem mnemonicParsing="false" onAction="#estimateSigmaB" text="Estimate Baseline Noise" /><MenuItem mnemonicParsing="false" onAction="#estimateSigmaA" text="Estimate Event Noise" />
+                        <MenuItem mnemonicParsing="false" onAction="#computeCandidates" text="Compute Candidates" /><MenuItem mnemonicParsing="false" onAction="#locateLowSnrEvent" text="Locate Low SNR Event" />
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
@@ -79,11 +74,34 @@
                 <DropShadow />
             </effect>
         </MenuBar>
-        <ImageView fx:id="markerSelectionHelp" fitHeight="18.0" fitWidth="13.0" layoutX="54.0" layoutY="474.0" onMouseClicked="#displayMarkerSelectionHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="412.0" AnchorPane.leftAnchor="12.0">
+        <ImageView fitHeight="18.0" fitWidth="13.0" layoutX="54.0" layoutY="474.0" onMouseClicked="#displayMarkerSelectionHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="412.0" AnchorPane.leftAnchor="12.0">
             <image>
                 <Image url="jocularmain/questionMark.png" />
             </image>
         </ImageView>
-        <ListView fx:id="solutionList" layoutX="57.0" layoutY="563.0" prefHeight="200.0" prefWidth="805.0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" />
+        <ListView fx:id="solutionList" layoutX="57.0" layoutY="563.0" prefHeight="200.0" prefWidth="805.0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0">
+<effect>
+<InnerShadow />
+</effect></ListView>
+<HBox layoutX="921.0" layoutY="528.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="335.0" AnchorPane.leftAnchor="50.0">
+<children><TextField fx:id="sigmaBtext" layoutX="834.96875" layoutY="528.0" /><TextField fx:id="sigmaAtext" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
+</children>
+</HBox><Label layoutX="939.0" layoutY="511.0" text="Baseline Noise" AnchorPane.bottomAnchor="365.0" AnchorPane.leftAnchor="60.0" /><Label layoutX="1055.0" layoutY="511.0" text="Event Noise" AnchorPane.bottomAnchor="365.0" AnchorPane.leftAnchor="180.0" /><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="19.0" layoutY="544.0" onMouseClicked="#displayNoiseHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="342.0" AnchorPane.leftAnchor="25.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image>
+</ImageView><Label layoutX="516.353271484375" layoutY="544.0" text="Solution List" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="700.0">
+<font>
+<Font size="18.0" />
+</font></Label><Label layoutX="443.0" layoutY="520.0" text="Max Event Dur" AnchorPane.bottomAnchor="364.0" AnchorPane.leftAnchor="430.0" /><Label layoutX="327.0" layoutY="520.0" text="Min Event Dur" AnchorPane.bottomAnchor="364.0" AnchorPane.leftAnchor="320.0" /><HBox layoutX="309.0" layoutY="537.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="335.0" AnchorPane.leftAnchor="310.0">
+<children>
+<TextField fx:id="minEventText" layoutX="834.96875" layoutY="528.0" />
+<TextField fx:id="maxEventText" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
+</children>
+</HBox><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="543.0" layoutY="544.0" onMouseClicked="#displayMinMaxEventHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="344.0" AnchorPane.leftAnchor="540.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image>
+</ImageView>
     </children>
 </AnchorPane>

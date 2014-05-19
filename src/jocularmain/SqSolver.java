@@ -139,10 +139,10 @@ public class SqSolver {
 
         SqModel sqmodel = new SqModel(jocularMain.getCurrentObservation());
 
+        double straightLineLogL = sqmodel.straightLineLogL();
+
         for (int i = 0; i < dTranCandidates.length; i++) {
             for (int j = 0; j < rTranCandidates.length; j++) {
-                try {
-
                 SqSolution newSolution = new SqSolution();
                 newSolution.dTransitionIndex = dTranCandidates[i];
                 newSolution.rTransitionIndex = rTranCandidates[j];
@@ -152,7 +152,7 @@ public class SqSolver {
                     .setRtransition(newSolution.rTransitionIndex)
                     .calcLogL();
 
-                // We let sqmodel determine when a dTran:rTran
+                    // We let sqmodel determine when a dTran:rTran
                 // combination is valid.  It lets us know the combo
                 // is invalid (too few event or baseline points) by
                 // returning NaN for logL.
@@ -170,11 +170,6 @@ public class SqSolver {
                 newSolution.sigmaA = sqmodel.getSigmaA();
 
                 sqsolutions.add(newSolution);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    System.out.println(e.toString());
-                    System.out.println(String.format("i=%d dTran=%d  j=%d rTran=%d",
-                                                     i, dTranCandidates[i],j,rTranCandidates[j]));
-                }
             }
         }
 
@@ -186,7 +181,8 @@ public class SqSolver {
 
         solutionStats.numTransitionPairsConsidered = numTranPairsConsidered;
         solutionStats.numValidTransitionPairs = numValidTranPairs;
-        
+        solutionStats.straightLineLogL = straightLineLogL;
+
         return sqsolutions;
 
     }
