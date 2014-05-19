@@ -25,6 +25,8 @@ public class SqSolverTest {
     private XYChartMarker rLeftMarker = mock(XYChartMarker.class);
     private XYChartMarker rRightMarker = mock(XYChartMarker.class);
     private SolutionStats solStat = new SolutionStats();
+    private double sigmaB = 1.0;
+    private double sigmaA = 1.0;
 
     @Before
     public void setup() {
@@ -65,7 +67,7 @@ public class SqSolverTest {
     public void computeCandidates_getsDandRlimitsRight_whenAllInBounds() {
         
         List<SqSolution> answers = SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(8);
         assertThat(SqSolver.dRight).isEqualTo(15);
@@ -94,7 +96,7 @@ public class SqSolverTest {
         when (dRightMarker.isInUse()).thenReturn(false);
         
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(5);
         assertThat(SqSolver.dRight).isEqualTo(150);
@@ -109,7 +111,7 @@ public class SqSolverTest {
         when (rRightMarker.isInUse()).thenReturn(false);
         
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(8);
         assertThat(SqSolver.dRight).isEqualTo(15);
@@ -124,7 +126,7 @@ public class SqSolverTest {
         when (dLeftMarker.isInUse()).thenReturn(false);
         
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
     }
     
@@ -137,7 +139,7 @@ public class SqSolverTest {
         when (rRightMarker.isInUse()).thenReturn(false);
         
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(5);
         assertThat(SqSolver.dRight).isEqualTo(150);
@@ -150,7 +152,7 @@ public class SqSolverTest {
         when (rLeftMarker.getXValue()).thenReturn(1.5);
         when (rRightMarker.getXValue()).thenReturn(1.5);
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -158,7 +160,7 @@ public class SqSolverTest {
         when (dLeftMarker.getXValue()).thenReturn(15.5);
         when (dRightMarker.getXValue()).thenReturn(7.5);
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -166,6 +168,6 @@ public class SqSolverTest {
         when (rLeftMarker.getXValue()).thenReturn(81.5);
         when (rRightMarker.getXValue()).thenReturn(70.5);
         SqSolver.computeCandidates(
-            jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solStat, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
 }

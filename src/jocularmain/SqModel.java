@@ -8,8 +8,8 @@ import utils.RandUtils;
 
 public class SqModel {
 
-    private static double LOG_SQRT_TWO_PI = log(sqrt(2*PI));
-    
+    private static double LOG_SQRT_TWO_PI = log(sqrt(2 * PI));
+
     private int dTranIndex = Integer.MIN_VALUE;
     private int rTranIndex = Integer.MAX_VALUE;
 
@@ -25,16 +25,15 @@ public class SqModel {
     private double B;
     private double A;
 
-    private double sigmaB;
-    private double sigmaA;
-
     private double[] baselinePoints;
     private double[] eventPoints;
 
     private int numBaselinePoints = 0;
     private int numEventPoints = 0;
-    
+
     private int trimOffset = 0;
+
+    private int kFactor;
 
     public SqModel(Observation obs) {
         this.obs = obs;
@@ -50,12 +49,12 @@ public class SqModel {
         return this;
     }
 
-    public double calcLogL() {
+    public double calcLogL(double sigmaB, double sigmaA) {
         resetCalculation();
-        
+
         trimOffset = obs.readingNumbers[0];
         calculateNumberOfEventAndBaselinePoints();
-        
+
         // The calculation of logL cannot be done when there are
         // insufficient baseline or event points to permit the
         // computation of sigmaA and sigmaB.  We return NaN and let
@@ -63,32 +62,32 @@ public class SqModel {
         if (numBaselinePoints < 2 || numEventPoints < 2) {
             return Double.NaN;
         }
-        
-        if ( dTranIndex > rTranIndex) {
+
+        if (dTranIndex > rTranIndex) {
             return Double.NaN;
         }
-        
+
         generateBaselineAndEventArrays();
         calculateBandA();
-        
+
         if (B < A) {
             return Double.NaN;
         }
-        calculateSigmas();
-        
-        double logLbaseline = calcBaselineLogL();
-        double logLevent = calcEventLogL();
 
-        TransitionData dTranData = calcDtranLogL();
+        //calculateSigmas();
+        double logLbaseline = calcBaselineLogL(sigmaB);
+        double logLevent = calcEventLogL(sigmaA);
+
+        TransitionData dTranData = calcDtranLogL(sigmaB, sigmaA);
         dSolution = dTranData.position;
         double logLdTran = dTranData.logLcontribution;
-        
-        TransitionData rTranData = calcRtranLogL();
+
+        TransitionData rTranData = calcRtranLogL(sigmaB, sigmaA);
         rSolution = rTranData.position;
         double logLrTran = rTranData.logLcontribution;
 
         double sumLogL = logLevent + logLbaseline + logLdTran + logLrTran;
-        
+
         return sumLogL;
     }
 
@@ -96,12 +95,12 @@ public class SqModel {
         double sigma = RandUtils.calcSigma(obs.obsData);
         double lineLevel = sumArray(obs.obsData) / obs.obsData.length;
         double ans = 0.0;
-        for(int i = 0; i < obs.obsData.length;i++) {
+        for (int i = 0; i < obs.obsData.length; i++) {
             ans += logL(obs.obsData[i], lineLevel, sigma);
         }
-        return ans;    
+        return ans;
     }
-    
+
     private double logL(double value, double reference, double sigma) {
 
         double term1 = -log(sigma);        // == log(1/sigma)
@@ -117,7 +116,7 @@ public class SqModel {
         double logLcontribution = 0.0;
     }
 
-    private TransitionData calcDtranLogL() {
+    private TransitionData calcDtranLogL(double sigmaB, double sigmaA) {
 
         TransitionData ans = new TransitionData();
 
@@ -131,6 +130,7 @@ public class SqModel {
 
         if (obsValue >= B) {
             ans.position = dTranIndex;
+            kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
         }
@@ -139,6 +139,7 @@ public class SqModel {
 
         if (obsValue <= A) {
             ans.position = dTranIndex - 1;
+            kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
         }
@@ -152,17 +153,20 @@ public class SqModel {
             // We have an AIC validated mid-value (sub frame timing justified)
             ans.position = dTranIndex - 1 + ((obsValue - A) / (B - A));
             ans.logLcontribution = logLagainstM;
+            kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
             ans.position = dTranIndex;
+            kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
             ans.position = dTranIndex - 1;
+            kFactor++;
             ans.logLcontribution = logLagainstA;
         }
         return ans;
     }
 
-    private TransitionData calcRtranLogL() {
+    private TransitionData calcRtranLogL(double sigmaB, double sigmaA) {
 
         TransitionData ans = new TransitionData();
 
@@ -175,7 +179,8 @@ public class SqModel {
         double logLagainstB = logL(obsValue, B, sigmaB);
 
         if (obsValue >= B) {
-            ans.position = rTranIndex-1;
+            ans.position = rTranIndex - 1;
+            kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
         }
@@ -184,6 +189,7 @@ public class SqModel {
 
         if (obsValue <= A) {
             ans.position = rTranIndex;
+            kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
         }
@@ -197,17 +203,20 @@ public class SqModel {
             // We have an AIC validated mid-value (sub frame timing justified)
             ans.position = rTranIndex - ((obsValue - A) / (B - A));
             ans.logLcontribution = logLagainstM;
+            kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
-            ans.position = rTranIndex-1;
+            ans.position = rTranIndex - 1;
+            kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
             ans.position = rTranIndex;
+            kFactor++;
             ans.logLcontribution = logLagainstA;
         }
         return ans;
     }
-  
-    private double calcBaselineLogL() {
+
+    private double calcBaselineLogL(double sigmaB) {
         double result = 0.0;
         for (int i = 0; i < numBaselinePoints; i++) {
             result += logL(baselinePoints[i], B, sigmaB);
@@ -215,22 +224,12 @@ public class SqModel {
         return result;
     }
 
-    private double calcEventLogL() {
+    private double calcEventLogL(double sigmaA) {
         double result = 0.0;
         for (int i = 0; i < numEventPoints; i++) {
             result += logL(eventPoints[i], A, sigmaA);
         }
         return result;
-    }
-
-    private void calculateSigmas() {
-        if (numBaselinePoints < 2 || numEventPoints < 2) {
-            throw new IllegalArgumentException(
-                "in SqModel.calculateSigmas: numBaselinePoints=" + numBaselinePoints + "  numEventPoints=" + numEventPoints
-            );
-        }
-        sigmaB = RandUtils.calcSigma(baselinePoints);
-        sigmaA = RandUtils.calcSigma(eventPoints);
     }
 
     private void calculateBandA() {
@@ -266,7 +265,7 @@ public class SqModel {
             } else if (obs.readingNumbers[i] > rTranIndex) {
                 baselinePoints[bPtr++] = obs.obsData[i];
             }
-        }       
+        }
     }
 
     private void resetCalculation() {
@@ -277,6 +276,7 @@ public class SqModel {
 
         numBaselinePoints = 0;
         numEventPoints = 0;
+        kFactor = 2;
     }
 
     private void calculateNumberOfEventAndBaselinePoints() {
@@ -304,7 +304,7 @@ public class SqModel {
         if (index < obs.readingNumbers[0]) {
             return false;
         } else {
-            return index <= obs.readingNumbers[obs.readingNumbers.length-1];
+            return index <= obs.readingNumbers[obs.readingNumbers.length - 1];
         }
     }
 
@@ -324,20 +324,16 @@ public class SqModel {
         return rSolution;
     }
 
-    public double getSigmaB() {
-        return sigmaB;
-    }
-
-    public double getSigmaA() {
-        return sigmaA;
-    }
-    
     public double getB() {
         return B;
     }
-    
-    public double getA(){
+
+    public double getA() {
         return A;
+    }
+    
+    public int getkFactor() {
+        return kFactor;
     }
 
 }

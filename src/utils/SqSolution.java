@@ -11,11 +11,13 @@ public class SqSolution {
     public double sigmaA = Double.NaN;
     public int dTransitionIndex;
     public int rTransitionIndex;
+    public int kFactor;
+    public double aicc;
 
     @Override
     public String toString() {
-        String tidy = String.format("[%5d,%5d]   logL=%11.2f   D=%8.2f  R=%8.2f  B=%9.2f  A=%9.2f  sigmaB=%8.2f  sigmaA=%8.2f", 
-                                    dTransitionIndex, rTransitionIndex, logL, D, R, B, A, sigmaB, sigmaA);
+        String tidy = String.format("[%5d,%5d]   logL=%11.2f   D=%8.2f  R=%8.2f  B=%9.2f  A=%9.2f  k=%d", 
+                                    dTransitionIndex, rTransitionIndex, logL, D, R, B, A, kFactor);
         return tidy;
     }
 }

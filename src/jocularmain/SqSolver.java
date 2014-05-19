@@ -52,6 +52,7 @@ public class SqSolver {
 
     static public List<SqSolution> computeCandidates(JocularMain jocularMain,
                                                      SolutionStats solutionStats,
+                                                     double sigmaB, double sigmaA,
                                                      XYChartMarker dLeftMarker,
                                                      XYChartMarker dRightMarker,
                                                      XYChartMarker rLeftMarker,
@@ -150,9 +151,9 @@ public class SqSolver {
                 newSolution.logL = sqmodel
                     .setDtransition(newSolution.dTransitionIndex)
                     .setRtransition(newSolution.rTransitionIndex)
-                    .calcLogL();
+                    .calcLogL(sigmaB, sigmaA);
 
-                    // We let sqmodel determine when a dTran:rTran
+                // We let sqmodel determine when a dTran:rTran
                 // combination is valid.  It lets us know the combo
                 // is invalid (too few event or baseline points) by
                 // returning NaN for logL.
@@ -166,8 +167,9 @@ public class SqSolver {
                 newSolution.R = sqmodel.getRsolution();
                 newSolution.B = sqmodel.getB();
                 newSolution.A = sqmodel.getA();
-                newSolution.sigmaB = sqmodel.getSigmaB();
-                newSolution.sigmaA = sqmodel.getSigmaA();
+                newSolution.sigmaB = sigmaB;
+                newSolution.sigmaA = sigmaA;
+                newSolution.kFactor = sqmodel.getkFactor();
 
                 sqsolutions.add(newSolution);
             }

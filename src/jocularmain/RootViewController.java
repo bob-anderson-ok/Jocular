@@ -1,7 +1,6 @@
 package jocularmain;
 
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.animation.AnimationTimer;
@@ -15,6 +14,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -81,22 +81,22 @@ public class RootViewController implements Initializable {
     public void estimateSigmaB() {
         System.out.println("estimate sigmaB called");
     }
-    
+
     @FXML
     public void estimateSigmaA() {
         System.out.println("estimate sigmaA called");
     }
-    
+
     @FXML
     public void displayNoiseHelp() {
         System.out.println("noise help requested");
     }
-    
+
     @FXML
     public void displayMinMaxEventHelp() {
         System.out.println("event min max help requested");
     }
-    
+
     @FXML
     public void locateLowSnrEvent() {
         System.out.println("Locate Low SNR Event pressed");
@@ -115,24 +115,56 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void computeCandidates() {
+
+        double sigmaB = validateSigmaBtext();
+        double sigmaA = validateSigmaAtext();
+
+        if (sigmaB < 0.0 || sigmaA < 0.0) {
+            return;
+        }
+        SolutionStats solutionStats = new SolutionStats();
+
+        List<SqSolution> solutions = SqSolver.computeCandidates(
+            jocularMain, solutionStats, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+
+        ObservableList<String> items = FXCollections.observableArrayList();
+        items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
+                                solutionStats.numTransitionPairsConsidered,
+                                solutionStats.numValidTransitionPairs));
+        items.add(String.format("logL for a straight line=%.2f", solutionStats.straightLineLogL));
+        for (SqSolution solution : solutions) {
+            items.add(solution.toString());
+        }
+
+        solutionList.setItems(items);
+    }
+    
+    @FXML
+    TextField sigmaBtext;
+    
+    @FXML
+    TextField sigmaAtext;
+    
+    private double validateSigmaBtext() {
+        return sigmaValue(sigmaBtext.getText());
+    }
+    
+    private double validateSigmaAtext() {
+        return sigmaValue(sigmaAtext.getText());
+    }
+    
+    private double sigmaValue( String text) {
         try {
-            SolutionStats solutionStats = new SolutionStats();
-
-            List<SqSolution> solutions = SqSolver.computeCandidates(
-                jocularMain, solutionStats, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-            ObservableList<String> items = FXCollections.observableArrayList();
-            items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
-                                    solutionStats.numTransitionPairsConsidered,
-                                    solutionStats.numValidTransitionPairs));
-            items.add(String.format("logL for a straight line=%.2f", solutionStats.straightLineLogL));
-            for (SqSolution solution : solutions) {
-                items.add(solution.toString());
+            double value = Double.parseDouble(text);
+            if (value <= 0.0) {
+                jocularMain.showErrorDialog("Noise values must be > 0.0");
+                return -1.0;
+            } else {
+                return value;
             }
-
-            solutionList.setItems(items);
-        } catch (IllegalArgumentException e) {
-            //jocularMain.showErrorDialog(e.getMessage());
+        } catch (NumberFormatException e) {
+            jocularMain.showErrorDialog("Number format error: " + e.getMessage());
+            return -1.0;
         }
     }
 
