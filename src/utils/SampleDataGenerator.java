@@ -1,7 +1,7 @@
 package utils;
 
 import java.nio.file.Paths;
-import static utils.RandUtils.gaussianVariate;
+import static utils.JocularUtils.gaussianVariate;
 
 public class SampleDataGenerator {
 
@@ -113,9 +113,9 @@ public class SampleDataGenerator {
     }
 
     private void computeSampleDataVectorsAndFillObsAndSecData() {
-        filledObservation.columnData[0] = RandUtils.generateGaussianNoise(numDataPoints, sigmaB);
-        filledObservation.columnData[1] = RandUtils.generateGaussianNoise(numDataPoints, sigmaB);
-        filledObservation.columnData[2] = RandUtils.generateGaussianNoise(numDataPoints, sigmaA);
+        filledObservation.columnData[0] = JocularUtils.generateGaussianNoise(numDataPoints, sigmaB);
+        filledObservation.columnData[1] = JocularUtils.generateGaussianNoise(numDataPoints, sigmaB);
+        filledObservation.columnData[2] = JocularUtils.generateGaussianNoise(numDataPoints, sigmaA);
 
         for (int i = 0; i < filledObservation.lengthOfDataColumns; i++) {
             filledObservation.columnData[0][i] += Bintensity;
@@ -135,7 +135,7 @@ public class SampleDataGenerator {
                          filledObservation.secData, 0,
                          numDataPoints);
 
-        double[] eventData = RandUtils.generateGaussianNoise(numDataPoints, sigmaA);
+        double[] eventData = JocularUtils.generateGaussianNoise(numDataPoints, sigmaA);
         for (int i = 0; i < filledObservation.lengthOfDataColumns; i++) {
             eventData[i] += Aintensity;
         }

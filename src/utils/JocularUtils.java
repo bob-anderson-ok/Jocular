@@ -2,7 +2,7 @@ package utils;
 
 import java.util.Random;
 
-public interface RandUtils {
+public interface JocularUtils {
     
     Random randomGenerator = new Random();
     

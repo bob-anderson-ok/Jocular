@@ -6,7 +6,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import utils.Observation;
-import utils.RandUtils;
+import utils.JocularUtils;
 import utils.SampleDataGenerator;
 import utils.SqSolution;
 
@@ -59,7 +59,7 @@ public class SampleDataDialogController {
             try {
                 if (!randSeedText.getText().isEmpty()) {
                     long randomSeed = Long.parseLong(randSeedText.getText());
-                    RandUtils.setGaussianGeneratorSeed(randomSeed);
+                    JocularUtils.setGaussianGeneratorSeed(randomSeed);
                 }
                 Observation sampleObs = createSampleData();
                 

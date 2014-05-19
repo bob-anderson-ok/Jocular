@@ -4,7 +4,7 @@ import static java.lang.Math.PI;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import utils.Observation;
-import utils.RandUtils;
+import utils.JocularUtils;
 
 public class SqModel {
 
@@ -92,7 +92,7 @@ public class SqModel {
     }
 
     public double straightLineLogL() {
-        double sigma = RandUtils.calcSigma(obs.obsData);
+        double sigma = JocularUtils.calcSigma(obs.obsData);
         double lineLevel = sumArray(obs.obsData) / obs.obsData.length;
         double ans = 0.0;
         for (int i = 0; i < obs.obsData.length; i++) {
