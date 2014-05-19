@@ -83,14 +83,14 @@ public class SqSolver {
             dRight = (int) Math.floor(dRightMarker.getXValue());
             dRight = Math.min(dRight, rightLimit);
         } else {
-            dRight = leftLimit;
+            dRight = rightLimit;
         }
 
         if (rLeftMarker.isInUse()) {
             rLeft = (int) Math.ceil(rLeftMarker.getXValue());
             rLeft = Math.max(rLeft, leftLimit);
         } else {
-            rLeft = rightLimit;
+            rLeft = leftLimit;
         }
 
         if (rRightMarker.isInUse()) {

@@ -33,6 +33,8 @@ public class SqModel {
 
     private int numBaselinePoints = 0;
     private int numEventPoints = 0;
+    
+    private int trimOffset = 0;
 
     public SqModel(Observation obs) {
         this.obs = obs;
@@ -50,6 +52,8 @@ public class SqModel {
 
     public double calcLogL() {
         resetCalculation();
+        
+        trimOffset = obs.readingNumbers[0];
         calculateNumberOfEventAndBaselinePoints();
         
         // The calculation of logL cannot be done when there are
@@ -252,7 +256,7 @@ public class SqModel {
             } else if (obs.readingNumbers[i] > rTranIndex) {
                 baselinePoints[bPtr++] = obs.obsData[i];
             }
-        }
+        }       
     }
 
     private void resetCalculation() {
@@ -269,9 +273,9 @@ public class SqModel {
         if (inRange(dTranIndex) && inRange(rTranIndex)) {
             numEventPoints = rTranIndex - dTranIndex - 1;
         } else if (inRange(rTranIndex)) {
-            numEventPoints = rTranIndex;
+            numEventPoints = rTranIndex - trimOffset;
         } else if (inRange(dTranIndex)) {
-            numEventPoints = obs.obsData.length - dTranIndex - 1;
+            numEventPoints = obs.obsData.length - (dTranIndex - trimOffset) - 1;
         } else {
             //throw new IllegalArgumentException("In SqModel: both transition indices are out of range -- there is no event");
             numEventPoints = 0;

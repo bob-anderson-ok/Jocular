@@ -97,7 +97,7 @@ public class SqSolverTest {
             jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(5);
-        assertThat(SqSolver.dRight).isEqualTo(5);
+        assertThat(SqSolver.dRight).isEqualTo(150);
         assertThat(SqSolver.rLeft).isEqualTo(71);
         assertThat(SqSolver.rRight).isEqualTo(81);
     }
@@ -113,7 +113,7 @@ public class SqSolverTest {
         
         assertThat(SqSolver.dLeft).isEqualTo(8);
         assertThat(SqSolver.dRight).isEqualTo(15);
-        assertThat(SqSolver.rLeft).isEqualTo(150);
+        assertThat(SqSolver.rLeft).isEqualTo(5);
         assertThat(SqSolver.rRight).isEqualTo(150);
     }
     
@@ -140,13 +140,13 @@ public class SqSolverTest {
             jocularMain, solStat, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
         
         assertThat(SqSolver.dLeft).isEqualTo(5);
-        assertThat(SqSolver.dRight).isEqualTo(5);
-        assertThat(SqSolver.rLeft).isEqualTo(150);
+        assertThat(SqSolver.dRight).isEqualTo(150);
+        assertThat(SqSolver.rLeft).isEqualTo(5);
         assertThat(SqSolver.rRight).isEqualTo(150);
     }
     
     @Test(expected = IllegalArgumentException.class)
-    public void computeCandidates_throwsException_whenDandRrangesOverlap() {
+    public void computeCandidates_throwsException_whenRisBeforeD() {
         when (rLeftMarker.getXValue()).thenReturn(1.5);
         when (rRightMarker.getXValue()).thenReturn(1.5);
         SqSolver.computeCandidates(

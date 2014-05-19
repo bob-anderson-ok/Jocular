@@ -313,13 +313,25 @@ sup {
 
 <h2>Marker Selection</h2>
 
-<h3>Overview ---</h3>
+<h3>Overview --- trim markers</h3>
 
-<p><strong><font color=blue>Trim markers</font></strong> (color coded blue) are used to tell Jocular which observation points are to be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded.</p>
+<p><strong><font color=blue>Trim markers</font></strong> (color coded blue) are used to tell Jocular which observation points can be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the command <em>Apply Trims</em> is executed (this is in the <em>Operations</em>
+menu).</p>
 
-<p><strong><font color=red>D limit markers</font></strong> (color coded red) bracket points that Jocular is to consider as candidate solution D transition points.</p>
+<h3>Overview --- D and R markers</h3>
 
-<p><strong><font color=green>R limit markers</font></strong> (color coded green) bracket points that Jocular is to consider as candidate solution R transition points.</p>
+<p>These markers are used to speed up the solution calculation by restricting the
+range of candidate <em>solutions</em>.  For observations with fewer than 1000 points,
+it may take more time to place the markers than to simply let the <em>solver</em>
+find the biggest thing present using an exhaustive search.</p>
+
+<p><strong><font color=red>D limit markers</font></strong> (color coded red) bracket points that Jocular is to consider as candidate solution D transition points. Either none or
+both markers must be placed.  They can be placed outside the region of
+observation points if that is useful.</p>
+
+<p><strong><font color=green>R limit markers</font></strong> (color coded green) bracket points that Jocular is to consider as candidate solution R transition points. Either none or
+both markers must be placed.  They can be placed outside the region of
+observation points if that is useful.</p>
 
 <h4>Note ---</h4>
 

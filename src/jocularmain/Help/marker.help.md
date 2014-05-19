@@ -4,13 +4,25 @@
 
 ## Marker Selection
 
-### Overview ---
+### Overview --- trim markers
 
-**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points are to be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded.
+**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the command *Apply Trims* is executed (this is in the *Operations* 
+menu).
 
-**<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points.
+### Overview --- D and R markers 
 
-**<font color=green>R limit markers</font>** (color coded green) bracket points that Jocular is to consider as candidate solution R transition points.
+These markers are used to speed up the solution calculation by restricting the
+range of candidate *solutions*.  For observations with fewer than 1000 points,
+it may take more time to place the markers than to simply let the *solver*
+find the biggest thing present using an exhaustive search.
+
+**<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points. Either none or 
+both markers must be placed.  They can be placed outside the region of
+observation points if that is useful.
+
+**<font color=green>R limit markers</font>** (color coded green) bracket points that Jocular is to consider as candidate solution R transition points. Either none or 
+both markers must be placed.  They can be placed outside the region of
+observation points if that is useful.
 
 #### Note ---
 
