@@ -119,41 +119,57 @@ public class RootViewController implements Initializable {
         double sigmaB = validateSigmaBtext();
         double sigmaA = validateSigmaAtext();
 
+        int minEventSize = validateMinEventText();
+        int maxEventSize = validateMaxEventText();
+
         if (sigmaB < 0.0 || sigmaA < 0.0) {
             return;
         }
         SolutionStats solutionStats = new SolutionStats();
 
         List<SqSolution> solutions = SqSolver.computeCandidates(
-            jocularMain, solutionStats, sigmaB, sigmaA, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+            jocularMain, solutionStats,
+            sigmaB, sigmaA,
+            minEventSize, maxEventSize,
+            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
                                 solutionStats.numTransitionPairsConsidered,
                                 solutionStats.numValidTransitionPairs));
-        items.add(String.format("logL for a straight line=%.2f", solutionStats.straightLineLogL));
+        double probabilitySqWaveOverLine = Math.exp((solutionStats.straightLineAICc - solutions.get(0).aicc) / 2.0);
+        if (probabilitySqWaveOverLine > 1000.0) {
+            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line > 1000",
+                                    solutionStats.straightLineAICc,
+                                    solutionStats.straightLineLogL));
+        } else {
+            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line= %.1f",
+                                    solutionStats.straightLineAICc,
+                                    solutionStats.straightLineLogL,
+                                    probabilitySqWaveOverLine));
+        }
         for (SqSolution solution : solutions) {
             items.add(solution.toString());
         }
 
         solutionList.setItems(items);
     }
-    
+
     @FXML
     TextField sigmaBtext;
-    
+
     @FXML
     TextField sigmaAtext;
-    
+
     private double validateSigmaBtext() {
         return sigmaValue(sigmaBtext.getText());
     }
-    
+
     private double validateSigmaAtext() {
         return sigmaValue(sigmaAtext.getText());
     }
-    
-    private double sigmaValue( String text) {
+
+    private double sigmaValue(String text) {
         try {
             double value = Double.parseDouble(text);
             if (value <= 0.0) {
@@ -165,6 +181,38 @@ public class RootViewController implements Initializable {
         } catch (NumberFormatException e) {
             jocularMain.showErrorDialog("Number format error: " + e.getMessage());
             return -1.0;
+        }
+    }
+
+    @FXML
+    TextField minEventText;
+
+    @FXML
+    TextField maxEventText;
+
+    private int validateMinEventText() {
+        return eventValue(minEventText.getText());
+    }
+
+    private int validateMaxEventText() {
+        return eventValue(maxEventText.getText());
+    }
+
+    private int eventValue(String text) {
+        try {
+            if (text.isEmpty()) {
+                return -1;
+            }
+            int value = Integer.parseInt(text);
+            if (value <= 0) {
+                jocularMain.showErrorDialog("Event size limits must be >= 0");
+                return -1;
+            } else {
+                return value;
+            }
+        } catch (NumberFormatException e) {
+            jocularMain.showErrorDialog("Number format error: " + e.getMessage());
+            return -1;
         }
     }
 

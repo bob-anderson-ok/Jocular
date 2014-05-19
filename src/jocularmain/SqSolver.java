@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import utils.JocularUtils;
 import utils.SqSolution;
 
 public class SqSolver {
@@ -53,6 +54,7 @@ public class SqSolver {
     static public List<SqSolution> computeCandidates(JocularMain jocularMain,
                                                      SolutionStats solutionStats,
                                                      double sigmaB, double sigmaA,
+                                                     int minEventSize, int maxEventSize,
                                                      XYChartMarker dLeftMarker,
                                                      XYChartMarker dRightMarker,
                                                      XYChartMarker rLeftMarker,
@@ -139,8 +141,12 @@ public class SqSolver {
         List<SqSolution> sqsolutions = new ArrayList<>();
 
         SqModel sqmodel = new SqModel(jocularMain.getCurrentObservation());
+        sqmodel.setMinEventSize(minEventSize);
+        sqmodel.setMaxEventSize(maxEventSize);
 
         double straightLineLogL = sqmodel.straightLineLogL();
+
+        int n = jocularMain.getCurrentObservation().obsData.length;
 
         for (int i = 0; i < dTranCandidates.length; i++) {
             for (int j = 0; j < rTranCandidates.length; j++) {
@@ -170,6 +176,7 @@ public class SqSolver {
                 newSolution.sigmaB = sigmaB;
                 newSolution.sigmaA = sigmaA;
                 newSolution.kFactor = sqmodel.getkFactor();
+                newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
 
                 sqsolutions.add(newSolution);
             }
@@ -184,9 +191,9 @@ public class SqSolver {
         solutionStats.numTransitionPairsConsidered = numTranPairsConsidered;
         solutionStats.numValidTransitionPairs = numValidTranPairs;
         solutionStats.straightLineLogL = straightLineLogL;
+        solutionStats.straightLineAICc = JocularUtils.aicc(straightLineLogL, 1, n);
 
         return sqsolutions;
-
     }
 }
 
@@ -194,8 +201,8 @@ class LogLcomparator implements Comparator<SqSolution> {
 
     @Override
     public int compare(SqSolution one, SqSolution two) {
-        // sort is largest to smallest
-        return Double.compare(two.logL, one.logL);
+        // sort is smallest to largest
+        return Double.compare(one.aicc, two.aicc);
     }
 
 }

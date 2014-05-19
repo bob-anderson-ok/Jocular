@@ -31,6 +31,9 @@ public class SqModel {
     private int numBaselinePoints = 0;
     private int numEventPoints = 0;
 
+    private int minEventSize = -1;
+    private int maxEventSize = -1;
+
     private int trimOffset = 0;
 
     private int kFactor;
@@ -331,9 +334,17 @@ public class SqModel {
     public double getA() {
         return A;
     }
-    
+
     public int getkFactor() {
         return kFactor;
+    }
+
+    public void setMinEventSize(int minEventSize) {
+        this.minEventSize = minEventSize;
+    }
+
+    public void setMaxEventSize(int maxEventSize) {
+        this.maxEventSize = maxEventSize;
     }
 
 }

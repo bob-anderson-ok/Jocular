@@ -3,13 +3,13 @@ package utils;
 import java.util.Random;
 
 public interface JocularUtils {
-    
+
     Random randomGenerator = new Random();
-    
+
     static void setGaussianGeneratorSeed(long newSeed) {
         randomGenerator.setSeed(newSeed);
     }
-    
+
     static double gaussianVariate(double sigma) {
         return randomGenerator.nextGaussian() * sigma;
     }
@@ -29,7 +29,7 @@ public interface JocularUtils {
 
         if (values.length < 2) {
             throw new IllegalArgumentException(
-                    "calcSigma needs at least 2 values, " + values.length + " given."
+                "calcSigma needs at least 2 values, " + values.length + " given."
             );
         }
 
@@ -47,6 +47,12 @@ public interface JocularUtils {
         }
 
         return Math.sqrt(squaredDifference / (values.length - 1));
+    }
+
+    static double aicc(double logL, int k, int n) {
+        double aic = 2.0 * k - 2.0 * logL;
+        double corr = 2.0 * k * (k + 1) / (n - k - 1);
+        return aic + corr;
     }
 
 }

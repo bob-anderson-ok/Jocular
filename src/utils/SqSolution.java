@@ -16,8 +16,8 @@ public class SqSolution {
 
     @Override
     public String toString() {
-        String tidy = String.format("[%5d,%5d]   logL=%11.2f   D=%8.2f  R=%8.2f  B=%9.2f  A=%9.2f  k=%d", 
-                                    dTransitionIndex, rTransitionIndex, logL, D, R, B, A, kFactor);
+        String tidy = String.format("[%5d,%5d]   AICc=%11.2f  logL=%11.2f   D=%8.2f  R=%8.2f  B=%9.2f  A=%9.2f  k=%d", 
+                                    dTransitionIndex, rTransitionIndex, aicc, logL, D, R, B, A, kFactor);
         return tidy;
     }
 }
