@@ -1,6 +1,7 @@
 package jocularmain;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.animation.AnimationTimer;
@@ -22,6 +23,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import org.gillius.jfxutils.chart.ManagedChart;
 import org.gillius.jfxutils.chart.StableTicksAxis;
+import utils.JocularUtils;
 import utils.Observation;
 import utils.SqSolution;
 
@@ -30,7 +32,7 @@ public class RootViewController implements Initializable {
     private static final int EMPTY_FIELD = -1;
     private static final int FIELD_ENTRY_ERROR = -2;
 
-    ManagedChart smartChart;
+    private static ManagedChart smartChart;
     private static JocularMain jocularMain;
 
     public static void setMainApp(JocularMain main) {
@@ -82,12 +84,69 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void estimateSigmaB() {
-        System.out.println("estimate sigmaB called");
+        double sigmaB = estimateSigma();
+        if (sigmaB > 0.0) {
+            sigmaBtext.setText(String.format("%.4f", sigmaB));
+            eraseAllMarkers();
+        }
     }
 
     @FXML
     public void estimateSigmaA() {
-        System.out.println("estimate sigmaA called");
+        double sigmaA = estimateSigma();
+        if (sigmaA > 0.0) {
+            sigmaAtext.setText(String.format("%.4f", sigmaA));
+            eraseAllMarkers();
+        }
+    }
+
+    public double estimateSigma() {
+        if (dLeftMarker.isInUse() != dRightMarker.isInUse()) {
+            jocularMain.showErrorDialog("D markers must be used in pairs.");
+            return 0.0;
+        }
+
+        if (rLeftMarker.isInUse() != rRightMarker.isInUse()) {
+            jocularMain.showErrorDialog("R markers must be used in pairs.");
+            return 0.0;
+        }
+
+        ArrayList<Double> includedPoints = new ArrayList<>();
+
+        for (int i = 0; i < jocularMain.getCurrentObservation().obsData.length; i++) {
+            if (includedWithinMarkers(i, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker)) {
+                includedPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+            }
+        }
+
+        // Unbox the ArrayList<Double> into a double[]
+        double[] pointsInEstimate = new double[includedPoints.size()];
+        for (int i = 0; i < pointsInEstimate.length; i++) {
+            pointsInEstimate[i] = (double) includedPoints.get(i);
+        }
+
+        double sigma = JocularUtils.calcSigma(pointsInEstimate);
+
+        return sigma;
+
+    }
+
+    private boolean includedWithinMarkers(int index,
+                                          XYChartMarker dLeft, XYChartMarker dRight,
+                                          XYChartMarker rLeft, XYChartMarker rRight) {
+        if (dLeft.isInUse()) {
+            if (index > Math.floor(dLeft.getXValue()) && index < Math.ceil(dRight.getXValue())) {
+                return true;
+            }
+        }
+
+        if (rLeft.isInUse()) {
+            if (index > Math.floor(rLeft.getXValue()) && index < Math.ceil(rRight.getXValue())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @FXML
@@ -428,6 +487,11 @@ public class RootViewController implements Initializable {
     void displayMarkerSelectionHelp() {
         jocularMain.showHelpDialog("Help/marker.help.html");
     }
+    
+    @FXML
+    void displaySolutionListHelp() {
+        jocularMain.showHelpDialog("Help/solutionlist.help.html");
+    }
 
     private String markerSelectedName = "none";
 
@@ -557,39 +621,43 @@ public class RootViewController implements Initializable {
             x = Math.floor(x) + 0.5;
             smartChart.getMarker(markerSelectedName).setxValue(x).setInUse(true);
 
-            switch (markerSelectedName) {
-                case "trimLeft":
-                    markerRBtrimRight.setSelected(true);
-                    markerRBtrimRight.requestFocus();
-                    markerSelectedName = "trimRight";
-                    break;
-                case "trimRight":
-                    markerRBnone.setSelected(true);
-                    markerRBnone.requestFocus();
-                    markerSelectedName = "none";
-                    break;
-
-                case "dLeft":
-                    markerRBdRight.setSelected(true);
-                    markerRBdRight.requestFocus();
-                    markerSelectedName = "dRight";
-                    break;
-                case "dRight":
-                    markerRBrLeft.setSelected(true);
-                    markerRBrLeft.requestFocus();
-                    markerSelectedName = "rLeft";
-                    break;
-                case "rLeft":
-                    markerRBrRight.setSelected(true);
-                    markerRBrRight.requestFocus();
-                    markerSelectedName = "rRight";
-                    break;
-                case "rRight":
-                    markerRBnone.setSelected(true);
-                    markerRBnone.requestFocus();
-                    markerSelectedName = "none";
-                    break;
-            }
+//            switch (markerSelectedName) {
+//                case "trimLeft":
+//                    markerRBtrimRight.setSelected(true);
+//                    markerRBtrimRight.requestFocus();
+//                    markerSelectedName = "trimRight";
+//                    break;
+//                case "trimRight":
+//                    markerRBnone.setSelected(true);
+//                    markerRBnone.requestFocus();
+//                    markerSelectedName = "none";
+//                    break;
+//
+//                case "dLeft":
+//                    markerRBdRight.setSelected(true);
+//                    markerRBdRight.requestFocus();
+//                    markerSelectedName = "dRight";
+//                    break;
+//                case "dRight":
+//                    markerRBrLeft.setSelected(true);
+//                    markerRBrLeft.requestFocus();
+//                    markerSelectedName = "rLeft";
+//                    break;
+//                case "rLeft":
+//                    markerRBrRight.setSelected(true);
+//                    markerRBrRight.requestFocus();
+//                    markerSelectedName = "rRight";
+//                    break;
+//                case "rRight":
+//                    markerRBnone.setSelected(true);
+//                    markerRBnone.requestFocus();
+//                    markerSelectedName = "none";
+//                    break;
+//            }
+            
+            markerRBnone.setSelected(true);
+            markerRBnone.requestFocus();
+            markerSelectedName = "none";
         }
     }
 

@@ -97,7 +97,11 @@
 <TextField fx:id="minEventText" layoutX="834.96875" layoutY="528.0" />
 <TextField fx:id="maxEventText" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
 </children>
-</HBox><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="543.0" layoutY="544.0" onMouseClicked="#displayMinMaxEventHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="344.0" AnchorPane.leftAnchor="540.0">
+</HBox><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="543.0" layoutY="544.0" onMouseClicked="#displayMinMaxEventHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="342.0" AnchorPane.leftAnchor="540.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image>
+</ImageView><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="816.0" layoutY="544.0" onMouseClicked="#displaySolutionListHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="338.0" AnchorPane.leftAnchor="680.0">
 <image>
 <Image url="jocularmain/questionMark.png" />
 </image>

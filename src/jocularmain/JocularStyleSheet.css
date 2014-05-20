@@ -33,7 +33,8 @@
 }
 
 .list-cell {
-    -fx-font: 10pt "Courier";
+    -fx-font: 10pt "monospace";
+    -fx-font-weight: bold;
 }
 
 /*

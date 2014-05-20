@@ -144,7 +144,7 @@ public class SqSolver {
         sqmodel.setMinEventSize(minEventSize);
         sqmodel.setMaxEventSize(maxEventSize);
 
-        double straightLineLogL = sqmodel.straightLineLogL();
+        double straightLineLogL = sqmodel.straightLineLogL(sigmaB);
 
         int n = jocularMain.getCurrentObservation().obsData.length;
 

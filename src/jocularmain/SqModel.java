@@ -106,12 +106,11 @@ public class SqModel {
         return sumLogL;
     }
 
-    public double straightLineLogL() {
-        double sigma = JocularUtils.calcSigma(obs.obsData);
+    public double straightLineLogL(double sigmaB) { 
         double lineLevel = sumArray(obs.obsData) / obs.obsData.length;
         double ans = 0.0;
         for (int i = 0; i < obs.obsData.length; i++) {
-            ans += logL(obs.obsData[i], lineLevel, sigma);
+            ans += logL(obs.obsData[i], lineLevel, sigmaB);
         }
         return ans;
     }

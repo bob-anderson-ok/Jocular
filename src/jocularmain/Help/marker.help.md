@@ -6,17 +6,17 @@
 
 ### Overview --- trim markers
 
-**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the command *Apply Trims* is executed (this is in the *Operations* 
+**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the command *Apply Trims* is executed (from the *Operations* 
 menu).
 
 ### Overview --- D and R markers 
 
-These markers serve a dual purpose: to delineate data points for use in estimating noise levels; or to speed calculations when long observations are being processed.
+These markers serve a dual purpose: to delineate data points for use in estimating noise levels; to speed calculations when observations with many data points are being processed.
 
 These markers can be used to speed up the solution calculation by restricting the
 range of candidate *solutions*.  For observations with fewer than 1000 points,
 it may take more time to place the markers than to simply let the *solver*
-find the biggest thing present using an exhaustive search.
+find the biggest thing present using an exhaustive search (perhaps limited more simply by the use of min and/or max event durations).
 
 **<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points or to delineate a set of data points to be included in a noise estimation. Either none or 
 both markers must be placed.  They can be placed outside the region of
@@ -42,19 +42,13 @@ observation points if that is useful.
     exactly between readings.  That is, marker position values
     are always of the form: xxx.5 
     
-#### Standard workflow ---
-
-It is expected that you will place the desired markers from left to right. To help with this process, as each marker is placed, the next one to the right will be automatically selected. To terminate the process, click the **None** radio button (if necessary).
-
-The usual procedure is to click (select) the radio button that corresponds to the first marker to be placed, then left-clicking in the plot area at the desired position for the currently selected *marker* and continuing in this manner from left to right.
-
 #### Adjusting a marker a marker position ---
 
 Click the radio button that corresponds to the marker that is to be adjusted, then left-click at the desired new position.
 
 #### Deleting a marker ---
 
-Click the radio button that corresponds to the marker that is to be removed completely, then click the **Erase Marker** button, then click the **None** radio button. 
+Click the radio button that corresponds to the marker that is to be removed completely, then click the **Erase Marker** button.
 
 #### Temporarily hiding marker ---
 
