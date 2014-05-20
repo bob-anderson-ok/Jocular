@@ -60,9 +60,21 @@ public class SqModel {
 
         // The calculation of logL cannot be done when there are
         // insufficient baseline or event points to permit the
-        // computation of sigmaA and sigmaB.  We return NaN and let
+        // computation of A and B.  We return NaN and let
         // the caller test for this.
-        if (numBaselinePoints < 2 || numEventPoints < 2) {
+        if (numBaselinePoints < 1 || numEventPoints < 1) {
+            return Double.NaN;
+        }
+        
+        if ( numEventPoints < minEventSize ) {
+            return Double.NaN;
+        }
+        
+        if ( minEventSize > 0 && numEventPoints < minEventSize) {
+            return Double.NaN;
+        }
+        
+        if ( maxEventSize > 0 && numEventPoints > maxEventSize) {
             return Double.NaN;
         }
 
