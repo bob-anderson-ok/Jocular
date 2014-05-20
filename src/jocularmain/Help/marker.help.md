@@ -11,26 +11,30 @@ menu).
 
 ### Overview --- D and R markers 
 
-These markers are used to speed up the solution calculation by restricting the
+These markers serve a dual purpose: to delineate data points for use in estimating noise levels; or to speed calculations when long observations are being processed.
+
+These markers can be used to speed up the solution calculation by restricting the
 range of candidate *solutions*.  For observations with fewer than 1000 points,
 it may take more time to place the markers than to simply let the *solver*
 find the biggest thing present using an exhaustive search.
 
-**<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points. Either none or 
+**<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points or to delineate a set of data points to be included in a noise estimation. Either none or 
 both markers must be placed.  They can be placed outside the region of
 observation points if that is useful.
 
-**<font color=green>R limit markers</font>** (color coded green) bracket points that Jocular is to consider as candidate solution R transition points. Either none or 
-both markers must be placed.  They can be placed outside the region of
+**<font color=green>R limit markers</font>** (color coded green) bracket points that Jocular is to consider as candidate solution R transition points or to delineate a set of data points to be included in a noise estimation. Either none or both markers must be placed.  They can be placed outside the region of
 observation points if that is useful.
 
 #### Note ---
 
     When placing your cursor to select a marker position, put it
-    in a clear area.  If you put it on a data point, that data point
-    captures the mouse event (so that it can display the coordinate
-    values for you) and so will not respond to a mouse click intended
-    to place a marker.
+    in a completely clear area.  If you put it on a data point, 
+    that data point captures the mouse event (so that it can display
+    the coordinate values for you) and so will not respond to a 
+    mouse click intended to place a marker.  The same is true for
+    grid lines and lines between points.  If a 'click' fails to
+    result in a new marker, move the cursor to a nearby clear area
+    and 'click' again.
     
 #### Markers 'snap' ---
 
@@ -50,9 +54,12 @@ Click the radio button that corresponds to the marker that is to be adjusted, th
 
 #### Deleting a marker ---
 
-Click the radio button that corresponds to the marker that is to be removed completely, then click the **Erase Selected Marker** button, then click the **None** radio button. 
+Click the radio button that corresponds to the marker that is to be removed completely, then click the **Erase Marker** button, then click the **None** radio button. 
 
 #### Temporarily hiding marker ---
 
 To reduce visual clutter, the markers may be hidden by clicking the **Hide/Unhide** button. The markers remain effective whether or not they are hidden from sight.
 
+#### Erase all markers ---
+
+Click the **Erase All** button is a time saver if more than one previously placed marker is to be deleted.

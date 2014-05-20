@@ -27,6 +27,9 @@ import utils.SqSolution;
 
 public class RootViewController implements Initializable {
 
+    private static final int EMPTY_FIELD = -1;
+    private static final int FIELD_ENTRY_ERROR = -2;
+
     ManagedChart smartChart;
     private static JocularMain jocularMain;
 
@@ -88,13 +91,24 @@ public class RootViewController implements Initializable {
     }
 
     @FXML
+    public void showIntroHelp() {
+        jocularMain.showHelpDialog("Help/gettingstarted.help.html");
+
+    }
+
+    @FXML
+    public void showAbout() {
+        jocularMain.showHelpDialog("Help/about.help.html");
+    }
+
+    @FXML
     public void displayNoiseHelp() {
-        System.out.println("noise help requested");
+        jocularMain.showHelpDialog("Help/noisevalues.help.html");
     }
 
     @FXML
     public void displayMinMaxEventHelp() {
-        System.out.println("event min max help requested");
+        jocularMain.showHelpDialog("Help/eventlimits.help.html");
     }
 
     /**
@@ -110,46 +124,54 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void computeCandidates() {
-        // Erase the Solution List
 
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation data to process.");
+            return;
+        }
+
+        // Erase the Solution List
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
 
         double sigmaB = validateSigmaBtext();
-        if (sigmaB < 0.0) {
+        if (sigmaB == FIELD_ENTRY_ERROR || sigmaB == EMPTY_FIELD) {
             items.add("No solutions: invalid Baseline Noise entry");
             solutionList.setItems(items);
             return;
         }
 
         double sigmaA = validateSigmaAtext();
-        if (sigmaA < 0.0) {
+        if (sigmaA == FIELD_ENTRY_ERROR) {
             items.add("No solutions: invalid Event Noise entry");
             solutionList.setItems(items);
             return;
+        } else if (sigmaA == EMPTY_FIELD) {
+            sigmaA = sigmaB;
+            sigmaAtext.setText(sigmaBtext.getText());
         }
 
         int minEventSize = validateMinEventText();
-        if (minEventSize == -2) {
+        if (minEventSize == FIELD_ENTRY_ERROR) {
             items.add("No solutions: invalid minEventSize entry");
             solutionList.setItems(items);
             return;
         }
-        
+
         int maxEventSize = validateMaxEventText();
-        if (minEventSize == -2) {
+        if (minEventSize == FIELD_ENTRY_ERROR) {
             items.add("No solutions: invalid maxEventSize entry");
             solutionList.setItems(items);
             return;
         }
 
-        if ( minEventSize > maxEventSize && maxEventSize != -1) {
+        if (minEventSize > maxEventSize && maxEventSize != EMPTY_FIELD) {
             items.add("No solutions: minEventSize is > maxEventSize");
             solutionList.setItems(items);
             return;
         }
-       
+
         SolutionStats solutionStats = new SolutionStats();
 
         List<SqSolution> solutions = SqSolver.computeCandidates(
@@ -159,12 +181,12 @@ public class RootViewController implements Initializable {
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         items = FXCollections.observableArrayList();
-        if ( solutions.isEmpty()) {
+        if (solutions.isEmpty()) {
             items.add("No solutions were possible because of constraints on min and max event size.");
             solutionList.setItems(items);
             return;
         }
-            
+
         items = FXCollections.observableArrayList();
         items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
                                 solutionStats.numTransitionPairsConsidered,
@@ -194,25 +216,28 @@ public class RootViewController implements Initializable {
     TextField sigmaAtext;
 
     private double validateSigmaBtext() {
-        return sigmaValue(sigmaBtext.getText());
+        return sigmaValue(sigmaBtext.getText(), "Baseline Noise");
     }
 
     private double validateSigmaAtext() {
-        return sigmaValue(sigmaAtext.getText());
+        return sigmaValue(sigmaAtext.getText(), "Event Noise");
     }
 
-    private double sigmaValue(String text) {
+    private double sigmaValue(String text, String sourceId) {
         try {
+            if (text.isEmpty()) {
+                return EMPTY_FIELD;
+            }
             double value = Double.parseDouble(text);
             if (value <= 0.0) {
-                jocularMain.showErrorDialog("Noise values must be > 0.0");
-                return -1.0;
+                jocularMain.showErrorDialog(sourceId + " must be > 0.0");
+                return FIELD_ENTRY_ERROR;
             } else {
                 return value;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog("Number format error: " + e.getMessage());
-            return -1.0;
+            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage());
+            return FIELD_ENTRY_ERROR;
         }
     }
 
@@ -223,28 +248,28 @@ public class RootViewController implements Initializable {
     TextField maxEventText;
 
     private int validateMinEventText() {
-        return eventValue(minEventText.getText());
+        return eventValue(minEventText.getText(), "Min Event");
     }
 
     private int validateMaxEventText() {
-        return eventValue(maxEventText.getText());
+        return eventValue(maxEventText.getText(), "Max Event");
     }
 
-    private int eventValue(String text) {
+    private int eventValue(String text, String sourceId) {
         try {
             if (text.isEmpty()) {
-                return -1;
+                return EMPTY_FIELD;
             }
             int value = Integer.parseInt(text);
             if (value <= 0) {
-                jocularMain.showErrorDialog("Event size limits must be > 0");
-                return -2;
+                jocularMain.showErrorDialog(sourceId + " must be > 0");
+                return FIELD_ENTRY_ERROR;
             } else {
                 return value;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog("Number format error: " + e.getMessage());
-            return -2;
+            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage());
+            return FIELD_ENTRY_ERROR;
         }
     }
 
@@ -488,6 +513,16 @@ public class RootViewController implements Initializable {
             markerRBnone.requestFocus();
             markerSelectedName = "none";
         }
+    }
+
+    @FXML
+    public void eraseAllMarkers() {
+        smartChart.getMarker("trimLeft").setInUse(false);
+        smartChart.getMarker("dLeft").setInUse(false);
+        smartChart.getMarker("dRight").setInUse(false);
+        smartChart.getMarker("rLeft").setInUse(false);
+        smartChart.getMarker("rRight").setInUse(false);
+        smartChart.getMarker("trimRight").setInUse(false);
     }
 
     private void setupDisplayOfCoordinates() {

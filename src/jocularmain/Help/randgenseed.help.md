@@ -4,7 +4,7 @@
 
 ## RandGenSeed
 
-You will normally leave this field empty, in which case every 'click' on the Display Sample Data button will produce the expected unique set of observation values.
+You will normally leave this field empty, in which case every 'click' on the **Create Sample Data** button will produce a unique set of observation values.
 
 If you want/need the same set of gaussian noise values to be generated at each click, set an integer value in this field.
 

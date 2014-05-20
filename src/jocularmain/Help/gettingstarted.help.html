@@ -302,7 +302,7 @@ sup {
 	}
 }
 </style>
-<title>Marker Selection</title>
+<title>Getting Started</title>
 <script type="text/x-mathjax-config">MathJax.Hub.Config({tex2jax:{inlineMath:[['$$$','$$$']]}});</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </head>
 <body>
@@ -311,68 +311,6 @@ sup {
 <center><img src="Vesta.jpg"></center>
 
 
-<h2>Marker Selection</h2>
-
-<h3>Overview --- trim markers</h3>
-
-<p><strong><font color=blue>Trim markers</font></strong> (color coded blue) are used to tell Jocular which observation points can be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the command <em>Apply Trims</em> is executed (this is in the <em>Operations</em>
-menu).</p>
-
-<h3>Overview --- D and R markers</h3>
-
-<p>These markers serve a dual purpose: to delineate data points for use in estimating noise levels; or to speed calculations when long observations are being processed.</p>
-
-<p>These markers can be used to speed up the solution calculation by restricting the
-range of candidate <em>solutions</em>.  For observations with fewer than 1000 points,
-it may take more time to place the markers than to simply let the <em>solver</em>
-find the biggest thing present using an exhaustive search.</p>
-
-<p><strong><font color=red>D limit markers</font></strong> (color coded red) bracket points that Jocular is to consider as candidate solution D transition points or to delineate a set of data points to be included in a noise estimation. Either none or
-both markers must be placed.  They can be placed outside the region of
-observation points if that is useful.</p>
-
-<p><strong><font color=green>R limit markers</font></strong> (color coded green) bracket points that Jocular is to consider as candidate solution R transition points or to delineate a set of data points to be included in a noise estimation. Either none or both markers must be placed.  They can be placed outside the region of
-observation points if that is useful.</p>
-
-<h4>Note ---</h4>
-
-<pre><code>When placing your cursor to select a marker position, put it
-in a completely clear area.  If you put it on a data point, 
-that data point captures the mouse event (so that it can display
-the coordinate values for you) and so will not respond to a 
-mouse click intended to place a marker.  The same is true for
-grid lines and lines between points.  If a 'click' fails to
-result in a new marker, move the cursor to a nearby clear area
-and 'click' again.
-</code></pre>
-
-<h4>Markers 'snap' ---</h4>
-
-<pre><code>The position of markers is always adjusted (snaps) to fall
-exactly between readings.  That is, marker position values
-are always of the form: xxx.5 
-</code></pre>
-
-<h4>Standard workflow ---</h4>
-
-<p>It is expected that you will place the desired markers from left to right. To help with this process, as each marker is placed, the next one to the right will be automatically selected. To terminate the process, click the <strong>None</strong> radio button (if necessary).</p>
-
-<p>The usual procedure is to click (select) the radio button that corresponds to the first marker to be placed, then left-clicking in the plot area at the desired position for the currently selected <em>marker</em> and continuing in this manner from left to right.</p>
-
-<h4>Adjusting a marker a marker position ---</h4>
-
-<p>Click the radio button that corresponds to the marker that is to be adjusted, then left-click at the desired new position.</p>
-
-<h4>Deleting a marker ---</h4>
-
-<p>Click the radio button that corresponds to the marker that is to be removed completely, then click the <strong>Erase Marker</strong> button, then click the <strong>None</strong> radio button.</p>
-
-<h4>Temporarily hiding marker ---</h4>
-
-<p>To reduce visual clutter, the markers may be hidden by clicking the <strong>Hide/Unhide</strong> button. The markers remain effective whether or not they are hidden from sight.</p>
-
-<h4>Erase all markers ---</h4>
-
-<p>Click the <strong>Erase All</strong> button is a time saver if more than one previously placed marker is to be deleted.</p>
+<h2>Getting Started</h2>
 </body>
 </html>

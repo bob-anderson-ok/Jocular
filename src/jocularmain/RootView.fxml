@@ -20,7 +20,7 @@
             </yAxis>
         </LineChart>
         <HBox layoutX="38.0" layoutY="360.0" spacing="10.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="38.0" />
-        <Label fx:id="outputLabel" layoutX="582.0" layoutY="473.0" prefHeight="18.0" prefWidth="210.0" AnchorPane.bottomAnchor="408.0" AnchorPane.leftAnchor="580.0" />
+        <Label fx:id="outputLabel" layoutX="582.0" layoutY="473.0" prefHeight="18.0" prefWidth="210.0" AnchorPane.bottomAnchor="408.0" AnchorPane.leftAnchor="650.0" />
         <RadioButton fx:id="markerRBtrimRight" contentDisplay="TOP" layoutX="256.0" layoutY="325.0" mnemonicParsing="false" onAction="#trimRightRBaction" AnchorPane.bottomAnchor="409.0" AnchorPane.leftAnchor="101.0">
             <toggleGroup>
                 <ToggleGroup fx:id="markerPlacementSelection" />
@@ -40,7 +40,7 @@
         <HBox layoutX="309.33837890625" layoutY="469.0" AnchorPane.bottomAnchor="405.0" AnchorPane.leftAnchor="309.33837890625">
             <children>
                 <Button fx:id="eraseSelectionButton" layoutX="309.33837890625" layoutY="469.0" mnemonicParsing="false" onAction="#eraseSelection" text="Erase Marker" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="309.33837890625" />
-                <ToggleButton fx:id="hideToggleButton" layoutX="442.0" layoutY="469.0" mnemonicParsing="false" onAction="#hideUnhideMarkers" text="Hide/Unhide" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="425.0" />
+                <ToggleButton fx:id="hideToggleButton" layoutX="442.0" layoutY="469.0" mnemonicParsing="false" onAction="#hideUnhideMarkers" text="Hide/Unhide" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="425.0" /><Button mnemonicParsing="false" onAction="#eraseAllMarkers" text="Erase All" />
             </children>
         </HBox>
         <ImageView fx:id="chatHelpIcon" fitHeight="18.0" fitWidth="13.0" layoutX="85.0" layoutY="140.0" onMouseClicked="#displayChartZoomPanMarkHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="55.0">
@@ -52,7 +52,6 @@
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="Close" />
                         <MenuItem mnemonicParsing="false" text="Open Recent" />
                     </items>
                 </Menu>
@@ -65,8 +64,8 @@
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="About" />
+                    <items><MenuItem mnemonicParsing="false" onAction="#showIntroHelp" text="Getting Started" />
+                        <MenuItem mnemonicParsing="false" onAction="#showAbout" text="About" />
                     </items>
                 </Menu>
             </menus>
