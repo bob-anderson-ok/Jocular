@@ -22,6 +22,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import static jocularmain.PlotType.*;
 import org.gillius.jfxutils.chart.ManagedChart;
 import org.gillius.jfxutils.chart.StableTicksAxis;
 import utils.JocularUtils;
@@ -82,27 +84,27 @@ public class RootViewController implements Initializable {
     void showSampleDataDialog() {
         jocularMain.showSampleDataDialog();
     }
-    
+
     @FXML
     public void doOpenRecentFiles() {
         jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.");
     }
-    
+
     @FXML
     public void doReadLimovieFile() {
         jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.");
     }
-    
+
     @FXML
     public void doReadTangraFile() {
         jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.");
     }
-    
+
     @FXML
     public void doEstimateErrorBars() {
         jocularMain.showInformationDialog("Estimate Error Bars:  not yet implemented.");
     }
-    
+
     @FXML
     public void doShowSubframeTimingBand() {
         jocularMain.showInformationDialog("Show Subframe Timing Band:  not yet implemented.");
@@ -110,7 +112,7 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void estimateSigmaB() {
-        if ( jocularMain.getCurrentObservation() == null) {
+        if (jocularMain.getCurrentObservation() == null) {
             jocularMain.showErrorDialog("There is no observation from which to estimate baseline noise.");
             return;
         }
@@ -123,7 +125,7 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void estimateSigmaA() {
-        if ( jocularMain.getCurrentObservation() == null) {
+        if (jocularMain.getCurrentObservation() == null) {
             jocularMain.showErrorDialog("There is no observation from which to estimate event noise.");
             return;
         }
@@ -380,7 +382,7 @@ public class RootViewController implements Initializable {
     @FXML
     public void applyTrims() {
 
-        if ( jocularMain.getCurrentObservation() == null) {
+        if (jocularMain.getCurrentObservation() == null) {
             jocularMain.showErrorDialog("There is no observation to apply trims to.");
             return;
         }
@@ -458,34 +460,63 @@ public class RootViewController implements Initializable {
         // Remove all series from the chart
         chart.getData().clear();
 
-        // Add the data curve --- this uses symbols at the data points
-        chart.getData().add(0, series);
+        addSeriesToChart(chart, series, STYLE_ObsPoints);
 
-        // In order to set the symbol style, it is necessary to iterate over all
-        // series0 nodes.
-        Set<Node> dataNodes = chart.lookupAll(".series0");
+        addSeriesToChart(chart, getTheoreticalLightCurveSeries(sampleData, solution), STYLE_Sample);
 
-        for (Node n : dataNodes) {
-                n.setStyle("-fx-stroke: gray; -fx-background-color:transparent,black"); 
+        // Experimental --- how to get names of all series in a chart.  With
+        // this tool, it becomes possible to remove a series by name.
+        System.out.println("num series: " + chart.getData().size());
+        for (int i = 0; i < chart.getData().size(); i++) {
+            System.out.println("series " + i + " name is " + chart.getData().get(i).getName());
         }
+    }
 
-        // Add the theoretical light curve line plot --- no symbols at the data points
-        chart.getData().add(1, getTheoreticalLightCurve(sampleData, solution));
+    private void setLegend() {
 
-        dataNodes = chart.lookupAll(".series1");
-        for (Node n : dataNodes) {
-            n.setStyle("-fx-stroke: blue; -fx-background-color:transparent,transparent");
+    }
+
+    public void addSeriesToChart(XYChart chart, XYChart.Series<Number, Number> series, PlotType plotType) {
+
+        series.setName(plotType.seriesName());
+        chart.getData().add(series);
+
+        // Finds which series number we've just added.  Here we make the critical assumption that
+        // any series added will be at the end of the list.
+        int seriesNumber = chart.getData().size();
+
+        // Set the line color and symbol color for this series
+        Node dataNode = chart.lookup(".series" + (seriesNumber - 1));
+        dataNode.setStyle("-fx-stroke: " + plotType.lineColor() + "; -fx-background-color:transparent," + plotType.symbolColor());
+
+
+        // We have to update all the legend labels for this chart at the same time.
+        Set<Node> items = chart.lookupAll("Label.chart-legend-item");
+
+        for (Node item : items) {
+            Label label = (Label) item;
+            String lineColor = PlotType.lookup(label.getText()).lineColor();
+            
+            // If there is no plot line, its color will be transparent, so we skip over changing
+            // its label.  That allows the default legend behavior of showing the plot symbol
+            // to take over.
+            if (lineColor == "transparent") {
+                continue;
+            }
+
+            final Rectangle rectangle = new Rectangle(10, 2, Color.web(lineColor));
+            label.setGraphic(rectangle);
         }
-
     }
 
     public void addSolutionCurve(Observation obs, SqSolution solution) {
-        chart.getData().add(getTheoreticalLightCurve(obs, solution));
+        addSeriesToChart(chart, getTheoreticalLightCurveSeries(obs, solution), STYLE_Solution);
+        //chart.getData().add(getTheoreticalLightCurveSeries(obs, solution));
     }
 
-    private XYChart.Series<Number, Number> getTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
+    private XYChart.Series<Number, Number> getTheoreticalLightCurveSeries(Observation sampleData, SqSolution solution) {
         XYChart.Series<Number, Number> series = new XYChart.Series<Number, Number>();
-        series.setName("Solution");
+        series.setName("Sample");
         XYChart.Data<Number, Number> data;
         int numDataPoints = sampleData.lengthOfDataColumns;
 
