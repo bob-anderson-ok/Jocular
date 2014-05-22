@@ -48,7 +48,7 @@ public class SampleDataDialogController {
     void handleMouseClick() {
         checkParametersAndDisplayIfValid();
     }
-    
+
     @FXML
     void showRandGenSeedHelp() {
         jocularMain.showHelpDialog("Help/randgenseed.help.html");
@@ -62,18 +62,18 @@ public class SampleDataDialogController {
                     JocularUtils.setGaussianGeneratorSeed(randomSeed);
                 }
                 Observation sampleObs = createSampleData();
-                
+
                 SqSolution sampleSolution = new SqSolution();
                 sampleSolution.B = baselineIntensity;
                 sampleSolution.A = eventIntensity;
                 sampleSolution.D = dTime;
                 sampleSolution.R = rTime;
-                
-                jocularMain.setCurrentObservation( sampleObs);
+
+                jocularMain.setCurrentObservation(sampleObs);
                 jocularMain.setCurrentSolution(sampleSolution);
                 jocularMain.repaintObservationAndSolution();
                 jocularMain.clearSolutionList();
-                
+
             } catch (NumberFormatException e) {
                 errorLabel.setText("Error creating artificial data: " + e.getMessage());
             }
@@ -101,30 +101,35 @@ public class SampleDataDialogController {
             } else {
                 dTime = Double.parseDouble(dTimeText.getText());
             }
-            
+
             numberOfDataPoints = Integer.parseInt(numberOfDataPointsText.getText());
-            
+
+            if (numberOfDataPoints < 5) {
+                errorLabel.setText("number of data points cannot be lesss than 5");
+                return false;
+            }
+
             if (rTimeText.getText().isEmpty()) {
                 rTime = Double.NaN;
             } else {
                 rTime = Double.parseDouble(rTimeText.getText());
             }
-            
+
             if (rTimeText.getText().isEmpty() && dTimeText.getText().isEmpty()) {
-                errorLabel.setText( "D and R cannot both be missing.");
+                errorLabel.setText("D and R cannot both be missing.");
                 return false;
             }
-            
-            if ( baselineIntensity < eventIntensity) {
-                errorLabel.setText( "B (baseline intensity) cannot be less than A (event intensity)");
+
+            if (baselineIntensity < eventIntensity) {
+                errorLabel.setText("B (baseline intensity) cannot be less than A (event intensity)");
                 return false;
             }
-            
-            if ( rTime < dTime) {
-                errorLabel.setText( "D cannot occur after R");
+
+            if (rTime < dTime) {
+                errorLabel.setText("D cannot occur after R");
                 return false;
             }
-            
+
             return true;
         } catch (NumberFormatException e) {
             errorLabel.setText("Number format error: " + e.getMessage());
@@ -133,7 +138,6 @@ public class SampleDataDialogController {
     }
 
     private Observation createSampleData() {
-
         SampleDataGenerator dataGen = new SampleDataGenerator("artificial data");
 
         dataGen
@@ -147,5 +151,6 @@ public class SampleDataDialogController {
             .setParams();
 
         return dataGen.build();
+
     }
 }

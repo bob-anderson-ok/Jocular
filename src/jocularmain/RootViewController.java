@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -117,6 +118,11 @@ public class RootViewController implements Initializable {
             if (includedWithinMarkers(i, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker)) {
                 includedPoints.add(jocularMain.getCurrentObservation().obsData[i]);
             }
+        }
+
+        if (includedPoints.size() < 2) {
+            jocularMain.showErrorDialog("Too few points to estimate noise.  Probably an error in setting selection markers.");
+            return 0.0;
         }
 
         // Unbox the ArrayList<Double> into a double[]
@@ -419,10 +425,24 @@ public class RootViewController implements Initializable {
         chart.getData().clear();
 
         // Add the data curve --- this uses symbols at the data points
-        chart.getData().add(series);
+        chart.getData().add(0, series);
+
+        // In order to set the symbol style, it is necessary to iterate over all
+        // series0 nodes.
+        Set<Node> dataNodes = chart.lookupAll(".series0");
+
+        for (Node n : dataNodes) {
+                n.setStyle("-fx-stroke: red; -fx-background-color:transparent,green"); 
+        }
 
         // Add the theoretical light curve line plot --- no symbols at the data points
-        chart.getData().add(getTheoreticalLightCurve(sampleData, solution));
+        chart.getData().add(1, getTheoreticalLightCurve(sampleData, solution));
+
+        dataNodes = chart.lookupAll(".series1");
+        for (Node n : dataNodes) {
+            n.setStyle("-fx-stroke: blue; -fx-background-color:transparent,transparent");
+        }
+
     }
 
     public void addSolutionCurve(Observation obs, SqSolution solution) {
@@ -487,7 +507,7 @@ public class RootViewController implements Initializable {
     void displayMarkerSelectionHelp() {
         jocularMain.showHelpDialog("Help/marker.help.html");
     }
-    
+
     @FXML
     void displaySolutionListHelp() {
         jocularMain.showHelpDialog("Help/solutionlist.help.html");
@@ -654,7 +674,6 @@ public class RootViewController implements Initializable {
 //                    markerSelectedName = "none";
 //                    break;
 //            }
-            
             markerRBnone.setSelected(true);
             markerRBnone.requestFocus();
             markerSelectedName = "none";
