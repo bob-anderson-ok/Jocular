@@ -127,7 +127,6 @@ public class JocularMain extends Application {
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
 
-            // Publish a reference to the view controller.
             ErrorDialogController controller = fxmlLoader.getController();
             controller.showError(msg);
 
@@ -140,7 +139,30 @@ public class JocularMain extends Application {
 
             stage.show();
         } catch (IOException e) {
-            System.out.println("in buildErrorDialog(): " + e.toString());
+            System.out.println("in showErrorDialog(): " + e.toString());
+        }
+    }
+    
+    public void showInformationDialog(String msg) {
+        try {
+            URL fxmlLocation = getClass().getResource("InformationDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+
+            InformationDialogController controller = fxmlLoader.getController();
+            controller.showInformation(msg);
+
+            Stage stage = new Stage(StageStyle.UTILITY);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+
+            stage.initOwner(primaryStage);
+            stage.setScene(scene);
+
+            stage.show();
+        } catch (IOException e) {
+            System.out.println("in showInformationDialog(): " + e.toString());
         }
     }
 

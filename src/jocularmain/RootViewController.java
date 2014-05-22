@@ -82,9 +82,38 @@ public class RootViewController implements Initializable {
     void showSampleDataDialog() {
         jocularMain.showSampleDataDialog();
     }
+    
+    @FXML
+    public void doOpenRecentFiles() {
+        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.");
+    }
+    
+    @FXML
+    public void doReadLimovieFile() {
+        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.");
+    }
+    
+    @FXML
+    public void doReadTangraFile() {
+        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.");
+    }
+    
+    @FXML
+    public void doEstimateErrorBars() {
+        jocularMain.showInformationDialog("Estimate Error Bars:  not yet implemented.");
+    }
+    
+    @FXML
+    public void doShowSubframeTimingBand() {
+        jocularMain.showInformationDialog("Show Subframe Timing Band:  not yet implemented.");
+    }
 
     @FXML
     public void estimateSigmaB() {
+        if ( jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation from which to estimate baseline noise.");
+            return;
+        }
         double sigmaB = estimateSigma();
         if (sigmaB > 0.0) {
             sigmaBtext.setText(String.format("%.4f", sigmaB));
@@ -94,6 +123,10 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void estimateSigmaA() {
+        if ( jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation from which to estimate event noise.");
+            return;
+        }
         double sigmaA = estimateSigma();
         if (sigmaA > 0.0) {
             sigmaAtext.setText(String.format("%.4f", sigmaA));
@@ -347,7 +380,8 @@ public class RootViewController implements Initializable {
     @FXML
     public void applyTrims() {
 
-        if (jocularMain.getCurrentObservation() == null) {
+        if ( jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation to apply trims to.");
             return;
         }
 
@@ -432,7 +466,7 @@ public class RootViewController implements Initializable {
         Set<Node> dataNodes = chart.lookupAll(".series0");
 
         for (Node n : dataNodes) {
-                n.setStyle("-fx-stroke: red; -fx-background-color:transparent,green"); 
+                n.setStyle("-fx-stroke: gray; -fx-background-color:transparent,black"); 
         }
 
         // Add the theoretical light curve line plot --- no symbols at the data points
