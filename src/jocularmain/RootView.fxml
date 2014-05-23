@@ -106,5 +106,9 @@
 <Image url="jocularmain/questionMark.png" />
 </image>
 </ImageView>
+<VBox layoutX="1039.318603515625" layoutY="479.2120361328125" spacing="5.0" AnchorPane.bottomAnchor="400.0" AnchorPane.leftAnchor="850.0">
+<children><Label text="Observation plot options:" /><CheckBox fx:id="obsPointsOnlyCheckbox" alignment="TOP_CENTER" layoutX="1039.318603515625" layoutY="479.2120361328125" mnemonicParsing="false" onAction="#replotObservation" text="dots only" /><CheckBox fx:id="obsLightFontCheckbox" layoutX="1080.0" layoutY="510.0" mnemonicParsing="false" onAction="#replotObservation" text="lighter font" />
+</children>
+</VBox>
     </children>
 </AnchorPane>

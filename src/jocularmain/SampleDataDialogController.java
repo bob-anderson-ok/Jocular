@@ -1,6 +1,7 @@
 package jocularmain;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -36,6 +37,8 @@ public class SampleDataDialogController {
     TextField randSeedText;
     @FXML
     Label errorLabel;
+    @FXML
+    CheckBox showSampleLightcurveCheckbox;
 
     @FXML
     private void handleKeyPress(KeyEvent key) {
@@ -71,7 +74,11 @@ public class SampleDataDialogController {
 
                 jocularMain.setCurrentObservation(sampleObs);
                 jocularMain.setCurrentSolution(sampleSolution);
+                if ( showSampleLightcurveCheckbox.isSelected()) {
                 jocularMain.repaintObservationAndSolution();
+                } else {
+                    jocularMain.repaintObservation();
+                }
                 jocularMain.clearSolutionList();
 
             } catch (NumberFormatException e) {

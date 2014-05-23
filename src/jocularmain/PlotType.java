@@ -8,7 +8,7 @@ public enum PlotType {
     // to the 
     STYLE_ObsData("gray", "black", "ObsData"),
     STYLE_ObsPoints("transparent", "black", "ObsPoints"),
-    STYLE_obsdata("lightgray", "gray", "obsdata"),
+    STYLE_obsData("lightgray", "gray", "obsData"),
     STYLE_obsPoints("transparent", "gray", "obsPoints"),
     STYLE_Sample("red", "transparent", "Sample"),
     STYLE_Solution("blue", "transparent", "Solution");
@@ -19,7 +19,7 @@ public enum PlotType {
         mapSeriesNameToPlotType = new HashMap<String, PlotType>();
         mapSeriesNameToPlotType.put("ObsData", STYLE_ObsData);
         mapSeriesNameToPlotType.put("ObsPoints", STYLE_ObsPoints);
-        mapSeriesNameToPlotType.put("obsdata", STYLE_obsdata);
+        mapSeriesNameToPlotType.put("obsData", STYLE_obsData);
         mapSeriesNameToPlotType.put("obsPoints", STYLE_obsPoints);
         mapSeriesNameToPlotType.put("Sample", STYLE_Sample);
         mapSeriesNameToPlotType.put("Solution", STYLE_Solution);

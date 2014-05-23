@@ -196,7 +196,11 @@ public class JocularMain extends Application {
     }
     
     public void repaintObservationAndSolution(){
-        rootViewController.showDataWithTheoreticalLightCurve(obsInMainPlot, currentSqSolution);
+        rootViewController.showObservationDataWithTheoreticalLightCurve(obsInMainPlot, currentSqSolution);
+    }
+    
+    public void repaintObservation() {
+        rootViewController.showObservationDataAlone(obsInMainPlot);
     }
     
     public boolean inRange(int index) {

@@ -13,6 +13,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
@@ -74,6 +75,51 @@ public class RootViewController implements Initializable {
 
     @FXML
     ListView solutionList;
+
+    @FXML
+    CheckBox obsLightFontCheckbox;
+
+    @FXML
+    CheckBox obsPointsOnlyCheckbox;
+
+    @FXML
+    public void replotObservation() {
+        String plotStyle = "";
+        if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
+            plotStyle = "obsPoints";
+        }
+
+        if (obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
+            plotStyle = "obsData";
+        }
+
+        if (!obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
+            plotStyle = "ObsPoints";
+        }
+
+        if (!obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
+            plotStyle = "ObsData";
+        }
+
+        System.out.println("Observation plotstyle selection: " + plotStyle);
+
+    }
+
+    private PlotType getUserPreferredObsStyle() {
+        if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
+            return STYLE_obsPoints;
+        }
+
+        if (obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
+            return STYLE_obsData;
+        }
+
+        if (!obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
+            return STYLE_ObsPoints;
+        } else {
+            return STYLE_ObsData;
+        }
+    }
 
     @FXML
     void respondToRightButtonClick() {
@@ -425,7 +471,8 @@ public class RootViewController implements Initializable {
 
         jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
-        showDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
+        
+        showObservationDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
     }
 
     @FXML
@@ -439,30 +486,52 @@ public class RootViewController implements Initializable {
 
         jocularMain.getCurrentObservation().setLeftTrimPoint(minLeftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
-        showDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
+        showObservationDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
     }
-
-    public void showDataWithTheoreticalLightCurve(Observation sampleData, SqSolution solution) {
+    
+    private XYChart.Series<Number,Number> getObservationSeries(Observation observation) {
         XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
-        series.setName("Data");
         XYChart.Data<Number, Number> data;
 
-        int numDataPoints = sampleData.obsData.length;
+        int numDataPoints = observation.obsData.length;
 
+        // Build the data series, point by point, adding a 'hover node' to each point
+        // so that client can get data coordinate values by putting his cursor on a data point.
         for (int i = 0; i < numDataPoints; i++) {
-            data = new XYChart.Data(sampleData.readingNumbers[i], sampleData.obsData[i]);
-            HoveredNode hNode = new HoveredNode(sampleData.readingNumbers[i], sampleData.obsData[i]);
+            data = new XYChart.Data(observation.readingNumbers[i], observation.obsData[i]);
+            HoveredNode hNode = new HoveredNode(observation.readingNumbers[i], observation.obsData[i]);
             data.setNode(hNode);
             series.getData().add(data);
         }
+        return series;
+    }
 
-        // Remove all series from the chart
+    public void showObservationDataWithTheoreticalLightCurve(Observation observation, SqSolution solution) {
+
+        // Remove all series from the chart.
         chart.getData().clear();
 
-        addSeriesToChart(chart, series, STYLE_ObsPoints);
+        addSeriesToChart(chart, getObservationSeries(observation), getUserPreferredObsStyle());
 
-        addSeriesToChart(chart, getTheoreticalLightCurveSeries(sampleData, solution), STYLE_Sample);
+        addSeriesToChart(chart, getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
+
+        // Experimental --- how to get names of all series in a chart.  With
+        // this tool, it becomes possible to remove a series by name.
+        System.out.println("num series: " + chart.getData().size());
+        for (int i = 0; i < chart.getData().size(); i++) {
+            System.out.println("series " + i + " name is " + chart.getData().get(i).getName());
+        }
+    }
+    
+    public void showObservationDataAlone(Observation observation) {
+
+        // Remove all series from the chart.
+        chart.getData().clear();
+
+        addSeriesToChart(chart, getObservationSeries(observation), getUserPreferredObsStyle());
+
+        //addSeriesToChart(chart, getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
 
         // Experimental --- how to get names of all series in a chart.  With
         // this tool, it becomes possible to remove a series by name.
@@ -472,31 +541,14 @@ public class RootViewController implements Initializable {
         }
     }
 
-    private void setLegend() {
-
-    }
-
-    public void addSeriesToChart(XYChart chart, XYChart.Series<Number, Number> series, PlotType plotType) {
-
-        series.setName(plotType.seriesName());
-        chart.getData().add(series);
-
-        // Finds which series number we've just added.  Here we make the critical assumption that
-        // any series added will be at the end of the list.
-        int seriesNumber = chart.getData().size();
-
-        // Set the line color and symbol color for this series
-        Node dataNode = chart.lookup(".series" + (seriesNumber - 1));
-        dataNode.setStyle("-fx-stroke: " + plotType.lineColor() + "; -fx-background-color:transparent," + plotType.symbolColor());
-
-
+    private void resetLegends(XYChart chart) {
         // We have to update all the legend labels for this chart at the same time.
         Set<Node> items = chart.lookupAll("Label.chart-legend-item");
 
         for (Node item : items) {
             Label label = (Label) item;
             String lineColor = PlotType.lookup(label.getText()).lineColor();
-            
+
             // If there is no plot line, its color will be transparent, so we skip over changing
             // its label.  That allows the default legend behavior of showing the plot symbol
             // to take over.
@@ -509,14 +561,30 @@ public class RootViewController implements Initializable {
         }
     }
 
+    public void addSeriesToChart(XYChart chart, XYChart.Series<Number, Number> series, PlotType plotType) {
+
+        series.setName(plotType.seriesName());
+        chart.getData().add(series);
+
+        // Finds which series number we've just added.  Here we make the critical assumption that
+        // any series added will be at the end of the list.
+        int seriesNumber = chart.getData().size();
+
+        // Set the line color and symbol color for this series
+        Set<Node> dataNodes = chart.lookupAll(".series" + (seriesNumber - 1));
+        for (Node dataNode : dataNodes) {
+            dataNode.setStyle("-fx-stroke: " + plotType.lineColor() + "; -fx-background-color:transparent," + plotType.symbolColor());
+        }
+        
+        resetLegends(chart);
+    }
+
     public void addSolutionCurve(Observation obs, SqSolution solution) {
         addSeriesToChart(chart, getTheoreticalLightCurveSeries(obs, solution), STYLE_Solution);
-        //chart.getData().add(getTheoreticalLightCurveSeries(obs, solution));
     }
 
     private XYChart.Series<Number, Number> getTheoreticalLightCurveSeries(Observation sampleData, SqSolution solution) {
         XYChart.Series<Number, Number> series = new XYChart.Series<Number, Number>();
-        series.setName("Sample");
         XYChart.Data<Number, Number> data;
         int numDataPoints = sampleData.lengthOfDataColumns;
 
