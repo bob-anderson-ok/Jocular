@@ -74,8 +74,8 @@ public class SampleDataDialogController {
 
                 jocularMain.setCurrentObservation(sampleObs);
                 jocularMain.setCurrentSolution(sampleSolution);
-                if ( showSampleLightcurveCheckbox.isSelected()) {
-                jocularMain.repaintObservationAndSolution();
+                if (showSampleLightcurveCheckbox.isSelected()) {
+                    jocularMain.repaintObservationAndSolution();
                 } else {
                     jocularMain.repaintObservation();
                 }

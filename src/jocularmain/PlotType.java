@@ -5,7 +5,10 @@ import java.util.HashMap;
 public enum PlotType {
 
     // If any entry is added to this list, it must be added
-    // to the 
+    // to the HashMap as well.
+    // The first  parameter is the line color   ...
+    // The second parameter is the symbol color ...
+    // The third  parameter is the name for the series.
     STYLE_ObsData("gray", "black", "ObsData"),
     STYLE_ObsPoints("transparent", "black", "ObsPoints"),
     STYLE_obsData("lightgray", "gray", "obsData"),

@@ -2,6 +2,7 @@ package jocularmain;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -39,6 +40,8 @@ public class RootViewController implements Initializable {
 
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
+
+    private static HashMap<DataType, XYChart.Series<Number, Number>> chartSeries = new HashMap<>();
 
     public static void setMainApp(JocularMain main) {
         jocularMain = main;
@@ -85,24 +88,23 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void replotObservation() {
-        removeObservationFromMainPlot();
-        addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
-
+        //addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
+        repaintChart();
     }
 
-    private PlotType getUserPreferredObsStyle() {
+    private String getUserPreferredObsStyle() {
         if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
-            return STYLE_obsPoints;
+            return "obsPoints";
         }
 
         if (obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
-            return STYLE_obsData;
+            return "obsData";
         }
 
         if (!obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
-            return STYLE_ObsPoints;
+            return "ObsPoints";
         } else {
-            return STYLE_ObsData;
+            return "ObsData";
         }
     }
 
@@ -167,7 +169,7 @@ public class RootViewController implements Initializable {
         }
     }
 
-    public double estimateSigma() {
+    private double estimateSigma() {
         if (dLeftMarker.isInUse() != dRightMarker.isInUse()) {
             jocularMain.showErrorDialog("D markers must be used in pairs.");
             return 0.0;
@@ -457,7 +459,8 @@ public class RootViewController implements Initializable {
         jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
 
-        showObservationDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
+        //addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
+        chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
     }
 
     @FXML
@@ -471,7 +474,9 @@ public class RootViewController implements Initializable {
 
         jocularMain.getCurrentObservation().setLeftTrimPoint(minLeftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
-        showObservationDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
+        
+        //addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
+        chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
     }
 
     private XYChart.Series<Number, Number> getObservationSeries(Observation observation) {
@@ -489,69 +494,63 @@ public class RootViewController implements Initializable {
             data.setNode(hNode);
             series.getData().add(data);
         }
+        chartSeries.put(DataType.OBSDATA, series);
         return series;
     }
 
+    public void clearMainPlot() {
+        chartSeries.put(DataType.SAMPLE, null);
+        chartSeries.put(DataType.SOLUTION, null);
+        chartSeries.put(DataType.OBSDATA, null);
+        chartSeries.put(DataType.SECONDARY, null);
+        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        repaintChart();
+    }
+
     public void showObservationDataWithTheoreticalLightCurve(Observation observation, SqSolution solution) {
-
-        // Remove all series from the chart.
-        chart.getData().clear();
-
-        addSeriesToMainPlot(getObservationSeries(observation), getUserPreferredObsStyle());
-
-        addSeriesToMainPlot(getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
-
-        // Experimental --- how to get names of all series in a chart.  With
-        // this tool, it becomes possible to remove a series by name.
-        System.out.println("num series: " + chart.getData().size());
-        for (int i = 0; i < chart.getData().size(); i++) {
-            System.out.println("series " + i + " name is " + chart.getData().get(i).getName());
-        }
+        clearMainPlot();
+        //addSeriesToMainPlot(getObservationSeries(observation), getUserPreferredObsStyle());
+        chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
+        //addSeriesToMainPlot(getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
+        chartSeries.put(DataType.SAMPLE, getTheoreticalLightCurveSeries(observation, solution));
+        repaintChart();
     }
 
     public void showObservationDataAlone(Observation observation) {
-
-        // Remove all series from the chart.
-        chart.getData().clear();
-
-        addSeriesToMainPlot(getObservationSeries(observation), getUserPreferredObsStyle());
-
-        //addSeriesToChart(chart, getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
-        // Experimental --- how to get names of all series in a chart.  With
-        // this tool, it becomes possible to remove a series by name.
-        System.out.println("num series: " + chart.getData().size());
-        for (int i = 0; i < chart.getData().size(); i++) {
-            System.out.println("series " + i + " name is " + chart.getData().get(i).getName());
-        }
+        clearMainPlot();
+        //addSeriesToMainPlot(chartSeries.get(DataType.OBSDATA), getUserPreferredObsStyle());
+        chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
+        repaintChart();
     }
 
-    private boolean removeOneInstanceOfNamedSeries(String seriesNameToRemove) {
-        for (int i = 0; i < chart.getData().size(); i++) {
-            if (chart.getData().get(i).getName() == seriesNameToRemove) {
-                chart.getData().remove(i);
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean removeOneInstanceOfNamedSeries(String seriesNameToRemove) {
+//        for (int i = 0; i < chart.getData().size(); i++) {
+//            if (chart.getData().get(i).getName() == seriesNameToRemove) {
+//                chart.getData().remove(i);
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+//    public void removeNamedSeriesFromMainPlot(String seriesNameToRemove) {
+//        while (true) {
+//            if (!removeOneInstanceOfNamedSeries(seriesNameToRemove)) {
+//                resetLegends();
+//                restyleChart();
+//                return;
+//            }
+//        }
+//    }
+//    private void removeObservationFromMainPlot() {
+//        // Remove all possible forms (styles)of the observation data plot.
+//        removeNamedSeriesFromMainPlot(STYLE_ObsData.seriesName());
+//        removeNamedSeriesFromMainPlot(STYLE_obsData.seriesName());
+//        removeNamedSeriesFromMainPlot(STYLE_ObsPoints.seriesName());
+//        removeNamedSeriesFromMainPlot(STYLE_obsPoints.seriesName());
+//        restyleChart();
+//    }
 
-    public void removeNamedSeriesFromMainPlot(String seriesNameToRemove) {
-        while (true) {
-            if (!removeOneInstanceOfNamedSeries(seriesNameToRemove)) {
-                resetLegends(chart);
-                return;
-            }
-        }
-    }
-
-    private void removeObservationFromMainPlot() {
-        removeNamedSeriesFromMainPlot("ObsData");
-        removeNamedSeriesFromMainPlot("obsData");
-        removeNamedSeriesFromMainPlot("ObsPoints");
-        removeNamedSeriesFromMainPlot("obsPoints");
-    }
-
-    private void resetLegends(XYChart chart) {
+    private void resetLegends() {
         // We have to update all the legend labels for this chart at the same time.
         Set<Node> items = chart.lookupAll("Label.chart-legend-item");
 
@@ -563,7 +562,7 @@ public class RootViewController implements Initializable {
             // If there is no plot line, its color will be transparent, so we skip over changing
             // its label.  That allows the default legend behavior of showing the plot symbol
             // to take over.
-            if (lineColor == "transparent") {
+            if (lineColor.equals("transparent")) {
                 final Circle circle = new Circle();
                 circle.setRadius(2);
                 circle.setFill(Color.web(symbolColor));
@@ -571,6 +570,73 @@ public class RootViewController implements Initializable {
             } else {
                 final Rectangle rectangle = new Rectangle(10, 2, Color.web(lineColor));
                 label.setGraphic(rectangle);
+            }
+        }
+    }
+
+    private void restyleChart() {
+//        System.out.println("restyleChart called...");
+//        for (int i = 0; i < chart.getData().size(); i++) {
+//            System.out.println("Series found: " + chart.getData().get(i).getName());
+//        }
+
+        // Set the line color and symbol color for this series
+        String seriesName;
+        for (int i = 0; i < chart.getData().size(); i++) {
+            seriesName = chart.getData().get(i).getName();
+            System.out.println("Styling series " + seriesName + " with " + PlotType.lookup(seriesName));
+
+            Set<Node> dataNodes = chart.lookupAll(".series" + i);
+            for (Node dataNode : dataNodes) {
+
+                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(seriesName).lineColor()
+                    + "; -fx-background-color:transparent," + PlotType.lookup(seriesName).symbolColor());
+            }
+        }
+        repaintChart();
+    }
+
+    public void repaintChart() {
+        chart.getData().clear();
+        
+        XYChart.Series<Number,Number> series;
+        series = chartSeries.get(DataType.OBSDATA);
+        if (  series!= null) {
+            //series.setName("ObsData");
+            series.setName(getUserPreferredObsStyle());
+            System.out.println("We will style OBSDATA");
+            chart.getData().add(chartSeries.get(DataType.OBSDATA));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size()-1));
+            for (Node dataNode : dataNodes) {
+
+                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
+                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
+            }
+        }
+
+        series = chartSeries.get(DataType.SAMPLE);
+        if (series != null) {
+            series.setName("Sample");
+            System.out.println("We will style SAMPLE light curve");
+            chart.getData().add(chartSeries.get(DataType.SAMPLE));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size()-1));
+            for (Node dataNode : dataNodes) {
+
+                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
+                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
+            }
+        }
+
+        series = chartSeries.get(DataType.SOLUTION);
+        if (chartSeries.get(DataType.SOLUTION) != null) {
+            series.setName("Solution");
+            System.out.println("We will style SOLUTION light curve");
+            chart.getData().add(chartSeries.get(DataType.SOLUTION));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size()-1));
+            for (Node dataNode : dataNodes) {
+
+                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
+                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
             }
         }
     }
@@ -590,11 +656,19 @@ public class RootViewController implements Initializable {
             dataNode.setStyle("-fx-stroke: " + plotType.lineColor() + "; -fx-background-color:transparent," + plotType.symbolColor());
         }
 
-        resetLegends(chart);
+        resetLegends();
+        repaintChart();
     }
 
-    public void addSolutionCurve(Observation obs, SqSolution solution) {
-        addSeriesToMainPlot(getTheoreticalLightCurveSeries(obs, solution), STYLE_Solution);
+    public void addSolutionCurveToMainPlot(SqSolution solution) {
+        addSeriesToMainPlot(getTheoreticalLightCurveSeries(jocularMain.getCurrentObservation(), solution), STYLE_Solution);
+        chartSeries.put(DataType.SOLUTION, getTheoreticalLightCurveSeries(jocularMain.getCurrentObservation(), solution));
+        repaintChart();
+    }
+
+    public void addSampleCurveToMainPlot(SqSolution solution) {
+        chartSeries.put(DataType.SAMPLE, getTheoreticalLightCurveSeries(jocularMain.getCurrentObservation(), solution));
+        repaintChart();
     }
 
     private XYChart.Series<Number, Number> getTheoreticalLightCurveSeries(Observation sampleData, SqSolution solution) {
@@ -810,7 +884,7 @@ public class RootViewController implements Initializable {
                     markerRBnone.requestFocus();
                     markerSelectedName = "none";
                     break;
-                    
+
                 case "rLeft":
                     markerRBrRight.setSelected(true);
                     markerRBrRight.requestFocus();

@@ -185,7 +185,7 @@ public class SqSolver {
         if (sqsolutions.size() > 0) {
             LogLcomparator logLcomparator = new LogLcomparator();
             Collections.sort(sqsolutions, logLcomparator);
-            jocularMain.addSolutionPlotToCurrentObs(sqsolutions.get(0));
+            jocularMain.addSolutionCurveToMainPlot(sqsolutions.get(0));
         }
 
         solutionStats.numTransitionPairsConsidered = numTranPairsConsidered;

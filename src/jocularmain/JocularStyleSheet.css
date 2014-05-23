@@ -22,10 +22,10 @@
 .default-color0.chart-line-symbol { -fx-background-color:transparent,black}
 
 .default-color1.chart-series-line { -fx-stroke:red }
-.default-color1.chart-line-symbol { -fx-background-color:transparent,transparent}
+.default-color1.chart-line-symbol { -fx-background-color:transparent,green}
 
 .default-color2.chart-series-line { -fx-stroke:green }
-.default-color2.chart-line-symbol { -fx-background-color:transparent,transparent}
+.default-color2.chart-line-symbol { -fx-background-color:transparent,red}
 
 .chart-line-symbol {
     -fx-background-radius: 2px;
