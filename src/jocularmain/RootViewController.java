@@ -88,7 +88,8 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void replotObservation() {
-        //addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
+        // This forces a 'relook' at the state of the checkboxes that give the user options
+        // on the look of the observation data display (points, points and lines, light or dark)
         repaintChart();
     }
 
@@ -263,7 +264,7 @@ public class RootViewController implements Initializable {
             return;
         }
 
-        // Erase the Solution List
+        // Provide an empty Solution List
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
@@ -459,8 +460,11 @@ public class RootViewController implements Initializable {
         jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
 
-        //addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
         chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
+        
+        // Since we've (probably) changed the data set, erase any previous solution.
+        chartSeries.put(DataType.SOLUTION, null);
+        repaintChart();
     }
 
     @FXML
@@ -474,9 +478,12 @@ public class RootViewController implements Initializable {
 
         jocularMain.getCurrentObservation().setLeftTrimPoint(minLeftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
-        
-        //addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
+
         chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
+        
+        // Since we've (probably) changed the data set, erase any previous solution.
+        chartSeries.put(DataType.SOLUTION, null);
+        repaintChart();
     }
 
     private XYChart.Series<Number, Number> getObservationSeries(Observation observation) {
@@ -499,56 +506,22 @@ public class RootViewController implements Initializable {
     }
 
     public void clearMainPlot() {
-        chartSeries.put(DataType.SAMPLE, null);
-        chartSeries.put(DataType.SOLUTION, null);
-        chartSeries.put(DataType.OBSDATA, null);
-        chartSeries.put(DataType.SECONDARY, null);
-        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        chartSeries.clear();
         repaintChart();
     }
 
     public void showObservationDataWithTheoreticalLightCurve(Observation observation, SqSolution solution) {
         clearMainPlot();
-        //addSeriesToMainPlot(getObservationSeries(observation), getUserPreferredObsStyle());
         chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
-        //addSeriesToMainPlot(getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
         chartSeries.put(DataType.SAMPLE, getTheoreticalLightCurveSeries(observation, solution));
         repaintChart();
     }
 
     public void showObservationDataAlone(Observation observation) {
         clearMainPlot();
-        //addSeriesToMainPlot(chartSeries.get(DataType.OBSDATA), getUserPreferredObsStyle());
         chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
         repaintChart();
     }
-
-//    private boolean removeOneInstanceOfNamedSeries(String seriesNameToRemove) {
-//        for (int i = 0; i < chart.getData().size(); i++) {
-//            if (chart.getData().get(i).getName() == seriesNameToRemove) {
-//                chart.getData().remove(i);
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//    public void removeNamedSeriesFromMainPlot(String seriesNameToRemove) {
-//        while (true) {
-//            if (!removeOneInstanceOfNamedSeries(seriesNameToRemove)) {
-//                resetLegends();
-//                restyleChart();
-//                return;
-//            }
-//        }
-//    }
-//    private void removeObservationFromMainPlot() {
-//        // Remove all possible forms (styles)of the observation data plot.
-//        removeNamedSeriesFromMainPlot(STYLE_ObsData.seriesName());
-//        removeNamedSeriesFromMainPlot(STYLE_obsData.seriesName());
-//        removeNamedSeriesFromMainPlot(STYLE_ObsPoints.seriesName());
-//        removeNamedSeriesFromMainPlot(STYLE_obsPoints.seriesName());
-//        restyleChart();
-//    }
 
     private void resetLegends() {
         // We have to update all the legend labels for this chart at the same time.
@@ -574,39 +547,17 @@ public class RootViewController implements Initializable {
         }
     }
 
-    private void restyleChart() {
-//        System.out.println("restyleChart called...");
-//        for (int i = 0; i < chart.getData().size(); i++) {
-//            System.out.println("Series found: " + chart.getData().get(i).getName());
-//        }
-
-        // Set the line color and symbol color for this series
-        String seriesName;
-        for (int i = 0; i < chart.getData().size(); i++) {
-            seriesName = chart.getData().get(i).getName();
-            System.out.println("Styling series " + seriesName + " with " + PlotType.lookup(seriesName));
-
-            Set<Node> dataNodes = chart.lookupAll(".series" + i);
-            for (Node dataNode : dataNodes) {
-
-                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(seriesName).lineColor()
-                    + "; -fx-background-color:transparent," + PlotType.lookup(seriesName).symbolColor());
-            }
-        }
-        repaintChart();
-    }
-
     public void repaintChart() {
         chart.getData().clear();
-        
-        XYChart.Series<Number,Number> series;
+
+        XYChart.Series<Number, Number> series;
         series = chartSeries.get(DataType.OBSDATA);
-        if (  series!= null) {
+        if (series != null) {
             //series.setName("ObsData");
             series.setName(getUserPreferredObsStyle());
             System.out.println("We will style OBSDATA");
             chart.getData().add(chartSeries.get(DataType.OBSDATA));
-            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size()-1));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
 
                 dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
@@ -619,7 +570,7 @@ public class RootViewController implements Initializable {
             series.setName("Sample");
             System.out.println("We will style SAMPLE light curve");
             chart.getData().add(chartSeries.get(DataType.SAMPLE));
-            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size()-1));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
 
                 dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
@@ -632,7 +583,7 @@ public class RootViewController implements Initializable {
             series.setName("Solution");
             System.out.println("We will style SOLUTION light curve");
             chart.getData().add(chartSeries.get(DataType.SOLUTION));
-            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size()-1));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
 
                 dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
@@ -641,27 +592,7 @@ public class RootViewController implements Initializable {
         }
     }
 
-    public void addSeriesToMainPlot(XYChart.Series<Number, Number> series, PlotType plotType) {
-
-        series.setName(plotType.seriesName());
-        chart.getData().add(series);
-
-        // Finds which series number we've just added.  Here we make the critical assumption that
-        // any series added will be at the end of the list.
-        int seriesNumber = chart.getData().size();
-
-        // Set the line color and symbol color for this series
-        Set<Node> dataNodes = chart.lookupAll(".series" + (seriesNumber - 1));
-        for (Node dataNode : dataNodes) {
-            dataNode.setStyle("-fx-stroke: " + plotType.lineColor() + "; -fx-background-color:transparent," + plotType.symbolColor());
-        }
-
-        resetLegends();
-        repaintChart();
-    }
-
     public void addSolutionCurveToMainPlot(SqSolution solution) {
-        addSeriesToMainPlot(getTheoreticalLightCurveSeries(jocularMain.getCurrentObservation(), solution), STYLE_Solution);
         chartSeries.put(DataType.SOLUTION, getTheoreticalLightCurveSeries(jocularMain.getCurrentObservation(), solution));
         repaintChart();
     }
