@@ -41,7 +41,11 @@ observation points if that is useful.
     The position of markers is always adjusted (snaps) to fall
     exactly between readings.  That is, marker position values
     are always of the form: xxx.5 
-    
+   
+#### Marker pairs auto-advance ---
+
+Because trim, D and R markers are nearly always used in pairs, there is an *auto-advance* feature that moves the marker selection from the *left* marker, then to the *right* marker, then to *none* on subsequent left clicks in the plot area.
+ 
 #### Adjusting a marker a marker position ---
 
 Click the radio button that corresponds to the marker that is to be adjusted, then left-click at the desired new position.

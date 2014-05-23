@@ -23,6 +23,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import static jocularmain.PlotType.*;
 import org.gillius.jfxutils.chart.ManagedChart;
@@ -84,24 +85,8 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void replotObservation() {
-        String plotStyle = "";
-        if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
-            plotStyle = "obsPoints";
-        }
-
-        if (obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
-            plotStyle = "obsData";
-        }
-
-        if (!obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
-            plotStyle = "ObsPoints";
-        }
-
-        if (!obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
-            plotStyle = "ObsData";
-        }
-
-        System.out.println("Observation plotstyle selection: " + plotStyle);
+        removeObservationFromMainPlot();
+        addSeriesToMainPlot(getObservationSeries(jocularMain.getCurrentObservation()), getUserPreferredObsStyle());
 
     }
 
@@ -471,7 +456,7 @@ public class RootViewController implements Initializable {
 
         jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
         jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
-        
+
         showObservationDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
     }
 
@@ -488,8 +473,8 @@ public class RootViewController implements Initializable {
         jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
         showObservationDataWithTheoreticalLightCurve(jocularMain.getCurrentObservation(), jocularMain.getCurrentSolution());
     }
-    
-    private XYChart.Series<Number,Number> getObservationSeries(Observation observation) {
+
+    private XYChart.Series<Number, Number> getObservationSeries(Observation observation) {
         XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
         XYChart.Data<Number, Number> data;
@@ -512,9 +497,9 @@ public class RootViewController implements Initializable {
         // Remove all series from the chart.
         chart.getData().clear();
 
-        addSeriesToChart(chart, getObservationSeries(observation), getUserPreferredObsStyle());
+        addSeriesToMainPlot(getObservationSeries(observation), getUserPreferredObsStyle());
 
-        addSeriesToChart(chart, getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
+        addSeriesToMainPlot(getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
 
         // Experimental --- how to get names of all series in a chart.  With
         // this tool, it becomes possible to remove a series by name.
@@ -523,22 +508,47 @@ public class RootViewController implements Initializable {
             System.out.println("series " + i + " name is " + chart.getData().get(i).getName());
         }
     }
-    
+
     public void showObservationDataAlone(Observation observation) {
 
         // Remove all series from the chart.
         chart.getData().clear();
 
-        addSeriesToChart(chart, getObservationSeries(observation), getUserPreferredObsStyle());
+        addSeriesToMainPlot(getObservationSeries(observation), getUserPreferredObsStyle());
 
         //addSeriesToChart(chart, getTheoreticalLightCurveSeries(observation, solution), STYLE_Sample);
-
         // Experimental --- how to get names of all series in a chart.  With
         // this tool, it becomes possible to remove a series by name.
         System.out.println("num series: " + chart.getData().size());
         for (int i = 0; i < chart.getData().size(); i++) {
             System.out.println("series " + i + " name is " + chart.getData().get(i).getName());
         }
+    }
+
+    private boolean removeOneInstanceOfNamedSeries(String seriesNameToRemove) {
+        for (int i = 0; i < chart.getData().size(); i++) {
+            if (chart.getData().get(i).getName() == seriesNameToRemove) {
+                chart.getData().remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void removeNamedSeriesFromMainPlot(String seriesNameToRemove) {
+        while (true) {
+            if (!removeOneInstanceOfNamedSeries(seriesNameToRemove)) {
+                resetLegends(chart);
+                return;
+            }
+        }
+    }
+
+    private void removeObservationFromMainPlot() {
+        removeNamedSeriesFromMainPlot("ObsData");
+        removeNamedSeriesFromMainPlot("obsData");
+        removeNamedSeriesFromMainPlot("ObsPoints");
+        removeNamedSeriesFromMainPlot("obsPoints");
     }
 
     private void resetLegends(XYChart chart) {
@@ -548,20 +558,24 @@ public class RootViewController implements Initializable {
         for (Node item : items) {
             Label label = (Label) item;
             String lineColor = PlotType.lookup(label.getText()).lineColor();
+            String symbolColor = PlotType.lookup(label.getText()).symbolColor();
 
             // If there is no plot line, its color will be transparent, so we skip over changing
             // its label.  That allows the default legend behavior of showing the plot symbol
             // to take over.
             if (lineColor == "transparent") {
-                continue;
+                final Circle circle = new Circle();
+                circle.setRadius(2);
+                circle.setFill(Color.web(symbolColor));
+                label.setGraphic(circle);
+            } else {
+                final Rectangle rectangle = new Rectangle(10, 2, Color.web(lineColor));
+                label.setGraphic(rectangle);
             }
-
-            final Rectangle rectangle = new Rectangle(10, 2, Color.web(lineColor));
-            label.setGraphic(rectangle);
         }
     }
 
-    public void addSeriesToChart(XYChart chart, XYChart.Series<Number, Number> series, PlotType plotType) {
+    public void addSeriesToMainPlot(XYChart.Series<Number, Number> series, PlotType plotType) {
 
         series.setName(plotType.seriesName());
         chart.getData().add(series);
@@ -575,12 +589,12 @@ public class RootViewController implements Initializable {
         for (Node dataNode : dataNodes) {
             dataNode.setStyle("-fx-stroke: " + plotType.lineColor() + "; -fx-background-color:transparent," + plotType.symbolColor());
         }
-        
+
         resetLegends(chart);
     }
 
     public void addSolutionCurve(Observation obs, SqSolution solution) {
-        addSeriesToChart(chart, getTheoreticalLightCurveSeries(obs, solution), STYLE_Solution);
+        addSeriesToMainPlot(getTheoreticalLightCurveSeries(obs, solution), STYLE_Solution);
     }
 
     private XYChart.Series<Number, Number> getTheoreticalLightCurveSeries(Observation sampleData, SqSolution solution) {
@@ -774,42 +788,40 @@ public class RootViewController implements Initializable {
             x = Math.floor(x) + 0.5;
             smartChart.getMarker(markerSelectedName).setxValue(x).setInUse(true);
 
-//            switch (markerSelectedName) {
-//                case "trimLeft":
-//                    markerRBtrimRight.setSelected(true);
-//                    markerRBtrimRight.requestFocus();
-//                    markerSelectedName = "trimRight";
-//                    break;
-//                case "trimRight":
-//                    markerRBnone.setSelected(true);
-//                    markerRBnone.requestFocus();
-//                    markerSelectedName = "none";
-//                    break;
-//
-//                case "dLeft":
-//                    markerRBdRight.setSelected(true);
-//                    markerRBdRight.requestFocus();
-//                    markerSelectedName = "dRight";
-//                    break;
-//                case "dRight":
-//                    markerRBrLeft.setSelected(true);
-//                    markerRBrLeft.requestFocus();
-//                    markerSelectedName = "rLeft";
-//                    break;
-//                case "rLeft":
-//                    markerRBrRight.setSelected(true);
-//                    markerRBrRight.requestFocus();
-//                    markerSelectedName = "rRight";
-//                    break;
-//                case "rRight":
-//                    markerRBnone.setSelected(true);
-//                    markerRBnone.requestFocus();
-//                    markerSelectedName = "none";
-//                    break;
-//            }
-            markerRBnone.setSelected(true);
-            markerRBnone.requestFocus();
-            markerSelectedName = "none";
+            switch (markerSelectedName) {
+                case "trimLeft":
+                    markerRBtrimRight.setSelected(true);
+                    markerRBtrimRight.requestFocus();
+                    markerSelectedName = "trimRight";
+                    break;
+                case "trimRight":
+                    markerRBnone.setSelected(true);
+                    markerRBnone.requestFocus();
+                    markerSelectedName = "none";
+                    break;
+
+                case "dLeft":
+                    markerRBdRight.setSelected(true);
+                    markerRBdRight.requestFocus();
+                    markerSelectedName = "dRight";
+                    break;
+                case "dRight":
+                    markerRBnone.setSelected(true);
+                    markerRBnone.requestFocus();
+                    markerSelectedName = "none";
+                    break;
+                    
+                case "rLeft":
+                    markerRBrRight.setSelected(true);
+                    markerRBrRight.requestFocus();
+                    markerSelectedName = "rRight";
+                    break;
+                case "rRight":
+                    markerRBnone.setSelected(true);
+                    markerRBnone.requestFocus();
+                    markerSelectedName = "none";
+                    break;
+            }
         }
     }
 
