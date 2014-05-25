@@ -24,18 +24,20 @@ Jocular 'solves' for the best pair of transition points by doing an exhaustive s
 * There is no baseline point
 * There is no event point
 * B is less than A
-* When a Min Event Dur is specified and the event duration is less
-* When a Max Event Dur is specified and the event duration is greater 
+* When a **Min Event Dur** is specified and the event duration is less
+* When a **Max Event Dur** is specified and the event duration is greater
+* When a mag drop is less than the value present in the **Min Mag Drop** field
+* When a mag drop is greater than the value present in the **Max Mag Drop** field. 
 
 The first line in the solution list gives the statistics of the 'search'.  If you provide no limitations for the search, then the number of candidate pairs will be `(n+2)^2`. Jocular is fast enough that it can handle observations with around 500 points without the need to take any steps to restrict the range of candidate pairs. 
 
 The principal means to restrict the search is to place <font color="red">D</font> and/or <font color="green">R</font> markers on the observation plot around the zones (assuming that the transitions are obvious enough) to be searched for transition candidates. 
 
-The other means to restrict search (which does not require the transitions to be unambiguously visible) is to set minimum and/or maximum values for event duration.
+The other means to restrict search (which does not require the transitions to be unambiguously visible) is to set minimum and/or maximum values for event duration and place reasonable limits for expected magDrop.
 
 ## 
 
-The second line of the solution list shows what the **AICc** (Akaike Information Criteria with finite sample size correction) value would be for a straight line fit to the data: that is, it is the **AICc** value expected if there were no event present. (Note: with **AICc** values, smaller is better). When searching for events buried in noise, this number can be used to decide whether an event is present. Experience has shown that an unconstrained search for an event in noise should require a large (>500)relative probability of an event (SqWave) versus a straight line (no event) before considering that a statistically significant event is present in the data.
+The second line of the solution list shows what the **AICc** (Akaike Information Criteria with finite sample size correction) value would be for a straight line fit to the data: that is, it is the **AICc** value expected if there were no event present. (Note: with **AICc** values, smaller is better). When searching for events buried in noise, this number can be used to decide whether an event is present. Experience has shown that an unconstrained search for an event in noise should require a large (>500) relative probability of an event (SqWave) versus a straight line (no event) before considering that a statistically significant event is present in the data.
 
 If the event size is reasonably constrained, a smaller number may be used with caution. 
 
@@ -61,6 +63,8 @@ The initial part gives the transition pair that produced the results
 **B** is the baseline intensity value
 
 **A** is the event intensity value.
+
+**magDrop** is the event magDrop
 
 **k** is the number of adjustable parameters in the solution. The possible adjustable parameters are:
 

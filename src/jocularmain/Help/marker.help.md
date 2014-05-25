@@ -6,23 +6,21 @@
 
 ### Overview --- trim markers
 
-**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the command *Apply Trims* is executed (from the *Operations* 
-menu).
+**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution (and noise estimation) process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the  **Apply** button is 
+clicked.
+
+When the **Apply** button is clicked, the trim markers are automatically cleared so that a subsequent click on the button will easily 'undo' the trim action.
 
 ### Overview --- D and R markers 
 
-These markers serve a dual purpose: to delineate data points for use in estimating noise levels; to speed calculations when observations with many data points are being processed.
+These markers serve a combined purpose: to delineate data points for use in estimating noise levels and to speed calculations when observations with many data points are being processed.
 
-These markers can be used to speed up the solution calculation by restricting the
-range of candidate *solutions*.  For observations with fewer than 1000 points,
-it may take more time to place the markers than to simply let the *solver*
-find the biggest thing present using an exhaustive search (perhaps limited more simply by the use of min and/or max event durations).
-
-**<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points or to delineate a set of data points to be included in a noise estimation. Either none or 
+**<font color=red>D limit markers</font>** (color coded red) bracket points that Jocular is to consider as candidate solution D transition points. They also serve to delineate the baseline points that
+are to the left of the **D** transition zone and the event points that are between the **D** and **R** transition zones. Either none or 
 both markers must be placed.  They can be placed outside the region of
 observation points if that is useful.
 
-**<font color=green>R limit markers</font>** (color coded green) bracket points that Jocular is to consider as candidate solution R transition points or to delineate a set of data points to be included in a noise estimation. Either none or both markers must be placed.  They can be placed outside the region of
+**<font color=green>R limit markers</font>** (color coded green) bracket points that Jocular is to consider as candidate solution R transition points. They also serve to delineate the baseline points that are to the right of the **R** transition zone and the event points that are between the **D** and **R** transition zones.  Either none or both markers must be placed.  They can be placed outside the region of
 observation points if that is useful.
 
 #### Note ---

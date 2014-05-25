@@ -163,60 +163,6 @@ public class RootViewController implements Initializable {
         jocularMain.showInformationDialog("Show Subframe Timing Band:  not yet implemented.");
     }
 
-    @FXML
-    public void estimateSigmaB() {
-        estimateNoiseValues();
-    }
-
-    @FXML
-    public void estimateSigmaA() {
-        if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation from which to estimate event noise.");
-            return;
-        }
-        double sigmaA = estimateSigma();
-        if (sigmaA > 0.0) {
-            sigmaAtext.setText(String.format("%.4f", sigmaA));
-            eraseAllMarkers();
-        }
-    }
-
-    private double estimateSigma() {
-        if (dLeftMarker.isInUse() != dRightMarker.isInUse()) {
-            jocularMain.showErrorDialog("D markers must be used in pairs.");
-            return 0.0;
-        }
-
-        if (rLeftMarker.isInUse() != rRightMarker.isInUse()) {
-            jocularMain.showErrorDialog("R markers must be used in pairs.");
-            return 0.0;
-        }
-
-        ArrayList<Double> includedPoints = new ArrayList<>();
-
-        for (int i = 0; i < jocularMain.getCurrentObservation().obsData.length; i++) {
-            if (includedWithinMarkers(i, dLeftMarker, dRightMarker, rLeftMarker, rRightMarker)) {
-                includedPoints.add(jocularMain.getCurrentObservation().obsData[i]);
-            }
-        }
-
-        if (includedPoints.size() < 2) {
-            jocularMain.showErrorDialog("Too few points to estimate noise.  Probably an error in setting selection markers.");
-            return 0.0;
-        }
-
-        // Unbox the ArrayList<Double> into a double[]
-        double[] pointsInEstimate = new double[includedPoints.size()];
-        for (int i = 0; i < pointsInEstimate.length; i++) {
-            pointsInEstimate[i] = (double) includedPoints.get(i);
-        }
-
-        double sigma = JocularUtils.calcSigma(pointsInEstimate);
-
-        return sigma;
-
-    }
-
     private boolean includedWithinMarkers(int index,
                                           XYChartMarker dLeft, XYChartMarker dRight,
                                           XYChartMarker rLeft, XYChartMarker rRight) {
@@ -235,11 +181,41 @@ public class RootViewController implements Initializable {
         return false;
     }
 
+    private void useLowSnrNoiseEstimation() {
+        // In the case of low SNR observations, it is difficult to place markers around the
+        // transitions.  Here use a trick: we differentiate the obsData, get the sigma for
+        // the differentiated obsData, then adjust for the increase in noise (sqrt(2)) due
+        // to the differentiation procedure.
+        
+        if ( jocularMain.getCurrentObservation().readingNumbers.length < 3) {
+            jocularMain.showErrorDialog("Cannot estimate noise: too few points in observation.");
+        }
+        
+        double[] diffObs = new double[jocularMain.getCurrentObservation().readingNumbers.length - 1];
+        
+        for(int i=0;i < diffObs.length;i++) {
+            diffObs[i] = 
+                jocularMain.getCurrentObservation().obsData[i+1] -
+                jocularMain.getCurrentObservation().obsData[i];
+        }
+        
+        double sigma = JocularUtils.calcSigma(diffObs) / Math.sqrt(2.0);
+        sigmaAtext.setText(String.format("%.4f", sigma));
+        sigmaBtext.setText(sigmaAtext.getText());
+        
+        return;
+    }
+
     @FXML
     public void estimateNoiseValues() {
 
         if (jocularMain.getCurrentObservation() == null) {
             jocularMain.showErrorDialog("There is no observation from which to estimate noise values.");
+            return;
+        }
+        
+        if (!(dLeftMarker.isInUse() || dRightMarker.isInUse() || rLeftMarker.isInUse() || rRightMarker.isInUse())) {
+            useLowSnrNoiseEstimation();
             return;
         }
 
@@ -289,12 +265,7 @@ public class RootViewController implements Initializable {
             return;
         }
 
-        // Unbox the ArrayList<Double> into a double[]
-        double[] pointsInEstimate = new double[baselinePoints.size()];
-        for (int i = 0; i < pointsInEstimate.length; i++) {
-            pointsInEstimate[i] = (double) baselinePoints.get(i);
-        }
-        double sigma = JocularUtils.calcSigma(pointsInEstimate);
+        double sigma = JocularUtils.calcSigma(baselinePoints);
         sigmaBtext.setText(String.format("%.4f", sigma));
 
         if (useBaselineNoiseAsEventNoiseCheckbox.isSelected() || eventPoints.size() < 2) {
@@ -302,18 +273,20 @@ public class RootViewController implements Initializable {
             return;
         }
 
-        // Unbox the ArrayList<Double> into a double[]
-        pointsInEstimate = new double[eventPoints.size()];
-        for (int i = 0; i < pointsInEstimate.length; i++) {
-            pointsInEstimate[i] = (double) eventPoints.get(i);
-        }
-        sigma = JocularUtils.calcSigma(pointsInEstimate);
+        sigma = JocularUtils.calcSigma(eventPoints);
         sigmaAtext.setText(String.format("%.4f", sigma));
 
         if (eventPoints.size() < 10) {
             jocularMain.showInformationDialog("There are only " + eventPoints.size() + "points in the 'event'."
                 + "  This will give an unreliable estimate of the event noise.  Consider checking the box "
                 + "that allows the baseline noise estimate to be used as the event noise estimate.");
+        }
+
+        if (baselinePoints.size() < 10) {
+            jocularMain.showInformationDialog("There are only " + baselinePoints.size() + "points in the 'baseline'."
+                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain. "
+                + "Suggestion: trim so that only event points remain; estimate noise with no markers; remember this value; "
+                + "untrim the data, manually enter noise values, set proper proper markers, and run solution." );        
         }
     }
 
@@ -364,6 +337,9 @@ public class RootViewController implements Initializable {
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
+        
+        chartSeries.put(DataType.SOLUTION, null);
+        repaintChart();
 
         double sigmaB = validateSigmaBtext();
         if (sigmaB == FIELD_ENTRY_ERROR || sigmaB == EMPTY_FIELD) {

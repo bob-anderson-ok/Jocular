@@ -7,13 +7,15 @@
 
  1.  Read an observation file (using appropriate entry in the **File** menu) or create a sample data set (use **Operations | Generate Sample Data**).
  
- 2. Estimate the baseline noise level by placing markers on the chart as needed to enclose the points that are considered baseline points and then click on **Operations | Estimate Baseline Noise**. 
+ 2. Place ** D markers** around the expected **D** transition zone (if present).
  
- 3. Estimate the event noise level by placing markers on the chart as needed to enclose the points that are considered event points and then click on **Operations | Estimate Event Noise**.  (This step can be skipped if baseline and event noise are to be treated as equal.)
+ 3. Place **R markers** around the expected **R** transition zone (if present).
  
- 4. For data sets of around 600 data points or fewer, the 'solution' can now be found by clicking on  **Operations | Find Solution**
+ 4. Click the **Estimate Noise Values** button.
  
- 5. For large data sets, save compute time by placing restrictions on the search range by either placing chart markers that enclose obvious regions where the occulation transitions must lie, or set some limits on the event duration. As in step 4, click on **Operations | Find Solution** to get the 'solution'.
+ 5. Set any desired search limitations (min/max event size; min/max magDrop)
+ 
+ 6. Click the **Find New Solution** button. 
  
   
     

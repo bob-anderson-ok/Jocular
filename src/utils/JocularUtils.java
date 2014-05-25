@@ -1,5 +1,6 @@
 package utils;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public interface JocularUtils {
@@ -47,6 +48,16 @@ public interface JocularUtils {
         }
 
         return Math.sqrt(squaredDifference / (values.length - 1));
+    }
+    
+    static double calcSigma(ArrayList<Double> values) {
+        // Unbox the ArrayList<Double> into a double[]
+        double[] pointsInEstimate = new double[values.size()];
+        for (int i = 0; i < pointsInEstimate.length; i++) {
+            pointsInEstimate[i] = (double) values.get(i);
+        }
+        double sigma = calcSigma(pointsInEstimate);
+        return sigma;
     }
 
     static double aicc(double logL, int k, int n) {
