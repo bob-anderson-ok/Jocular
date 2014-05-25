@@ -165,15 +165,7 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void estimateSigmaB() {
-        if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation from which to estimate baseline noise.");
-            return;
-        }
-        double sigmaB = estimateSigma();
-        if (sigmaB > 0.0) {
-            sigmaBtext.setText(String.format("%.4f", sigmaB));
-            eraseAllMarkers();
-        }
+        estimateNoiseValues();
     }
 
     @FXML
@@ -244,6 +236,88 @@ public class RootViewController implements Initializable {
     }
 
     @FXML
+    public void estimateNoiseValues() {
+
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation from which to estimate noise values.");
+            return;
+        }
+
+        ArrayList<Double> baselinePoints = new ArrayList<>();
+        ArrayList<Double> eventPoints = new ArrayList<>();
+
+        for (int i = 0; i < jocularMain.getCurrentObservation().readingNumbers.length; i++) {
+            if (dLeftMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] < dLeftMarker.getXValue()) {
+
+                baselinePoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (rRightMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] > rRightMarker.getXValue()) {
+
+                baselinePoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (dRightMarker.isInUse() && rLeftMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] > dRightMarker.getXValue()
+                && jocularMain.getCurrentObservation().readingNumbers[i] < rLeftMarker.getXValue()) {
+
+                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (dRightMarker.isInUse() && !rLeftMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] > dRightMarker.getXValue()) {
+
+                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (rLeftMarker.isInUse() && !dRightMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] < rLeftMarker.getXValue()) {
+
+                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+            }
+        }
+
+        if (baselinePoints.size() < 2) {
+            jocularMain.showErrorDialog("Cannot calculate baseline noise because less than 2 points available");
+            sigmaBtext.setText("NaN");
+            return;
+        }
+
+        // Unbox the ArrayList<Double> into a double[]
+        double[] pointsInEstimate = new double[baselinePoints.size()];
+        for (int i = 0; i < pointsInEstimate.length; i++) {
+            pointsInEstimate[i] = (double) baselinePoints.get(i);
+        }
+        double sigma = JocularUtils.calcSigma(pointsInEstimate);
+        sigmaBtext.setText(String.format("%.4f", sigma));
+
+        if (useBaselineNoiseAsEventNoiseCheckbox.isSelected() || eventPoints.size() < 2) {
+            sigmaAtext.setText(sigmaBtext.getText());
+            return;
+        }
+
+        // Unbox the ArrayList<Double> into a double[]
+        pointsInEstimate = new double[eventPoints.size()];
+        for (int i = 0; i < pointsInEstimate.length; i++) {
+            pointsInEstimate[i] = (double) eventPoints.get(i);
+        }
+        sigma = JocularUtils.calcSigma(pointsInEstimate);
+        sigmaAtext.setText(String.format("%.4f", sigma));
+
+        if (eventPoints.size() < 10) {
+            jocularMain.showInformationDialog("There are only " + eventPoints.size() + "points in the 'event'."
+                + "  This will give an unreliable estimate of the event noise.  Consider checking the box "
+                + "that allows the baseline noise estimate to be used as the event noise estimate.");
+        }
+    }
+
+    @FXML
     public void showIntroHelp() {
         jocularMain.showHelpDialog("Help/gettingstarted.help.html");
 
@@ -262,6 +336,7 @@ public class RootViewController implements Initializable {
     @FXML
     public void displayMinMaxEventHelp() {
         jocularMain.showHelpDialog("Help/eventlimits.help.html");
+
     }
 
     /**
@@ -505,6 +580,8 @@ public class RootViewController implements Initializable {
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
+        sigmaBtext.setText("");
+        sigmaAtext.setText("");
     }
 
     @FXML
@@ -563,25 +640,6 @@ public class RootViewController implements Initializable {
 
         rightTrimMarker.setInUse(false);
         leftTrimMarker.setInUse(false);
-    }
-
-    @FXML
-    void undoTrims() {
-        if (jocularMain.getCurrentObservation() == null) {
-            return;
-        }
-
-        int maxRightTrim = jocularMain.getCurrentObservation().lengthOfDataColumns - 1;
-        int minLeftTrim = 0;
-
-        jocularMain.getCurrentObservation().setLeftTrimPoint(minLeftTrim);
-        jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
-
-        chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
-
-        // Since we've (probably) changed the data set, erase any previous solution.
-        chartSeries.put(DataType.SOLUTION, null);
-        repaintChart();
     }
 
     private XYChart.Series<Number, Number> getObservationSeries(Observation observation) {

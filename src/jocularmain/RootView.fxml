@@ -57,7 +57,7 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Operations">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#estimateSigmaB" text="Estimate Baseline Noise" /><MenuItem mnemonicParsing="false" onAction="#estimateSigmaA" text="Estimate Event Noise" /><MenuItem mnemonicParsing="false" onAction="#doEstimateErrorBars" text="Estimate Error Bars" /><MenuItem mnemonicParsing="false" onAction="#doShowSubframeTimingBand" text="Show Subframe Timing Band" />
+                        <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#doEstimateErrorBars" text="Estimate Error Bars" /><MenuItem mnemonicParsing="false" onAction="#doShowSubframeTimingBand" text="Show Subframe Timing Band" />
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
@@ -103,13 +103,17 @@
 <Image url="jocularmain/questionMark.png" />
 </image>
 </ImageView>
-<VBox layoutX="1039.0" layoutY="479.0" spacing="5.0" AnchorPane.bottomAnchor="368.0" AnchorPane.leftAnchor="620.0">
+<VBox layoutX="1039.0" layoutY="479.0" spacing="5.0" AnchorPane.bottomAnchor="368.0" AnchorPane.leftAnchor="640.0">
 <children><Label text="Observation plot options:" /><CheckBox fx:id="obsPointsOnlyCheckbox" alignment="TOP_CENTER" layoutX="1039.318603515625" layoutY="479.2120361328125" mnemonicParsing="false" onAction="#replotObservation" text="dots only" /><CheckBox fx:id="obsLightFontCheckbox" layoutX="1080.0" layoutY="510.0" mnemonicParsing="false" onAction="#replotObservation" text="lighter font" />
 </children>
 </VBox><Button layoutX="65.0" layoutY="495.0" mnemonicParsing="false" onAction="#applyTrims" prefHeight="14.0" prefWidth="54.0" text="Apply" AnchorPane.bottomAnchor="384.0" AnchorPane.leftAnchor="68.0">
 <font>
 <Font size="10.0" />
-</font></Button><Button layoutX="185.33837890625" layoutY="540.9810180664062" mnemonicParsing="false" onAction="#clearSolutionList" text="Clear Solution List" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="185.0" /><Button layoutX="379.33837890625" layoutY="540.9810180664062" mnemonicParsing="false" onAction="#computeCandidates" text="Find New Solution" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="330.0" />
+</font></Button>
+<HBox layoutX="185.0" layoutY="541.0" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="185.0">
+<children><Button layoutX="185.33837890625" layoutY="540.9810180664062" mnemonicParsing="false" onAction="#clearSolutionList" text="Clear Solution List" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="185.0" /><Button layoutX="349.33837890625" layoutY="505.5" mnemonicParsing="false" onAction="#estimateNoiseValues" text="Estimate Noise Values" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="330.0" /><Button layoutX="379.33837890625" layoutY="540.9810180664062" mnemonicParsing="false" onAction="#computeCandidates" text="Find New Solution" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="496.0" />
+</children>
+</HBox>
 <HBox layoutX="564.0" layoutY="782.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="584.0">
 <children>
 <TextField fx:id="minMagDropText" layoutX="834.96875" layoutY="528.0" text="0.01" />
