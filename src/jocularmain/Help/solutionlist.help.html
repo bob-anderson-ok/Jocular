@@ -313,10 +313,80 @@ sup {
 
 <h2>Solution List</h2>
 
+<h3>Transition point:  defined ---</h3>
+
+<p>When an occultation <font color="red">D</font> or <font color="green">R</font> transition occurs after reading <code>i-1</code> but before or at reading <code>i</code>, then reading <code>i</code> is a called a <strong>transition point</strong>.  All other points of the observation were recorded when either the asteroid plus star light level was present for the entire frame time, or just the asteroid light level was present for the entire frame time; such values are independent of when a transition occurred.</p>
+
+<h3>Transition points at the extremes</h3>
+
+<p>A transition point at 0 means that <font color="red">D</font> occurred just before or at the beginning of the observation recording and so the first reading is affected by the time of <font color="red">D</font>.</p>
+
+<p>A transition point at -1 (or smaller) means that <font color="red">D</font> occurred at least one frame time before the recording began.  In this case, the reading at point 0 is unaffected by <font color="red">D</font>.</p>
+
+<p>If there are <code>n</code> readings in the observation, a transition point at <code>n-1</code> (the last reading in the recording --- we're zero based for array indexing) means that <font color="green">R</font> occurred just before or at the last reading, so it is only the last reading that is affected by exactly when <font color="green">R</font> occurred. A transition point at <code>n</code> (or greater) means that <font color="green">R</font> occurred after the recording was stopped.</p>
+
+<h2></h2>
+
+<p>Jocular 'solves' for the best pair of transition points by doing an exhaustive search over the complete range of D and R transition points that it is given. It tests every pair, but skips the full calculation for invalid pairs.  Some reasons why a pair would be invalid:</p>
+
 <ul>
-<li>Here we explain an entry</li>
-<li>And here's another</li>
+<li>R is before D</li>
+<li>There is no baseline point</li>
+<li>There is no event point</li>
+<li>B is less than A</li>
+<li>When a Min Event Dur is specified and the event duration is less</li>
+<li>When a Max Event Dur is specified and the event duration is greater</li>
 </ul>
 
+
+<p>The first line in the solution list gives the statistics of the 'search'.  If you provide no limitations for the search, then the number of candidate pairs will be <code>(n+2)^2</code>. Jocular is fast enough that it can handle observations with around 500 points without the need to take any steps to restrict the range of candidate pairs.</p>
+
+<p>The principal means to restrict the search is to place <font color="red">D</font> and/or <font color="green">R</font> markers on the observation plot around the zones (assuming that the transitions are obvious enough) to be searched for transition candidates.</p>
+
+<p>The other means to restrict search (which does not require the transitions to be unambiguously visible) is to set minimum and/or maximum values for event duration.</p>
+
+<h2></h2>
+
+<p>The second line of the solution list shows what the <strong>AICc</strong> (Akaike Information Criteria with finite sample size correction) value would be for a straight line fit to the data: that is, it is the <strong>AICc</strong> value expected if there were no event present. (Note: with <strong>AICc</strong> values, smaller is better). When searching for events buried in noise, this number can be used to decide whether an event is present. Experience has shown that an unconstrained search for an event in noise should require a large (>500)relative probability of an event (SqWave) versus a straight line (no event) before considering that a statistically significant event is present in the data.</p>
+
+<p>If the event size is reasonably constrained, a smaller number may be used with caution.</p>
+
+<h2></h2>
+
+<p>Subsequent entries in the solution list have a fixed format and are sorted in ascending value of <strong>AICc</strong>, so the 'best' solution is the first one in the list.</p>
+
+<p><strong>If any of these entries are clicked on, that 'solution' will be plotted on the observation data display.  The first (best solution) is automatically displayed at the end of the Find Solution procedure -- no need to click on that one.</strong></p>
+
+<p>The initial part gives the transition pair that produced the results</p>
+
+<pre><code>[  51,  101]
+[  -1,  201]  // this pair has no D --- R only
+</code></pre>
+
+<p><strong>AICc</strong> stands for Akaike Information Criteria (with correction or finite sample size).</p>
+
+<p><strong>logL</strong> stands for log likelihood</p>
+
+<p><strong>D</strong> gives the D transition time (in readings) and will show <strong>NaN</strong> if there is no D transition.</p>
+
+<p><strong>R</strong> gives the R transition time (in readings) and will show <strong>NaN</strong> if there is no R transition.</p>
+
+<p><strong>B</strong> is the baseline intensity value</p>
+
+<p><strong>A</strong> is the event intensity value.</p>
+
+<p><strong>k</strong> is the number of adjustable parameters in the solution. The possible adjustable parameters are:</p>
+
+<ul>
+<li>B</li>
+<li>A</li>
+<li>D (if present)</li>
+<li>R (if present)</li>
+<li>D subframe timing level (when allowed by AICc computation at that point)</li>
+<li>R subframe timing level (when allowed by AICc computation at that point)</li>
+</ul>
+
+
+<p>So <code>k</code> will range from 3 to 6 in practice.</p>
 </body>
 </html>

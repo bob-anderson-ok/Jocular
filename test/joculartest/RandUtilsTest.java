@@ -62,5 +62,28 @@ public class RandUtilsTest {
         
         assertThat(vectorsAreEqual).isTrue();
     }
+    
+    @Test
+    public void calcMagDrop_shouldReturnOne_whenBandAareSpecialCase() {
+        double B = 2.12345;
+        double A = B / 2.512;
+        
+        assertThat(JocularUtils.calcMagDrop(B, A)).isEqualTo(1.0, offset(1e-7));
+    }
+    
+    @Test
+    public void calcMagDrop_shouldReturnNaN_whenBandOrAisInvalid() {
+        double B = -1.0;
+        double A = B / 2.512;
+        
+        assertThat(JocularUtils.calcMagDrop(B, A)).isEqualTo(Double.NaN);
+        
+        B = 1.0;
+        assertThat(JocularUtils.calcMagDrop(B, A)).isEqualTo(Double.NaN);
+        
+        B = 1.0;
+        A = B + 0.0001;
+        assertThat(JocularUtils.calcMagDrop(B, A)).isEqualTo(Double.NaN);
+    }
 
 }

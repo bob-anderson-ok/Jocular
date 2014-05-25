@@ -27,6 +27,8 @@ public class SqSolverTest {
     private SolutionStats solStat = new SolutionStats();
     private double sigmaB = 1.0;
     private double sigmaA = 1.0;
+    private double minMagDrop = 0.01;
+    private double maxMagDrop = 1000.0;
 
     @Before
     public void setup() {
@@ -71,6 +73,7 @@ public class SqSolverTest {
         List<SqSolution> answers = SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
@@ -106,6 +109,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
@@ -127,6 +131,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
@@ -148,6 +153,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
@@ -167,6 +173,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
@@ -186,6 +193,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
@@ -200,6 +208,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }
@@ -214,6 +223,7 @@ public class SqSolverTest {
         SqSolver.computeCandidates(
             jocularMain, solStat,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
     }

@@ -54,6 +54,7 @@ public class SqSolver {
     static public List<SqSolution> computeCandidates(JocularMain jocularMain,
                                                      SolutionStats solutionStats,
                                                      double sigmaB, double sigmaA,
+                                                     double minMagDrop, double maxMagDrop,
                                                      int minEventSize, int maxEventSize,
                                                      XYChartMarker dLeftMarker,
                                                      XYChartMarker dRightMarker,
@@ -148,6 +149,8 @@ public class SqSolver {
 
         int n = jocularMain.getCurrentObservation().obsData.length;
 
+        double solMagDrop;
+
         for (int i = 0; i < dTranCandidates.length; i++) {
             for (int j = 0; j < rTranCandidates.length; j++) {
                 SqSolution newSolution = new SqSolution();
@@ -167,12 +170,19 @@ public class SqSolver {
                     continue;
                 }
 
+                solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
+
+                if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
+                    continue;
+                }
+
                 numValidTranPairs++;
 
                 newSolution.D = sqmodel.getDsolution();
                 newSolution.R = sqmodel.getRsolution();
                 newSolution.B = sqmodel.getB();
                 newSolution.A = sqmodel.getA();
+                newSolution.magDrop = solMagDrop;
                 newSolution.sigmaB = sigmaB;
                 newSolution.sigmaA = sigmaA;
                 newSolution.kFactor = sqmodel.getkFactor();

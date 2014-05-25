@@ -37,6 +37,7 @@ public class RootViewController implements Initializable {
 
     private static final int EMPTY_FIELD = -1;
     private static final int FIELD_ENTRY_ERROR = -2;
+    private static final int SOLUTION_LIST_HEADER_SIZE = 2;
 
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
@@ -87,10 +88,28 @@ public class RootViewController implements Initializable {
     CheckBox obsPointsOnlyCheckbox;
 
     @FXML
+    public void getSelectedSolution(MouseEvent arg) {
+        int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
+        if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
+            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+        }
+    }
+
+    @FXML
     public void replotObservation() {
         // This forces a 'relook' at the state of the checkboxes that give the user options
         // on the look of the observation data display (points, points and lines, light or dark)
         repaintChart();
+    }
+
+    @FXML
+    CheckBox useBaselineNoiseAsEventNoiseCheckbox;
+
+    @FXML
+    public void setEventAndBaselineNoiseEqual() {
+        if (useBaselineNoiseAsEventNoiseCheckbox.isSelected()) {
+            sigmaAtext.setText(sigmaBtext.getText());
+        }
     }
 
     private String getUserPreferredObsStyle() {
@@ -256,6 +275,8 @@ public class RootViewController implements Initializable {
         }
     }
 
+    List<SqSolution> solutions;
+
     @FXML
     public void computeCandidates() {
 
@@ -306,26 +327,45 @@ public class RootViewController implements Initializable {
             return;
         }
 
+        double minMagDrop = validateMinMagDrop();
+        double maxMagDrop = validateMaxMagDrop();
+
+        if (Double.isNaN(minMagDrop) || Double.isNaN(maxMagDrop)) {
+            return;
+        }
+
+        if (minMagDrop >= maxMagDrop) {
+            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop");
+            return;
+        }
+
         SolutionStats solutionStats = new SolutionStats();
 
-        List<SqSolution> solutions = SqSolver.computeCandidates(
+        solutions = SqSolver.computeCandidates(
             jocularMain, solutionStats,
             sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
-            items.add("No solutions were possible because of constraints on min and max event size.");
+            items.add("No solutions were possible because of constraints on event size or magDrop.");
             solutionList.setItems(items);
             return;
         }
 
+        // !!!!! These are extra header lines in the solution list.
+        // !!!!! The number MUST always equal SOLUTION_LIST_HEADER SIZE
+        // !!!!! in order for clicking on a solution list entry to display the correct solution
+        // Adding one header line
         items = FXCollections.observableArrayList();
         items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
                                 solutionStats.numTransitionPairsConsidered,
                                 solutionStats.numValidTransitionPairs));
         double probabilitySqWaveOverLine = Math.exp((solutionStats.straightLineAICc - solutions.get(0).aicc) / 2.0);
+
+        // Adding another header line.
         if (probabilitySqWaveOverLine > 1000.0) {
             items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line > 1000",
                                     solutionStats.straightLineAICc,
@@ -336,6 +376,9 @@ public class RootViewController implements Initializable {
                                     solutionStats.straightLineLogL,
                                     probabilitySqWaveOverLine));
         }
+
+        // Do not add another header line without updating SOLUTION_LIST_HEADER_SIZE
+        // Build a string version for the clients viewing pleasure.
         for (SqSolution solution : solutions) {
             items.add(solution.toString());
         }
@@ -407,6 +450,57 @@ public class RootViewController implements Initializable {
         }
     }
 
+    @FXML
+    TextField minMagDropText;
+
+    @FXML
+    TextField maxMagDropText;
+
+    private double validateMinMagDrop() {
+        double ans;
+        try {
+            if (minMagDropText.getText().isEmpty()) {
+                minMagDropText.setText("0.01");
+                return 0.01;
+            } else {
+                ans = Double.parseDouble(minMagDropText.getText());
+            }
+
+            if (ans < 0.01 || ans > 1000.0) {
+                minMagDropText.setText("0.01");
+                return 0.01;
+            } else {
+                return ans;
+            }
+        } catch (NumberFormatException e) {
+            jocularMain.showErrorDialog("Min Mag Drop number format error: " + e.getMessage());
+            return Double.NaN;
+        }
+    }
+
+    private double validateMaxMagDrop() {
+        double ans;
+        try {
+            if (maxMagDropText.getText().isEmpty()) {
+                maxMagDropText.setText("1000.0");
+                return 1000.0;
+            } else {
+                ans = Double.parseDouble(maxMagDropText.getText());
+            }
+
+            if (ans < 0.01 || ans > 1000.0) {
+                minEventText.setText("1000.0");
+                return 1000.0;
+            } else {
+                return ans;
+            }
+        } catch (NumberFormatException e) {
+            jocularMain.showErrorDialog("Max Mag Drop number format error: " + e.getMessage());
+            return Double.NaN;
+        }
+    }
+
+    @FXML
     public void clearSolutionList() {
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
@@ -461,10 +555,14 @@ public class RootViewController implements Initializable {
         jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
 
         chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
-        
+
         // Since we've (probably) changed the data set, erase any previous solution.
         chartSeries.put(DataType.SOLUTION, null);
         repaintChart();
+        clearSolutionList();
+
+        rightTrimMarker.setInUse(false);
+        leftTrimMarker.setInUse(false);
     }
 
     @FXML
@@ -480,7 +578,7 @@ public class RootViewController implements Initializable {
         jocularMain.getCurrentObservation().setRightTrimPoint(maxRightTrim);
 
         chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
-        
+
         // Since we've (probably) changed the data set, erase any previous solution.
         chartSeries.put(DataType.SOLUTION, null);
         repaintChart();
@@ -663,6 +761,11 @@ public class RootViewController implements Initializable {
     @FXML
     void displaySolutionListHelp() {
         jocularMain.showHelpDialog("Help/solutionlist.help.html");
+    }
+
+    @FXML
+    void displayMinMaxMagDropHelp() {
+        jocularMain.showHelpDialog("Help/magdrop.help.html");
     }
 
     private String markerSelectedName = "none";

@@ -54,5 +54,13 @@ public interface JocularUtils {
         double corr = 2.0 * k * (k + 1) / (n - k - 1);
         return aic + corr;
     }
+    
+    static double calcMagDrop(double B, double A) {
+        if (B<=0.0||A<=0.0||A>B) {
+            return Double.NaN;
+        } else {
+            return (Math.log(B)-Math.log(A))/Math.log(2.512);
+        }
+    }
 
 }
