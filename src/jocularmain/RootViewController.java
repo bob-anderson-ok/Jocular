@@ -38,6 +38,7 @@ public class RootViewController implements Initializable {
     private static final int EMPTY_FIELD = -1;
     private static final int FIELD_ENTRY_ERROR = -2;
     private static final int SOLUTION_LIST_HEADER_SIZE = 2;
+    private static double RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED = 0.01;
 
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
@@ -401,7 +402,7 @@ public class RootViewController implements Initializable {
 
         items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
-            items.add("No solutions were possible because of constraints on event size or magDrop.");
+            items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
             solutionList.setItems(items);
             return;
         }
@@ -431,6 +432,9 @@ public class RootViewController implements Initializable {
         // Do not add another header line without updating SOLUTION_LIST_HEADER_SIZE
         // Build a string version for the clients viewing pleasure.
         for (SqSolution solution : solutions) {
+            if ( solution.relLikelihood <  RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED) {
+                break;
+            }
             items.add(solution.toString());
         }
 

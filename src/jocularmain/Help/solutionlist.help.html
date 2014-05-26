@@ -351,7 +351,7 @@ sup {
 
 <p>The second line of the solution list shows what the <strong>AICc</strong> (Akaike Information Criteria with finite sample size correction) value would be for a straight line fit to the data: that is, it is the <strong>AICc</strong> value expected if there were no event present. (Note: with <strong>AICc</strong> values, smaller is better). When searching for events buried in noise, this number can be used to decide whether an event is present. Experience has shown that an unconstrained search for an event in noise should require a large (>500) relative probability of an event (SqWave) versus a straight line (no event) before considering that a statistically significant event is present in the data.</p>
 
-<p>If the event size is reasonably constrained, a smaller number may be used with caution.</p>
+<p>If the event size is reasonably constrained, or suitable magDrop limits have been entered, a smaller number may be used with caution.</p>
 
 <h2></h2>
 
@@ -364,6 +364,8 @@ sup {
 <pre><code>[  51,  101]
 [  -1,  201]  // this pair has no D --- R only
 </code></pre>
+
+<p><strong>relLike</strong> gives the comparison (relative likelihood) of this 'solution' versus the 'best' solution</p>
 
 <p><strong>AICc</strong> stands for Akaike Information Criteria (with correction or finite sample size).</p>
 
@@ -392,5 +394,9 @@ sup {
 
 
 <p>So <code>k</code> will range from 3 to 6 in practice.</p>
+
+<h3>Length of Solution List</h3>
+
+<p>The <strong>Solution List</strong> only shows those 'solutions' that have a relative likelihood of at least 0.01.</p>
 </body>
 </html>

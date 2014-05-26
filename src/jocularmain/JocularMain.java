@@ -59,7 +59,7 @@ public class JocularMain extends Application {
 
         scene.getStylesheets().add(this.getClass().getResource("JocularStyleSheet.css").toExternalForm());
 
-        primaryStage.titleProperty().set("Jocular 0.2");
+        primaryStage.titleProperty().set("Jocular 0.4");
         primaryStage.setScene(scene);
         primaryStage.show();
 

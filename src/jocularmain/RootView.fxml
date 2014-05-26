@@ -75,30 +75,47 @@
                 <Image url="jocularmain/questionMark.png" />
             </image>
         </ImageView>
-        <ListView fx:id="solutionList" layoutX="57.0" layoutY="563.0" onMouseClicked="#getSelectedSolution" prefHeight="200.0" prefWidth="805.0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0">
+        <ListView fx:id="solutionList" layoutX="57.0" layoutY="563.0" onMouseClicked="#getSelectedSolution" prefHeight="200.0" prefWidth="805.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0">
 <effect>
 <InnerShadow />
 </effect></ListView>
+<HBox layoutX="50.0" layoutY="578.0" spacing="30.0" AnchorPane.bottomAnchor="296.0" AnchorPane.leftAnchor="50.0">
+<children>
 <HBox layoutX="921.0" layoutY="528.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="50.0">
-<children><TextField fx:id="sigmaBtext" layoutX="834.96875" layoutY="528.0" /><TextField fx:id="sigmaAtext" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
-</children>
-</HBox><Label layoutX="939.0" layoutY="511.0" text="Baseline Noise" AnchorPane.bottomAnchor="84.0" AnchorPane.leftAnchor="60.0" /><Label layoutX="1055.0" layoutY="511.0" text="Event Noise" AnchorPane.bottomAnchor="84.0" AnchorPane.leftAnchor="180.0" /><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="19.0" layoutY="544.0" onMouseClicked="#displayNoiseHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="32.0">
+<children><TextField fx:id="sigmaBtext" layoutX="834.96875" layoutY="528.0" /><TextField fx:id="sigmaAtext" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" /><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="19.0" layoutY="544.0" onMouseClicked="#displayNoiseHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="32.0">
 <image>
 <Image url="jocularmain/questionMark.png" />
 </image>
-</ImageView><Label layoutX="516.353271484375" layoutY="544.0" text="Solution List" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="50.0">
-<font>
-<Font size="18.0" />
-</font></Label><Label layoutX="443.0" layoutY="520.0" text="Max Event Dur" AnchorPane.bottomAnchor="84.0" AnchorPane.leftAnchor="430.0" /><Label layoutX="327.0" layoutY="520.0" text="Min Event Dur" AnchorPane.bottomAnchor="84.0" AnchorPane.leftAnchor="320.0" /><HBox layoutX="309.0" layoutY="537.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="310.0">
+</ImageView>
+</children>
+</HBox><HBox layoutX="309.0" layoutY="537.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="310.0">
 <children>
 <TextField fx:id="minEventText" layoutX="834.96875" layoutY="528.0" />
-<TextField fx:id="maxEventText" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
-</children>
-</HBox><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="543.0" layoutY="544.0" onMouseClicked="#displayMinMaxEventHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="535.0">
+<TextField fx:id="maxEventText" layoutX="118.96875" layoutY="528.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" /><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="543.0" layoutY="544.0" onMouseClicked="#displayMinMaxEventHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="535.0">
 <image>
 <Image url="jocularmain/questionMark.png" />
 </image>
-</ImageView><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="816.0" layoutY="544.0" onMouseClicked="#displaySolutionListHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="338.0" AnchorPane.leftAnchor="32.0">
+</ImageView>
+</children>
+</HBox>
+<HBox layoutX="564.0" layoutY="782.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="584.0">
+<children>
+<TextField fx:id="minMagDropText" layoutX="834.96875" layoutY="528.0" text="0.01" />
+<TextField fx:id="maxMagDropText" layoutX="118.96875" layoutY="528.0" text="1000.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
+<ImageView fitHeight="18.0" fitWidth="13.0" layoutX="850.0" layoutY="779.0" onMouseClicked="#displayMinMaxMagDropHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="810.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image>
+</ImageView>
+</children>
+</HBox>
+</children>
+</HBox><Label layoutX="78.0" layoutY="613.0" text="Baseline Noise" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="56.0" /><Label layoutX="241.0" layoutY="613.0" text="Min Event Dur" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="306.0" /><Label layoutX="168.0" layoutY="613.0" text="Event Noise" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="167.0" />
+<Label layoutX="422.0" layoutY="613.0" text="Min Mag Drop" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="558.0" />
+<Label layoutX="511.0" layoutY="613.0" text="Max Mag Drop" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="662.0" /><Label layoutX="-22.0" layoutY="761.0" rotate="-90.0" text="Solution List" AnchorPane.bottomAnchor="116.0" AnchorPane.leftAnchor="-22.0">
+<font>
+<Font size="18.0" />
+</font></Label><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="41.0" layoutY="686.0" onMouseClicked="#displaySolutionListHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="198.0" AnchorPane.leftAnchor="28.0">
 <image>
 <Image url="jocularmain/questionMark.png" />
 </image>
@@ -110,22 +127,9 @@
 <font>
 <Font size="10.0" />
 </font></Button>
-<HBox layoutX="185.0" layoutY="541.0" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="185.0">
+<HBox layoutX="185.0" layoutY="541.0" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="50.0">
 <children><Button layoutX="185.33837890625" layoutY="540.9810180664062" mnemonicParsing="false" onAction="#clearSolutionList" text="Clear Solution List" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="185.0" /><Button layoutX="349.33837890625" layoutY="505.5" mnemonicParsing="false" onAction="#estimateNoiseValues" text="Estimate Noise Values" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="330.0" /><Button layoutX="379.33837890625" layoutY="540.9810180664062" mnemonicParsing="false" onAction="#computeCandidates" text="Find New Solution" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="496.0" />
 </children>
-</HBox>
-<HBox layoutX="564.0" layoutY="782.0" prefHeight="26.0" prefWidth="221.0" spacing="5.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="584.0">
-<children>
-<TextField fx:id="minMagDropText" layoutX="834.96875" layoutY="528.0" text="0.01" />
-<TextField fx:id="maxMagDropText" layoutX="118.96875" layoutY="528.0" text="1000.0" AnchorPane.bottomAnchor="346.0" AnchorPane.rightAnchor="50.0" />
-</children>
-</HBox>
-<Label layoutX="593.0" layoutY="800.0" text="Min Mag Drop" AnchorPane.bottomAnchor="84.0" AnchorPane.leftAnchor="593.0" />
-<Label layoutX="695.0" layoutY="800.0" text="Max Mag Drop" AnchorPane.bottomAnchor="84.0" AnchorPane.leftAnchor="708.0" />
-<ImageView fitHeight="18.0" fitWidth="13.0" layoutX="850.0" layoutY="779.0" onMouseClicked="#displayMinMaxMagDropHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="810.0">
-<image>
-<Image url="jocularmain/questionMark.png" />
-</image>
-</ImageView><CheckBox fx:id="useBaselineNoiseAsEventNoiseCheckbox" layoutX="53.818603515625" layoutY="826.25" mnemonicParsing="false" onAction="#setEventAndBaselineNoiseEqual" prefHeight="18.0" prefWidth="243.0" text="Use Baseline Noise as Event Noise" AnchorPane.bottomAnchor="55.0" AnchorPane.leftAnchor="53.0" />
+</HBox><CheckBox fx:id="useBaselineNoiseAsEventNoiseCheckbox" layoutX="52.0" layoutY="635.0" mnemonicParsing="false" onAction="#setEventAndBaselineNoiseEqual" prefHeight="18.0" prefWidth="243.0" text="Use Baseline Noise as Event Noise" AnchorPane.bottomAnchor="247.0" AnchorPane.leftAnchor="52.0" /><Label layoutX="435.353271484375" layoutY="604.0" text="Max Event Dur" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="408.0" />
     </children>
 </AnchorPane>

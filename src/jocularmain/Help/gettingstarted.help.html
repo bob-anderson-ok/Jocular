@@ -315,12 +315,16 @@ sup {
 
 <ol>
 <li><p> Read an observation file (using appropriate entry in the <strong>File</strong> menu) or create a sample data set (use <strong>Operations | Generate Sample Data</strong>).</p></li>
-<li><p>Place <strong> D markers</strong> around the expected <strong>D</strong> transition zone (if present).</p></li>
-<li><p>Place <strong>R markers</strong> around the expected <strong>R</strong> transition zone (if present).</p></li>
+<li><p>Place <strong> D markers</strong> around the expected <strong>D</strong> transition zone (if present).  (See note below)</p></li>
+<li><p>Place <strong>R markers</strong> around the expected <strong>R</strong> transition zone (if present).  (See note below)</p></li>
 <li><p>Click the <strong>Estimate Noise Values</strong> button.</p></li>
 <li><p>Set any desired search limitations (min/max event size; min/max magDrop)</p></li>
 <li><p>Click the <strong>Find New Solution</strong> button.</p></li>
 </ol>
 
+
+<h4>Note</h4>
+
+<p>In the special case where a potential signal is buried in noise to the extent that there are no obvious transition zones, do not place any <strong>D</strong> or <strong>R</strong> markers.  In this case, <strong>Jocular</strong> will assume that baseline noise and event noise are equal and estimate the noise by differentiating the observation (which suppresses step changes), and determining the noise of the differentiated signal, adjusting for the additional noise introduced by the differentiation process by dividing by the square root of 2 and using this value for both the baseline and the event noise.</p>
 </body>
 </html>

@@ -39,7 +39,7 @@ The other means to restrict search (which does not require the transitions to be
 
 The second line of the solution list shows what the **AICc** (Akaike Information Criteria with finite sample size correction) value would be for a straight line fit to the data: that is, it is the **AICc** value expected if there were no event present. (Note: with **AICc** values, smaller is better). When searching for events buried in noise, this number can be used to decide whether an event is present. Experience has shown that an unconstrained search for an event in noise should require a large (>500) relative probability of an event (SqWave) versus a straight line (no event) before considering that a statistically significant event is present in the data.
 
-If the event size is reasonably constrained, a smaller number may be used with caution. 
+If the event size is reasonably constrained, or suitable magDrop limits have been entered, a smaller number may be used with caution. 
 
 ## 
 
@@ -51,6 +51,8 @@ The initial part gives the transition pair that produced the results
 
     [  51,  101]
     [  -1,  201]  // this pair has no D --- R only
+    
+**relLike** gives the comparison (relative likelihood) of this 'solution' versus the 'best' solution
     
 **AICc** stands for Akaike Information Criteria (with correction or finite sample size).
 
@@ -76,6 +78,10 @@ The initial part gives the transition pair that produced the results
 * R subframe timing level (when allowed by AICc computation at that point)
 
 So `k` will range from 3 to 6 in practice.
+
+### Length of Solution List
+
+The **Solution List** only shows those 'solutions' that have a relative likelihood of at least 0.01.  
 
 
 

@@ -192,10 +192,18 @@ public class SqSolver {
             }
         }
 
+        // If we got any solutions, we've got work to do ...
         if (sqsolutions.size() > 0) {
+            // Sort them in ascending order of AICc
             LogLcomparator logLcomparator = new LogLcomparator();
             Collections.sort(sqsolutions, logLcomparator);
             jocularMain.addSolutionCurveToMainPlot(sqsolutions.get(0));
+
+            // Fill in relative likelihoods
+            double minAicc = sqsolutions.get(0).aicc;
+            for ( int i=0; i < sqsolutions.size(); i++) {
+               sqsolutions.get(i).relLikelihood = Math.exp(minAicc - sqsolutions.get(i).aicc);
+            }
         }
 
         solutionStats.numTransitionPairsConsidered = numTranPairsConsidered;
