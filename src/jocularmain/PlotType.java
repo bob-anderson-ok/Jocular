@@ -14,7 +14,8 @@ public enum PlotType {
     STYLE_obsData("lightgray", "gray", "obsData"),
     STYLE_obsPoints("transparent", "gray", "obsPoints"),
     STYLE_Sample("red", "transparent", "Sample"),
-    STYLE_Solution("blue", "transparent", "Solution");
+    STYLE_Solution("blue", "transparent", "Solution"),
+    STYLE_SubframeBand("green","transparent","SubframeBand");
 
     private static final HashMap<String, PlotType> mapSeriesNameToPlotType;
 
@@ -26,6 +27,7 @@ public enum PlotType {
         mapSeriesNameToPlotType.put("obsPoints", STYLE_obsPoints);
         mapSeriesNameToPlotType.put("Sample", STYLE_Sample);
         mapSeriesNameToPlotType.put("Solution", STYLE_Solution);
+        mapSeriesNameToPlotType.put("SubframeBand", STYLE_SubframeBand);
     }
 
     private String lineColor;

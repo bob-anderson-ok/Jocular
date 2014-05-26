@@ -92,7 +92,8 @@ public class RootViewController implements Initializable {
     public void getSelectedSolution(MouseEvent arg) {
         int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
         if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
-            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            chartSeries.put(DataType.SUBFRAME_BAND, null);
+            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));          
         }
     }
 
@@ -161,7 +162,61 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doShowSubframeTimingBand() {
-        jocularMain.showInformationDialog("Show Subframe Timing Band:  not yet implemented.");
+
+        System.out.println("In subframe band code");
+        
+        if (jocularMain.getCurrentSolution() == null) {
+            jocularMain.showErrorDialog("There is no solution to process.");
+            return;
+        }
+
+        double solutionB = jocularMain.getCurrentSolution().B;
+        double solutionA = jocularMain.getCurrentSolution().A;
+        
+        double sigB = validateSigmaBtext();
+        if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.");
+            return;
+        }
+        
+        double sigA = validateSigmaAtext();
+        if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.");
+            return;
+        }
+        
+        int n = jocularMain.getCurrentObservation().readingNumbers.length;
+        
+        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+        
+        if ( bSFL <= eSFL) {
+            jocularMain.showInformationDialog("Subframe timing is not applicable for this soultion.");
+            return;
+        }
+        
+        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];    
+        int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
+        int xn = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
+
+        // Now we create the series to display as a rectangle.
+        XYChart.Series<Number, Number> series;
+        series = new XYChart.Series<Number, Number>();
+        XYChart.Data<Number, Number> data;
+        
+        data = new XYChart.Data(x0, eSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(xn, eSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(xn, bSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(x0, bSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(x0, eSFL);
+        series.getData().add(data);
+        
+        chartSeries.put(DataType.SUBFRAME_BAND, series);
+        repaintChart();
     }
 
     private boolean includedWithinMarkers(int index,
@@ -187,23 +242,23 @@ public class RootViewController implements Initializable {
         // transitions.  Here use a trick: we differentiate the obsData, get the sigma for
         // the differentiated obsData, then adjust for the increase in noise (sqrt(2)) due
         // to the differentiation procedure.
-        
-        if ( jocularMain.getCurrentObservation().readingNumbers.length < 3) {
+
+        if (jocularMain.getCurrentObservation().readingNumbers.length < 3) {
             jocularMain.showErrorDialog("Cannot estimate noise: too few points in observation.");
         }
-        
+
         double[] diffObs = new double[jocularMain.getCurrentObservation().readingNumbers.length - 1];
-        
-        for(int i=0;i < diffObs.length;i++) {
-            diffObs[i] = 
-                jocularMain.getCurrentObservation().obsData[i+1] -
-                jocularMain.getCurrentObservation().obsData[i];
+
+        for (int i = 0; i < diffObs.length; i++) {
+            diffObs[i]
+                = jocularMain.getCurrentObservation().obsData[i + 1]
+                - jocularMain.getCurrentObservation().obsData[i];
         }
-        
+
         double sigma = JocularUtils.calcSigma(diffObs) / Math.sqrt(2.0);
         sigmaAtext.setText(String.format("%.4f", sigma));
         sigmaBtext.setText(sigmaAtext.getText());
-        
+
         return;
     }
 
@@ -214,7 +269,7 @@ public class RootViewController implements Initializable {
             jocularMain.showErrorDialog("There is no observation from which to estimate noise values.");
             return;
         }
-        
+
         if (!(dLeftMarker.isInUse() || dRightMarker.isInUse() || rLeftMarker.isInUse() || rRightMarker.isInUse())) {
             useLowSnrNoiseEstimation();
             return;
@@ -287,7 +342,7 @@ public class RootViewController implements Initializable {
             jocularMain.showInformationDialog("There are only " + baselinePoints.size() + "points in the 'baseline'."
                 + "  This observation cannot be reliably processed because the baseline noise value is too uncertain. "
                 + "Suggestion: trim so that only event points remain; estimate noise with no markers; remember this value; "
-                + "untrim the data, manually enter noise values, set proper proper markers, and run solution." );        
+                + "untrim the data, manually enter noise values, set proper proper markers, and run solution.");
         }
     }
 
@@ -338,8 +393,9 @@ public class RootViewController implements Initializable {
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
-        
+
         chartSeries.put(DataType.SOLUTION, null);
+        chartSeries.put(DataType.SUBFRAME_BAND, null);
         repaintChart();
 
         double sigmaB = validateSigmaBtext();
@@ -432,7 +488,7 @@ public class RootViewController implements Initializable {
         // Do not add another header line without updating SOLUTION_LIST_HEADER_SIZE
         // Build a string version for the clients viewing pleasure.
         for (SqSolution solution : solutions) {
-            if ( solution.relLikelihood <  RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED) {
+            if (solution.relLikelihood < RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED) {
                 break;
             }
             items.add(solution.toString());
@@ -560,8 +616,11 @@ public class RootViewController implements Initializable {
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
-        sigmaBtext.setText("");
-        sigmaAtext.setText("");
+        //sigmaBtext.setText("");
+        //sigmaAtext.setText("");
+        chartSeries.put(DataType.SOLUTION, null);
+        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        repaintChart();   
     }
 
     @FXML
@@ -613,8 +672,9 @@ public class RootViewController implements Initializable {
 
         chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
 
-        // Since we've (probably) changed the data set, erase any previous solution.
+        // Since we've (probably) changed the data set, erase previous solution and subframe band.
         chartSeries.put(DataType.SOLUTION, null);
+        chartSeries.put(DataType.SUBFRAME_BAND, null);
         repaintChart();
         clearSolutionList();
 
@@ -715,7 +775,7 @@ public class RootViewController implements Initializable {
         }
 
         series = chartSeries.get(DataType.SOLUTION);
-        if (chartSeries.get(DataType.SOLUTION) != null) {
+        if (series != null) {
             series.setName("Solution");
             System.out.println("We will style SOLUTION light curve");
             chart.getData().add(chartSeries.get(DataType.SOLUTION));
@@ -726,6 +786,21 @@ public class RootViewController implements Initializable {
                     + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
             }
         }
+        
+        series = chartSeries.get(DataType.SUBFRAME_BAND);
+        if (series != null) {
+            series.setName("SubframeBand");
+            System.out.println("We will style SUBFRAME_BAND light curve");
+            chart.getData().add(chartSeries.get(DataType.SUBFRAME_BAND));
+            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
+            for (Node dataNode : dataNodes) {
+
+                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
+                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
+            }
+        }
+        
+        resetLegends();
     }
 
     public void addSolutionCurveToMainPlot(SqSolution solution) {

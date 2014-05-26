@@ -22,8 +22,8 @@ import utils.SqSolution;
  */
 public class JocularMain extends Application {
 
-    private Observation obsInMainPlot;
-    private SqSolution currentSqSolution;
+    private Observation obsInMainPlot=null;
+    private SqSolution currentSqSolution=null;
 
     private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
@@ -59,7 +59,7 @@ public class JocularMain extends Application {
 
         scene.getStylesheets().add(this.getClass().getResource("JocularStyleSheet.css").toExternalForm());
 
-        primaryStage.titleProperty().set("Jocular 0.4");
+        primaryStage.titleProperty().set("Jocular 0.5");
         primaryStage.setScene(scene);
         primaryStage.show();
 
