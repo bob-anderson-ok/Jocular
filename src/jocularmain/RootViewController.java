@@ -1,5 +1,7 @@
 package jocularmain;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,9 +11,11 @@ import java.util.Set;
 import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.CheckBox;
@@ -20,13 +24,17 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import static jocularmain.PlotType.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javax.imageio.ImageIO;
 import org.gillius.jfxutils.chart.ManagedChart;
 import org.gillius.jfxutils.chart.StableTicksAxis;
 import utils.JocularUtils;
@@ -89,11 +97,47 @@ public class RootViewController implements Initializable {
     CheckBox obsPointsOnlyCheckbox;
 
     @FXML
+    public void snapshotTheChart() {
+
+        WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
+        chart.snapshot(null, wim);
+        saveSnapshotToFile(wim);
+
+    }
+
+    @FXML
+    public void snapshotTheWholeWindow() {
+        WritableImage wim = jocularMain.mainScene.snapshot(null);
+        saveSnapshotToFile(wim);
+    }
+
+    private void saveSnapshotToFile(WritableImage wim) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Observation Plot");
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("png", "*.png"));
+
+        File file = fileChooser.showSaveDialog(new Stage());
+
+        if (file != null) {
+            try {
+                boolean okOrNot = ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
+                if (okOrNot) {
+                    jocularMain.showInformationDialog("Wrote file: " + file);
+                } else {
+                    jocularMain.showErrorDialog("Failed to write: " + file);
+                }
+            } catch (IOException e) {
+                jocularMain.showErrorDialog(e.getMessage());
+            }
+        }
+    }
+
+    @FXML
     public void getSelectedSolution(MouseEvent arg) {
         int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
         if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
             chartSeries.put(DataType.SUBFRAME_BAND, null);
-            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));          
+            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
         }
     }
 
@@ -101,6 +145,7 @@ public class RootViewController implements Initializable {
     public void replotObservation() {
         // This forces a 'relook' at the state of the checkboxes that give the user options
         // on the look of the observation data display (points, points and lines, light or dark)
+        // and gets called whenver one of those checkboxes is clicked.
         repaintChart();
     }
 
@@ -164,7 +209,7 @@ public class RootViewController implements Initializable {
     public void doShowSubframeTimingBand() {
 
         System.out.println("In subframe band code");
-        
+
         if (jocularMain.getCurrentSolution() == null) {
             jocularMain.showErrorDialog("There is no solution to process.");
             return;
@@ -172,30 +217,30 @@ public class RootViewController implements Initializable {
 
         double solutionB = jocularMain.getCurrentSolution().B;
         double solutionA = jocularMain.getCurrentSolution().A;
-        
+
         double sigB = validateSigmaBtext();
         if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
             jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.");
             return;
         }
-        
+
         double sigA = validateSigmaAtext();
         if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
             jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.");
             return;
         }
-        
+
         int n = jocularMain.getCurrentObservation().readingNumbers.length;
-        
+
         double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
         double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-        
-        if ( bSFL <= eSFL) {
+
+        if (bSFL <= eSFL) {
             jocularMain.showInformationDialog("Subframe timing is not applicable for this soultion.");
             return;
         }
-        
-        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];    
+
+        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];
         int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
         int xn = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
 
@@ -203,7 +248,7 @@ public class RootViewController implements Initializable {
         XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
         XYChart.Data<Number, Number> data;
-        
+
         data = new XYChart.Data(x0, eSFL);
         series.getData().add(data);
         data = new XYChart.Data(xn, eSFL);
@@ -214,7 +259,7 @@ public class RootViewController implements Initializable {
         series.getData().add(data);
         data = new XYChart.Data(x0, eSFL);
         series.getData().add(data);
-        
+
         chartSeries.put(DataType.SUBFRAME_BAND, series);
         repaintChart();
     }
@@ -620,7 +665,7 @@ public class RootViewController implements Initializable {
         //sigmaAtext.setText("");
         chartSeries.put(DataType.SOLUTION, null);
         chartSeries.put(DataType.SUBFRAME_BAND, null);
-        repaintChart();   
+        repaintChart();
     }
 
     @FXML
@@ -708,6 +753,8 @@ public class RootViewController implements Initializable {
 
     public void showObservationDataWithTheoreticalLightCurve(Observation observation, SqSolution solution) {
         clearMainPlot();
+        sigmaAtext.setText("");
+        sigmaBtext.setText("");
         chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
         chartSeries.put(DataType.SAMPLE, getTheoreticalLightCurveSeries(observation, solution));
         repaintChart();
@@ -715,6 +762,8 @@ public class RootViewController implements Initializable {
 
     public void showObservationDataAlone(Observation observation) {
         clearMainPlot();
+        sigmaAtext.setText("");
+        sigmaBtext.setText("");
         chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
         repaintChart();
     }
@@ -786,7 +835,7 @@ public class RootViewController implements Initializable {
                     + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
             }
         }
-        
+
         series = chartSeries.get(DataType.SUBFRAME_BAND);
         if (series != null) {
             series.setName("SubframeBand");
@@ -799,7 +848,7 @@ public class RootViewController implements Initializable {
                     + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
             }
         }
-        
+
         resetLegends();
     }
 

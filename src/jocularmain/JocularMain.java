@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -30,6 +31,8 @@ public class JocularMain extends Application {
     private Stage primaryStage;
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
 
+    public Scene mainScene;
+    
     public static void main(String[] args) {
         launch(args);
     }
@@ -52,6 +55,8 @@ public class JocularMain extends Application {
         AnchorPane page = fxmlLoader.load();
         Scene scene = new Scene(page);
 
+        mainScene = scene;
+        
         // Save a reference to RootViewController.  We will need to call
         // public methods provided by RootViewController to make things
         // happen on the main display screen.

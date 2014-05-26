@@ -52,7 +52,7 @@
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#doOpenRecentFiles" text="Open Recent" /><MenuItem mnemonicParsing="false" onAction="#doReadLimovieFile" text="Read Limovie File" /><MenuItem mnemonicParsing="false" onAction="#doReadTangraFile" text="Read Tangra File" />
+                        <MenuItem mnemonicParsing="false" onAction="#doOpenRecentFiles" text="Open Recent" /><MenuItem mnemonicParsing="false" onAction="#doReadLimovieFile" text="Read Limovie File" /><MenuItem mnemonicParsing="false" onAction="#doReadTangraFile" text="Read Tangra File" /><MenuItem mnemonicParsing="false" onAction="#snapshotTheChart" text="Write 'plot only' To File" /><MenuItem mnemonicParsing="false" onAction="#snapshotTheWholeWindow" text="Write 'whole window' To File" />
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Operations">
