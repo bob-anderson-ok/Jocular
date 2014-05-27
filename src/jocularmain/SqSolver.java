@@ -122,8 +122,8 @@ public class SqSolver {
             throw new IllegalArgumentException(errMsg);
         }
 
-        System.out.println("dLeft: " + dLeft + "  dRight: " + dRight
-            + "  rLeft: " + rLeft + "  rRight: " + rRight);
+//        System.out.println("dLeft: " + dLeft + "  dRight: " + dRight
+//            + "  rLeft: " + rLeft + "  rRight: " + rRight);
 
         dTranCandidates = new int[dRight - dLeft + 1];
         rTranCandidates = new int[rRight - rLeft + 1];

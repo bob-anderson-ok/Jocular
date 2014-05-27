@@ -111,7 +111,6 @@ public class SqModel {
     }
 
     class TransitionData {
-
         double position = Double.NaN;
         double logLcontribution = 0.0;
     }

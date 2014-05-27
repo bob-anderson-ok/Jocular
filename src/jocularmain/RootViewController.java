@@ -795,12 +795,22 @@ public class RootViewController implements Initializable {
     public void repaintChart() {
         chart.getData().clear();
 
+        
         XYChart.Series<Number, Number> series;
+        
+//        Set<DataType> dataTypes = chartSeries.keySet();
+//        for( DataType dataType: dataTypes) {
+//            series = chartSeries.get(dataType);
+//            if ( dataType == DataType.OBSDATA) {
+//               series.setName(getUserPreferredObsStyle()); 
+//            } else {
+//                series.setName(markerSelectedName);
+//            }   
+//        }
+        
         series = chartSeries.get(DataType.OBSDATA);
         if (series != null) {
-            //series.setName("ObsData");
             series.setName(getUserPreferredObsStyle());
-            System.out.println("We will style OBSDATA");
             chart.getData().add(chartSeries.get(DataType.OBSDATA));
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
@@ -813,7 +823,6 @@ public class RootViewController implements Initializable {
         series = chartSeries.get(DataType.SAMPLE);
         if (series != null) {
             series.setName("Sample");
-            System.out.println("We will style SAMPLE light curve");
             chart.getData().add(chartSeries.get(DataType.SAMPLE));
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
@@ -826,7 +835,6 @@ public class RootViewController implements Initializable {
         series = chartSeries.get(DataType.SOLUTION);
         if (series != null) {
             series.setName("Solution");
-            System.out.println("We will style SOLUTION light curve");
             chart.getData().add(chartSeries.get(DataType.SOLUTION));
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
@@ -839,7 +847,6 @@ public class RootViewController implements Initializable {
         series = chartSeries.get(DataType.SUBFRAME_BAND);
         if (series != null) {
             series.setName("SubframeBand");
-            System.out.println("We will style SUBFRAME_BAND light curve");
             chart.getData().add(chartSeries.get(DataType.SUBFRAME_BAND));
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
