@@ -1,14 +1,9 @@
 package jocularmain;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.log;
-import static java.lang.Math.sqrt;
 import utils.Observation;
-import utils.JocularUtils;
+import static utils.JocularUtils.logL;
 
 public class SqModel {
-
-    private static double LOG_SQRT_TWO_PI = log(sqrt(2 * PI));
 
     private int dTranIndex = Integer.MIN_VALUE;
     private int rTranIndex = Integer.MAX_VALUE;
@@ -113,15 +108,6 @@ public class SqModel {
             ans += logL(obs.obsData[i], lineLevel, sigmaB);
         }
         return ans;
-    }
-
-    private double logL(double value, double reference, double sigma) {
-
-        double term1 = -log(sigma);        // == log(1/sigma)
-        double term2 = -LOG_SQRT_TWO_PI;   // == log(1/sqrt(2*PI))
-        double term3 = (value - reference) / sigma;
-
-        return term1 + term2 - term3 * term3 / 2.0;
     }
 
     class TransitionData {

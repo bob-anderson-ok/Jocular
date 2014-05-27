@@ -1,9 +1,7 @@
 package jocularmain;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.log;
-import static java.lang.Math.sqrt;
 import static utils.JocularUtils.gaussianVariate;
+import static utils.JocularUtils.logL;
 
 public class MonteCarloTrial {
 
@@ -11,17 +9,6 @@ public class MonteCarloTrial {
 
     public MonteCarloTrial(TrialParams trialParams) {
         this.trialParams = trialParams;
-    }
-
-    private static double LOG_SQRT_TWO_PI = log(sqrt(2 * PI));
-
-    private double logL(double value, double reference, double sigma) {
-
-        double term1 = -log(sigma);        // == log(1/sigma)
-        double term2 = -LOG_SQRT_TWO_PI;   // == log(1/sqrt(2*PI))
-        double term3 = (value - reference) / sigma;
-
-        return term1 + term2 - term3 * term3 / 2.0;
     }
 
     private int getIndexOfMaxValue(double[] values) {

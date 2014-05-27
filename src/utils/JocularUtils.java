@@ -1,5 +1,8 @@
 package utils;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.log;
+import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -116,5 +119,16 @@ public interface JocularUtils {
             }
         }
         return M;
+    }
+    
+    static double LOG_SQRT_TWO_PI = log(sqrt(2 * PI));
+
+    static double logL(double value, double reference, double sigma) {
+
+        double term1 = -log(sigma);        // == log(1/sigma)
+        double term2 = -LOG_SQRT_TWO_PI;   // == log(1/sqrt(2*PI))
+        double term3 = (value - reference) / sigma;
+
+        return term1 + term2 - term3 * term3 / 2.0;
     }
 }
