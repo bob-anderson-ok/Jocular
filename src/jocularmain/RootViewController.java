@@ -113,7 +113,7 @@ public class RootViewController implements Initializable {
 
     private void saveSnapshotToFile(WritableImage wim) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Observation Plot");
+        fileChooser.setTitle("Save Image as png file");
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("png", "*.png"));
 
         File file = fileChooser.showSaveDialog(new Stage());
