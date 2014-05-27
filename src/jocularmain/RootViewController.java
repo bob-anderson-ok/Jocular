@@ -795,62 +795,22 @@ public class RootViewController implements Initializable {
     public void repaintChart() {
         chart.getData().clear();
 
-        
         XYChart.Series<Number, Number> series;
-        
-//        Set<DataType> dataTypes = chartSeries.keySet();
-//        for( DataType dataType: dataTypes) {
-//            series = chartSeries.get(dataType);
-//            if ( dataType == DataType.OBSDATA) {
-//               series.setName(getUserPreferredObsStyle()); 
-//            } else {
-//                series.setName(markerSelectedName);
-//            }   
-//        }
-        
-        series = chartSeries.get(DataType.OBSDATA);
-        if (series != null) {
-            series.setName(getUserPreferredObsStyle());
-            chart.getData().add(chartSeries.get(DataType.OBSDATA));
-            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
-            for (Node dataNode : dataNodes) {
 
-                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
-                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
+        Set<DataType> dataTypes = chartSeries.keySet();
+        for (DataType dataType : dataTypes) {
+            series = chartSeries.get(dataType);
+            if (series == null) {
+                continue;
             }
-        }
-
-        series = chartSeries.get(DataType.SAMPLE);
-        if (series != null) {
-            series.setName("Sample");
-            chart.getData().add(chartSeries.get(DataType.SAMPLE));
-            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
-            for (Node dataNode : dataNodes) {
-
-                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
-                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
+            if (dataType == DataType.OBSDATA) {
+                series.setName(getUserPreferredObsStyle());
+            } else {
+                series.setName(dataType.getName());
             }
-        }
-
-        series = chartSeries.get(DataType.SOLUTION);
-        if (series != null) {
-            series.setName("Solution");
-            chart.getData().add(chartSeries.get(DataType.SOLUTION));
+            chart.getData().add(chartSeries.get(dataType));
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
-
-                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
-                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
-            }
-        }
-
-        series = chartSeries.get(DataType.SUBFRAME_BAND);
-        if (series != null) {
-            series.setName("SubframeBand");
-            chart.getData().add(chartSeries.get(DataType.SUBFRAME_BAND));
-            Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
-            for (Node dataNode : dataNodes) {
-
                 dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
                     + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
             }
