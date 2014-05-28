@@ -124,10 +124,10 @@ public class RootViewController implements Initializable {
                 if (okOrNot) {
                     jocularMain.showInformationDialog("Wrote file: " + file);
                 } else {
-                    jocularMain.showErrorDialog("Failed to write: " + file);
+                    jocularMain.showErrorDialog("Failed to write: " + file, jocularMain.primaryStage);
                 }
             } catch (IOException e) {
-                jocularMain.showErrorDialog(e.getMessage());
+                jocularMain.showErrorDialog(e.getMessage(), jocularMain.primaryStage);
             }
         }
     }
@@ -211,7 +211,7 @@ public class RootViewController implements Initializable {
         System.out.println("In subframe band code");
 
         if (jocularMain.getCurrentSolution() == null) {
-            jocularMain.showErrorDialog("There is no solution to process.");
+            jocularMain.showErrorDialog("There is no solution to process.", jocularMain.primaryStage);
             return;
         }
 
@@ -220,13 +220,13 @@ public class RootViewController implements Initializable {
 
         double sigB = validateSigmaBtext();
         if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.");
+            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.", jocularMain.primaryStage);
             return;
         }
 
         double sigA = validateSigmaAtext();
         if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.");
+            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.", jocularMain.primaryStage);
             return;
         }
 
@@ -289,7 +289,7 @@ public class RootViewController implements Initializable {
         // to the differentiation procedure.
 
         if (jocularMain.getCurrentObservation().readingNumbers.length < 3) {
-            jocularMain.showErrorDialog("Cannot estimate noise: too few points in observation.");
+            jocularMain.showErrorDialog("Cannot estimate noise: too few points in observation.", jocularMain.primaryStage);
         }
 
         double[] diffObs = new double[jocularMain.getCurrentObservation().readingNumbers.length - 1];
@@ -311,7 +311,7 @@ public class RootViewController implements Initializable {
     public void estimateNoiseValues() {
 
         if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation from which to estimate noise values.");
+            jocularMain.showErrorDialog("There is no observation from which to estimate noise values.", jocularMain.primaryStage);
             return;
         }
 
@@ -361,7 +361,7 @@ public class RootViewController implements Initializable {
         }
 
         if (baselinePoints.size() < 2) {
-            jocularMain.showErrorDialog("Cannot calculate baseline noise because less than 2 points available");
+            jocularMain.showErrorDialog("Cannot calculate baseline noise because less than 2 points available", jocularMain.primaryStage);
             sigmaBtext.setText("NaN");
             return;
         }
@@ -430,7 +430,7 @@ public class RootViewController implements Initializable {
     public void computeCandidates() {
 
         if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation data to process.");
+            jocularMain.showErrorDialog("There is no observation data to process.", jocularMain.primaryStage);
             return;
         }
 
@@ -488,7 +488,8 @@ public class RootViewController implements Initializable {
         }
 
         if (minMagDrop >= maxMagDrop) {
-            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop");
+            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop", 
+                                        jocularMain.primaryStage);
             return;
         }
 
@@ -563,13 +564,13 @@ public class RootViewController implements Initializable {
             }
             double value = Double.parseDouble(text);
             if (value <= 0.0) {
-                jocularMain.showErrorDialog(sourceId + " must be > 0.0");
+                jocularMain.showErrorDialog(sourceId + " must be > 0.0", jocularMain.primaryStage);
                 return FIELD_ENTRY_ERROR;
             } else {
                 return value;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage());
+            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage(), jocularMain.primaryStage);
             return FIELD_ENTRY_ERROR;
         }
     }
@@ -595,13 +596,13 @@ public class RootViewController implements Initializable {
             }
             int value = Integer.parseInt(text);
             if (value <= 0) {
-                jocularMain.showErrorDialog(sourceId + " must be > 0");
+                jocularMain.showErrorDialog(sourceId + " must be > 0", jocularMain.primaryStage);
                 return FIELD_ENTRY_ERROR;
             } else {
                 return value;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage());
+            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage(), jocularMain.primaryStage);
             return FIELD_ENTRY_ERROR;
         }
     }
@@ -629,7 +630,7 @@ public class RootViewController implements Initializable {
                 return ans;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog("Min Mag Drop number format error: " + e.getMessage());
+            jocularMain.showErrorDialog("Min Mag Drop number format error: " + e.getMessage(), jocularMain.primaryStage);
             return Double.NaN;
         }
     }
@@ -651,7 +652,7 @@ public class RootViewController implements Initializable {
                 return ans;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog("Max Mag Drop number format error: " + e.getMessage());
+            jocularMain.showErrorDialog("Max Mag Drop number format error: " + e.getMessage(), jocularMain.primaryStage);
             return Double.NaN;
         }
     }
@@ -672,7 +673,7 @@ public class RootViewController implements Initializable {
     public void applyTrims() {
 
         if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation to apply trims to.");
+            jocularMain.showErrorDialog("There is no observation to apply trims to.", jocularMain.primaryStage);
             return;
         }
 

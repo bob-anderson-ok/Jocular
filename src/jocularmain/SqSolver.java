@@ -66,13 +66,13 @@ public class SqSolver {
 
         if (dLeftMarker.isInUse() != dRightMarker.isInUse()) {
             String errMsg = "D marker usage must be paired";
-            jocularMain.showErrorDialog(errMsg);
+            jocularMain.showErrorDialog(errMsg, jocularMain.primaryStage);
             throw new IllegalArgumentException(errMsg);
         }
 
         if (rLeftMarker.isInUse() != rRightMarker.isInUse()) {
             String errMsg = "R marker usage must be paired";
-            jocularMain.showErrorDialog(errMsg);
+            jocularMain.showErrorDialog(errMsg, jocularMain.primaryStage);
             throw new IllegalArgumentException(errMsg);
         }
 
@@ -106,19 +106,19 @@ public class SqSolver {
 
         if (dRight < dLeft) {
             String errMsg = "D limits reversed: dLeft=" + dLeft + "  dRight=" + dRight;
-            jocularMain.showErrorDialog(errMsg);
+            jocularMain.showErrorDialog(errMsg, jocularMain.primaryStage);
             throw new IllegalArgumentException(errMsg);
         }
 
         if (rRight < rLeft) {
             String errMsg = "R limits reversed: rLeft=" + rLeft + "  rRight=" + rRight;
-            jocularMain.showErrorDialog(errMsg);
+            jocularMain.showErrorDialog(errMsg, jocularMain.primaryStage);
             throw new IllegalArgumentException(errMsg);
         }
 
         if (Math.max(rLeft, rRight) < Math.min(dLeft, dRight)) {
             String errMsg = "Invalid marker settings: specifies reappearance before disappearance";
-            jocularMain.showErrorDialog(errMsg);
+            jocularMain.showErrorDialog(errMsg, jocularMain.primaryStage);
             throw new IllegalArgumentException(errMsg);
         }
 

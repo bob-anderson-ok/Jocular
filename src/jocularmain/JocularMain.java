@@ -28,10 +28,11 @@ public class JocularMain extends Application {
 
     private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
-    private Stage primaryStage;
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
 
     public Scene mainScene;
+    public Stage errorBarPanelStage;
+    public Stage primaryStage;
     
     public static void main(String[] args) {
         launch(args);
@@ -99,6 +100,7 @@ public class JocularMain extends Application {
             ErrorBarFXMLController.setMainApp(this);
             
             Stage errorBarStage = new Stage();
+            errorBarPanelStage = errorBarStage;
             
             errorBarStage.setTitle("Error Bar Exploration Panel");
             errorBarStage.initModality(Modality.NONE);
@@ -147,7 +149,7 @@ public class JocularMain extends Application {
         }
     }
 
-    public void showErrorDialog(String msg) {
+    public void showErrorDialog(String msg, Stage owner) {
         try {
             URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
@@ -161,7 +163,7 @@ public class JocularMain extends Application {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
 
-            stage.initOwner(primaryStage);
+            stage.initOwner(owner);
             stage.setScene(scene);
 
             stage.show();

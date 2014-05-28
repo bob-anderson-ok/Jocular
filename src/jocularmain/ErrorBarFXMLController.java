@@ -71,18 +71,18 @@ public class ErrorBarFXMLController implements Initializable {
     private double sigmaValue(String text, String sourceId) {
         try {
             if (text.isEmpty()) {
-                jocularMain.showErrorDialog(sourceId + " cannot be empty");
+                jocularMain.showErrorDialog(sourceId + " cannot be empty", jocularMain.errorBarPanelStage);
                 return EMPTY_FIELD;
             }
             double value = Double.parseDouble(text);
             if (value <= 0.0) {
-                jocularMain.showErrorDialog(sourceId + " must be > 0.0");
+                jocularMain.showErrorDialog(sourceId + " must be > 0.0", jocularMain.errorBarPanelStage);
                 return FIELD_ENTRY_ERROR;
             } else {
                 return value;
             }
         } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage());
+            jocularMain.showErrorDialog(sourceId + " number format error: " + e.getMessage(), jocularMain.errorBarPanelStage);
             return FIELD_ENTRY_ERROR;
         }
     }
