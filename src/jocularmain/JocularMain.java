@@ -102,7 +102,7 @@ public class JocularMain extends Application {
             Stage errorBarStage = new Stage();
             errorBarPanelStage = errorBarStage;
             
-            errorBarStage.setTitle("Error Bar Exploration Panel");
+            errorBarStage.setTitle("Error Bar Study Panel");
             errorBarStage.initModality(Modality.NONE);
             errorBarStage.setResizable(true);
             errorBarStage.setScene(scene);

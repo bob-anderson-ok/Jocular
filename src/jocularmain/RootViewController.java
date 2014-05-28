@@ -662,8 +662,6 @@ public class RootViewController implements Initializable {
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
         solutionList.setItems(items);
-        //sigmaBtext.setText("");
-        //sigmaAtext.setText("");
         chartSeries.put(DataType.SOLUTION, null);
         chartSeries.put(DataType.SUBFRAME_BAND, null);
         repaintChart();
