@@ -7,4 +7,5 @@ public class TrialParams {
     public double sigmaA = Double.NaN;
     public double baselineLevel = Double.NaN;
     public double eventLevel = Double.NaN;
+    public MonteCarloMode mode;
 }

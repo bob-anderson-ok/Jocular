@@ -8,7 +8,7 @@ public enum PlotType {
     // to the HashMap as well.
     // The first  parameter is the line color   ...
     // The second parameter is the symbol color ...
-    // The third  parameter is the name for the series.
+    // The third  parameter is the name for the series --- synchronize with DataType.
     STYLE_ObsData("gray", "black", "ObsData"),
     STYLE_ObsPoints("transparent", "black", "ObsPoints"),
     STYLE_obsData("lightgray", "gray", "obsData"),

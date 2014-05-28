@@ -1,5 +1,6 @@
 package jocularmain;
 
+import utils.JocularUtils;
 import static utils.JocularUtils.gaussianVariate;
 import static utils.JocularUtils.logL;
 
@@ -45,10 +46,27 @@ public class MonteCarloTrial {
             for (int i = 0; i < centerIndex; i++) {
                 rdgs[i] = gaussianVariate(trialParams.sigmaA) + trialParams.eventLevel;
             }
-//            rdgs[centerIndex] = gaussianVariate((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
-//                + (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
-            rdgs[centerIndex] = gaussianVariate(trialParams.sigmaA)
-                + trialParams.eventLevel;
+
+            if (trialParams.mode == MonteCarloMode.LEFT_EDGE) {
+                rdgs[centerIndex] = gaussianVariate(trialParams.sigmaA) + trialParams.eventLevel;
+            }
+
+            if (trialParams.mode == MonteCarloMode.RIGHT_EDGE) {
+                rdgs[centerIndex] = gaussianVariate(trialParams.sigmaB) + trialParams.baselineLevel;
+            }
+
+            if (trialParams.mode == MonteCarloMode.MID_POINT) {
+                rdgs[centerIndex] = gaussianVariate((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
+                    + (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
+            }
+            
+            if ( trialParams.mode == MonteCarloMode.RANDOM ) {
+                double frac = JocularUtils.linearVariateZeroToOne();
+                double level = trialParams.baselineLevel * (1.0 - frac) + trialParams.eventLevel * frac;
+                double noiseAtLevel = trialParams.sigmaB * (1.0-frac) + trialParams.sigmaA * frac;
+                rdgs[centerIndex] = gaussianVariate(noiseAtLevel) + level;
+            }
+
             for (int i = centerIndex + 1; i < rdgs.length; i++) {
                 rdgs[i] = gaussianVariate(trialParams.sigmaB) + trialParams.baselineLevel;
             }
@@ -80,7 +98,7 @@ public class MonteCarloTrial {
             if (transitionIndex < 0) {
                 transitionIndex = 0;
             }
-            
+
             histogram[transitionIndex]++;
 
         }

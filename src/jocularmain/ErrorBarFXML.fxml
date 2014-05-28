@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="utils.ErrorBarFXMLController">
+    <stylesheets>
+        <URL value="@/jocularmain/JocularStyleSheet.css" />
+    </stylesheets>
+<children><LineChart layoutX="50.0" layoutY="14.0">
+  <xAxis>
+    <NumberAxis side="BOTTOM" />
+  </xAxis>
+  <yAxis>
+    <NumberAxis side="LEFT" />
+  </yAxis>
+</LineChart>
+</children>
+</AnchorPane>

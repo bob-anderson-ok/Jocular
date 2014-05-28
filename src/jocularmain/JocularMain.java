@@ -88,6 +88,25 @@ public class JocularMain extends Application {
         }
     }
 
+    public void showErrorBarTool() {
+        try {
+            URL fxmlLocation = getClass().getResource("ErrorBarFXML.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+            
+            Stage errorBarStage = new Stage();
+            
+            errorBarStage.setTitle("Error Bar Exploration Tool");
+            errorBarStage.initModality(Modality.NONE);
+            errorBarStage.setResizable(true);
+            errorBarStage.setScene(scene);
+            errorBarStage.show();
+        } catch(Exception e) {
+            System.out.println("in showErrorBarTool(): " + e.toString());
+        }
+    }
+    
     public void showHelpDialog(String helpFile) {
         try {
             URL fxmlLocation = getClass().getResource("HelpDialog.fxml");

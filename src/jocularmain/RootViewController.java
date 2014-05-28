@@ -202,7 +202,8 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doEstimateErrorBars() {
-        jocularMain.showInformationDialog("Estimate Error Bars:  not yet implemented.");
+        //jocularMain.showInformationDialog("Estimate Error Bars:  not yet implemented.");
+        jocularMain.showErrorBarTool();
     }
 
     @FXML
