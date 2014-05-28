@@ -172,7 +172,7 @@ public class JocularMain extends Application {
         }
     }
     
-    public void showInformationDialog(String msg) {
+    public void showInformationDialog(String msg, Stage owner) {
         try {
             URL fxmlLocation = getClass().getResource("InformationDialog.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
@@ -186,7 +186,7 @@ public class JocularMain extends Application {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
 
-            stage.initOwner(primaryStage);
+            stage.initOwner(owner);
             stage.setScene(scene);
 
             stage.show();

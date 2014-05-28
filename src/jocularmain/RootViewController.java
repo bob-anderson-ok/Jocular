@@ -122,7 +122,7 @@ public class RootViewController implements Initializable {
             try {
                 boolean okOrNot = ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
                 if (okOrNot) {
-                    jocularMain.showInformationDialog("Wrote file: " + file);
+                    jocularMain.showInformationDialog("Wrote file: " + file, jocularMain.primaryStage);
                 } else {
                     jocularMain.showErrorDialog("Failed to write: " + file, jocularMain.primaryStage);
                 }
@@ -187,17 +187,17 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doOpenRecentFiles() {
-        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.");
+        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.", jocularMain.primaryStage);
     }
 
     @FXML
     public void doReadLimovieFile() {
-        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.");
+        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
     }
 
     @FXML
     public void doReadTangraFile() {
-        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.");
+        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
     }
 
     @FXML
@@ -236,7 +236,7 @@ public class RootViewController implements Initializable {
         double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
 
         if (bSFL <= eSFL) {
-            jocularMain.showInformationDialog("Subframe timing is not applicable for this soultion.");
+            jocularMain.showInformationDialog("Subframe timing is not applicable for this soultion.", jocularMain.primaryStage);
             return;
         }
 
@@ -380,14 +380,14 @@ public class RootViewController implements Initializable {
         if (eventPoints.size() < 10) {
             jocularMain.showInformationDialog("There are only " + eventPoints.size() + "points in the 'event'."
                 + "  This will give an unreliable estimate of the event noise.  Consider checking the box "
-                + "that allows the baseline noise estimate to be used as the event noise estimate.");
+                + "that allows the baseline noise estimate to be used as the event noise estimate.", jocularMain.primaryStage);
         }
 
         if (baselinePoints.size() < 10) {
             jocularMain.showInformationDialog("There are only " + baselinePoints.size() + "points in the 'baseline'."
                 + "  This observation cannot be reliably processed because the baseline noise value is too uncertain. "
                 + "Suggestion: trim so that only event points remain; estimate noise with no markers; remember this value; "
-                + "untrim the data, manually enter noise values, set proper proper markers, and run solution.");
+                + "untrim the data, manually enter noise values, set proper proper markers, and run solution.", jocularMain.primaryStage);
         }
     }
 
