@@ -64,7 +64,7 @@ public class JocularMain extends Application {
 
         scene.getStylesheets().add(this.getClass().getResource("JocularStyleSheet.css").toExternalForm());
 
-        primaryStage.titleProperty().set("Jocular 0.51");
+        primaryStage.titleProperty().set("Jocular 0.6");
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -95,9 +95,12 @@ public class JocularMain extends Application {
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
             
+            ErrorBarFXMLController controller = fxmlLoader.getController();
+            ErrorBarFXMLController.setMainApp(this);
+            
             Stage errorBarStage = new Stage();
             
-            errorBarStage.setTitle("Error Bar Exploration Tool");
+            errorBarStage.setTitle("Error Bar Exploration Panel");
             errorBarStage.initModality(Modality.NONE);
             errorBarStage.setResizable(true);
             errorBarStage.setScene(scene);

@@ -63,7 +63,7 @@
 <VBox layoutX="233.0" layoutY="490.0" spacing="5.0">
 <children><Button layoutX="233.0" layoutY="490.0" mnemonicParsing="false" onAction="#calculateDistribution" prefWidth="154.0" text="Compute Distribution" /><Button layoutX="240.0" layoutY="530.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" />
 </children>
-</VBox><ListView layoutX="176.5" layoutY="616.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="630.0">
+</VBox><ListView fx:id="mainListView" layoutX="176.5" layoutY="616.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="630.0">
 <effect>
 <InnerShadow />
 </effect></ListView>
