@@ -1,6 +1,9 @@
 package jocularmain;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,6 +17,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import utils.HistStatItem;
 
 public class ErrorBarFXMLController implements Initializable {
 
@@ -178,6 +182,71 @@ public class ErrorBarFXMLController implements Initializable {
         mainListView.setItems(items);
 
         plotData(histogram);
+        
+        ArrayList<HistStatItem> statsArray = buildHistStatArray( histogram );
+        sortStatsArrayDescendingOnCounts( statsArray );
+        calculateCumCounts( statsArray );
+        
+        int cumCountsRequired = (int)(numTrials * 0.67);
+        ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel( statsArray, cumCountsRequired);
+        sortContributorsAscendingOnPosition( contributors );
+    }
+    
+    private ArrayList<HistStatItem> contributorsRequiredForGivenConfidenceLevel( ArrayList<HistStatItem> statsArray, int cumCountNeeded) {
+        ArrayList<HistStatItem> shortList = new ArrayList<>();
+        for (HistStatItem item: statsArray) {
+            shortList.add(item);
+            if (item.cumCount >= cumCountNeeded) {
+                break;
+            } 
+        }
+        return shortList;
+    }
+    
+    private void calculateCumCounts( ArrayList<HistStatItem> statsArray) {
+        int cumCount = 0;
+        for (HistStatItem item: statsArray) {
+            cumCount += item.count;
+            item.cumCount = cumCount;
+        }
+    }
+    
+    private void sortStatsArrayDescendingOnCounts( ArrayList<HistStatItem> statsArray) {
+        DescendingCountComparator descendingCountComparator = new DescendingCountComparator();
+        Collections.sort(statsArray, descendingCountComparator);  
+    }
+    
+    class DescendingCountComparator implements Comparator<HistStatItem> {
+        @Override
+        public int compare(HistStatItem one, HistStatItem two) {
+            return Integer.compare(two.count, one.count);
+        }
+    }
+    
+    private void sortContributorsAscendingOnPosition( ArrayList<HistStatItem> contributors) {
+        AscendingPositionComparator ascendingPositionComparator = new AscendingPositionComparator();
+        Collections.sort(contributors, ascendingPositionComparator);
+    }
+    
+    
+    class AscendingPositionComparator implements Comparator<HistStatItem> {
+        @Override
+        public int compare(HistStatItem one, HistStatItem two) {
+            return Integer.compare(one.position, two.position);
+        }
+    }
+    
+    private ArrayList<HistStatItem> buildHistStatArray( int[] hist) {
+        ArrayList<HistStatItem> arrayList = new ArrayList<>();
+        
+        for (int i=0; i < hist.length; i++) {
+            HistStatItem item = new HistStatItem();
+            item.count = hist[i];
+            item.position = i;
+            item.cumCount = 0;
+            arrayList.add(item);
+        }
+        return arrayList;
     }
 
     private XYChart.Series<Number, Number> getMassDistributionSeries(int[] hist) {
