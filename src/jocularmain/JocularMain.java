@@ -1,11 +1,14 @@
 package jocularmain;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import javafx.application.Application;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -14,6 +17,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import javax.imageio.ImageIO;
 import utils.Observation;
 import utils.SqSolution;
 
@@ -23,8 +27,8 @@ import utils.SqSolution;
  */
 public class JocularMain extends Application {
 
-    private Observation obsInMainPlot=null;
-    private SqSolution currentSqSolution=null;
+    private Observation obsInMainPlot = null;
+    private SqSolution currentSqSolution = null;
 
     private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
@@ -34,7 +38,7 @@ public class JocularMain extends Application {
     public Stage errorBarPanelStage;
     public Scene errorBarPanelScene;
     public Stage primaryStage;
-    
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -58,7 +62,7 @@ public class JocularMain extends Application {
         Scene scene = new Scene(page);
 
         mainScene = scene;
-        
+
         // Save a reference to RootViewController.  We will need to call
         // public methods provided by RootViewController to make things
         // happen on the main display screen.
@@ -97,23 +101,23 @@ public class JocularMain extends Application {
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
             errorBarPanelScene = scene;
-            
+
             ErrorBarFXMLController controller = fxmlLoader.getController();
             ErrorBarFXMLController.setMainApp(this);
-            
+
             Stage errorBarStage = new Stage();
             errorBarPanelStage = errorBarStage;
-            
+
             errorBarStage.setTitle("Error Bar Study Panel");
             errorBarStage.initModality(Modality.NONE);
             errorBarStage.setResizable(true);
             errorBarStage.setScene(scene);
             errorBarStage.show();
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println("in showErrorBarTool(): " + e.toString());
         }
     }
-    
+
     public void showHelpDialog(String helpFile) {
         try {
             URL fxmlLocation = getClass().getResource("HelpDialog.fxml");
@@ -173,7 +177,7 @@ public class JocularMain extends Application {
             System.out.println("in showErrorDialog(): " + e.toString());
         }
     }
-    
+
     public void showInformationDialog(String msg, Stage owner) {
         try {
             URL fxmlLocation = getClass().getResource("InformationDialog.fxml");
@@ -222,64 +226,83 @@ public class JocularMain extends Application {
         }
     }
 
+    public void saveSnapshotToFile(WritableImage wim, Stage owner) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Image as png file");
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("png", "*.png"));
+
+        File file = fileChooser.showSaveDialog(new Stage());
+
+        if (file != null) {
+            try {
+                boolean okOrNot = ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
+                if (okOrNot) {
+                    showInformationDialog("Wrote file: " + file, owner);
+                } else {
+                    showErrorDialog("Failed to write: " + file, owner);
+                }
+            } catch (IOException e) {
+                showErrorDialog(e.getMessage(), owner);
+            }
+        }
+    }
+
     public void showSampleDataDialog() {
         sampleDataDialogStage.show();
     }
-    
-    public void repaintObservationAndSolution(){
+
+    public void repaintObservationAndSolution() {
         rootViewController.showObservationDataWithTheoreticalLightCurve(obsInMainPlot, currentSqSolution);
     }
-    
+
     public void repaintObservation() {
         rootViewController.showObservationDataAlone(obsInMainPlot);
     }
-    
+
     public boolean inRange(int index) {
         return (index >= 0) && (index < obsInMainPlot.lengthOfDataColumns);
     }
-    
+
     /**
-     * 
-     * @return
-     * the first readingNumber to the right of the trimmed observation.
+     *
+     * @return the first readingNumber to the right of the trimmed observation.
      */
     public int getOutOfRangeOfObsOnTheRight() {
-        return obsInMainPlot.readingNumbers[obsInMainPlot.readingNumbers.length-1] + 1;
+        return obsInMainPlot.readingNumbers[obsInMainPlot.readingNumbers.length - 1] + 1;
     }
-    
+
     /**
-     * 
-     * @return 
-     * the first readingNumber to the left of the trimmed observation.
+     *
+     * @return the first readingNumber to the left of the trimmed observation.
      */
     public int getOutOfRangeOfObsOnTheLeft() {
         return obsInMainPlot.readingNumbers[0] - 1;
     }
-    
+
     public Observation getCurrentObservation() {
         return obsInMainPlot;
     }
-    
+
     public void setCurrentObservation(Observation newObs) {
         obsInMainPlot = newObs;
     }
-    
+
     public SqSolution getCurrentSolution() {
         return currentSqSolution;
     }
-    
-    public void setCurrentSolution( SqSolution newSolution) {
+
+    public void setCurrentSolution(SqSolution newSolution) {
         currentSqSolution = newSolution;
     }
-    
+
     public void addSampleCurveToMainPlot(SqSolution solution) {
         rootViewController.addSampleCurveToMainPlot(solution);
     }
-    
+
     public void addSolutionCurveToMainPlot(SqSolution solution) {
         rootViewController.addSolutionCurveToMainPlot(solution);
     }
-    
+
     public void clearSolutionList() {
         rootViewController.clearSolutionList();
     }

@@ -77,30 +77,8 @@ public class ErrorBarFXMLController implements Initializable {
     @FXML
     public void writePanelToFile() {
         WritableImage wim = jocularMain.errorBarPanelScene.snapshot(null);
-        saveSnapshotToFile(wim);
+        jocularMain.saveSnapshotToFile(wim,jocularMain.errorBarPanelStage);
     }
-
-    private void saveSnapshotToFile(WritableImage wim) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Image as png file");
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("png", "*.png"));
-
-        File file = fileChooser.showSaveDialog(new Stage());
-
-        if (file != null) {
-            try {
-                boolean okOrNot = ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
-                if (okOrNot) {
-                    jocularMain.showInformationDialog("Wrote file: " + file, jocularMain.primaryStage);
-                } else {
-                    jocularMain.showErrorDialog("Failed to write: " + file, jocularMain.primaryStage);
-                }
-            } catch (IOException e) {
-                jocularMain.showErrorDialog(e.getMessage(), jocularMain.primaryStage);
-            }
-        }
-    }
-
 
     @FXML
     public void calculateDistribution() {

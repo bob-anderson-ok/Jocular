@@ -98,38 +98,15 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void snapshotTheChart() {
-
         WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
         chart.snapshot(null, wim);
-        saveSnapshotToFile(wim);
-
+        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
     }
 
     @FXML
     public void snapshotTheWholeWindow() {
         WritableImage wim = jocularMain.mainScene.snapshot(null);
-        saveSnapshotToFile(wim);
-    }
-
-    private void saveSnapshotToFile(WritableImage wim) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Image as png file");
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("png", "*.png"));
-
-        File file = fileChooser.showSaveDialog(new Stage());
-
-        if (file != null) {
-            try {
-                boolean okOrNot = ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
-                if (okOrNot) {
-                    jocularMain.showInformationDialog("Wrote file: " + file, jocularMain.primaryStage);
-                } else {
-                    jocularMain.showErrorDialog("Failed to write: " + file, jocularMain.primaryStage);
-                }
-            } catch (IOException e) {
-                jocularMain.showErrorDialog(e.getMessage(), jocularMain.primaryStage);
-            }
-        }
+        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
     }
 
     @FXML
@@ -488,7 +465,7 @@ public class RootViewController implements Initializable {
         }
 
         if (minMagDrop >= maxMagDrop) {
-            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop", 
+            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop",
                                         jocularMain.primaryStage);
             return;
         }
