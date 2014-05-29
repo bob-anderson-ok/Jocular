@@ -77,6 +77,8 @@ public class ErrorBarFXMLController implements Initializable {
     
     @FXML
     ListView mainListView;
+    @FXML
+    ListView resultsListView;
 
     @FXML
     public void showErrorBarHelp() {
@@ -174,7 +176,7 @@ public class ErrorBarFXMLController implements Initializable {
         ObservableList<String> items = FXCollections.observableArrayList();
         items = FXCollections.observableArrayList();
 
-        items.add("histogram: ");
+        items.add("  R    num @ R");
         for (int i = 0; i < histogram.length; i++) {
             items.add(String.format("%3d %,8d", i, histogram[i]));
         }
@@ -187,9 +189,46 @@ public class ErrorBarFXMLController implements Initializable {
         sortStatsArrayDescendingOnCounts( statsArray );
         calculateCumCounts( statsArray );
         
-        int cumCountsRequired = (int)(numTrials * 0.67);
+        //int cumCountsRequired = (int)(numTrials * 0.67);
+        //ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel( statsArray, cumCountsRequired);
+        //int cumCountActual = contributors.get(contributors.size()-1).cumCount;
+        //sortContributorsAscendingOnPosition( contributors );
+        
+        //int indexOfBarCenter = statsArray.get(0).position;
+        //int indexOfBarLeftEdge = contributors.get(0).position;
+        //int indexOfBarRightEdge = contributors.get(contributors.size()-1).position;
+        
+        
+        ObservableList<String> resultItems = FXCollections.observableArrayList();
+        resultItems = FXCollections.observableArrayList();
+//        resultItems.add(String.format("target 67%s  left=%d  center=%d  right=%d  confidence level=%4.3f", 
+//                                "%",indexOfBarLeftEdge, indexOfBarCenter, indexOfBarRightEdge, 
+//                                ((double)cumCountActual/numTrials)*100.0));
+        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 67));
+        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
+        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
+        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
+        
+        resultsListView.setItems(resultItems);
+        
+    }
+    
+    private String getReportAtConfidenceLevel( ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel) {
+        int cumCountsRequired = (int) (numTrials * confidenceLevel * 0.01);
         ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel( statsArray, cumCountsRequired);
+        int cumCountActual = contributors.get(contributors.size()-1).cumCount;
         sortContributorsAscendingOnPosition( contributors );
+        
+        int indexOfBarCenter = statsArray.get(0).position;
+        int indexOfBarLeftEdge = contributors.get(0).position;
+        int indexOfBarRightEdge = contributors.get(contributors.size()-1).position;
+        
+        
+        //ObservableList<String> resultItems = FXCollections.observableArrayList();
+        //resultItems = FXCollections.observableArrayList();
+        return String.format("target %d%s  left=%d  center=%d  right=%d  confidence level=%4.3f", 
+                                confidenceLevel, "%",indexOfBarLeftEdge, indexOfBarCenter, indexOfBarRightEdge, 
+                                ((double)cumCountActual/numTrials)*100.0);
     }
     
     private ArrayList<HistStatItem> contributorsRequiredForGivenConfidenceLevel( ArrayList<HistStatItem> statsArray, int cumCountNeeded) {
