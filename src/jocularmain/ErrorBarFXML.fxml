@@ -13,12 +13,12 @@
         <URL value="@/jocularmain/JocularStyleSheet.css" />
     </stylesheets>
     <children>
-        <LineChart fx:id="mainChart" alternativeRowFillVisible="false" animated="false" horizontalGridLinesVisible="false" horizontalZeroLineVisible="false" layoutX="40.0" layoutY="14.0" legendVisible="false" title="Probability Mass Distribution" verticalGridLinesVisible="false" verticalZeroLineVisible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <LineChart fx:id="mainChart" alternativeRowFillVisible="false" animated="false" horizontalZeroLineVisible="false" layoutX="40.0" layoutY="14.0" legendVisible="false" title="Probability Mass Distribution" verticalGridLinesVisible="false" verticalZeroLineVisible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <xAxis>
-                <NumberAxis minorTickCount="1" side="BOTTOM" />
+                <NumberAxis animated="false" autoRanging="false" minorTickCount="1" side="BOTTOM" />
             </xAxis>
             <yAxis>
-                <NumberAxis forceZeroInRange="false" minorTickCount="1" side="LEFT" />
+                <NumberAxis animated="false" autoRanging="false" minorTickCount="1" side="LEFT" />
             </yAxis>
         </LineChart>
         <HBox alignment="CENTER_LEFT" layoutX="24.0" layoutY="423.0" prefWidth="535.0" spacing="5.0">
@@ -50,13 +50,13 @@
                 <VBox layoutX="113.0" layoutY="434.0" prefWidth="80.0">
                     <children>
                         <Label layoutX="66.822021484375" layoutY="423.0" text="num points" />
-                        <TextField fx:id="numPointsText" layoutX="24.96875" layoutY="449.0" />
+                        <TextField fx:id="numPointsText" layoutX="24.96875" layoutY="449.0" text="40" />
                     </children>
                 </VBox>
                 <VBox layoutX="113.0" layoutY="434.0" prefWidth="80.0">
                     <children>
                         <Label layoutX="66.822021484375" layoutY="423.0" text="num trials" />
-                        <TextField fx:id="numTrialsText" layoutX="24.96875" layoutY="449.0" />
+                        <TextField fx:id="numTrialsText" layoutX="24.96875" layoutY="449.0" text="100000" />
                     </children>
                 </VBox>
             </children>
@@ -84,9 +84,16 @@
             <effect>
                 <InnerShadow />
             </effect>
-        </ListView><CheckBox fx:id="overplotCheckbox" layoutX="404.0" layoutY="494.0" mnemonicParsing="false" text="Overplot" /><ImageView fitHeight="20.0" fitWidth="16.0" layoutX="288.0" layoutY="572.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
+        </ListView><ImageView fitHeight="20.0" fitWidth="16.0" layoutX="288.0" layoutY="572.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
 <image>
 <Image url="@questionMark.png" />
 </image></ImageView>
+<VBox layoutX="432.0" layoutY="492.0" spacing="5.0">
+<children><CheckBox fx:id="overplotCheckbox" layoutX="404.0" layoutY="494.0" mnemonicParsing="false" text="Overplot" /><RadioButton fx:id="onexRadioButton" mnemonicParsing="false" selected="true" text="1x  vertical">
+<toggleGroup>
+<ToggleGroup fx:id="scaleGroup" />
+</toggleGroup></RadioButton><RadioButton fx:id="twoxRadioButton" layoutX="432.0" layoutY="547.0" mnemonicParsing="false" text="2x  vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="fivexRadioButton" layoutX="432.0" layoutY="571.0" mnemonicParsing="false" text="5x  vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="tenxRadioButton" layoutX="433.0" layoutY="596.0" mnemonicParsing="false" text="10x vertical" toggleGroup="$scaleGroup" />
+</children>
+</VBox>
     </children>
 </AnchorPane>

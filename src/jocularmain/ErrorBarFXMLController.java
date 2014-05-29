@@ -1,24 +1,19 @@
 package jocularmain;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javax.imageio.ImageIO;
 
 public class ErrorBarFXMLController implements Initializable {
 
@@ -66,6 +61,16 @@ public class ErrorBarFXMLController implements Initializable {
     @FXML
     RadioButton midPointRadioButton;
 
+    
+    @FXML
+    RadioButton onexRadioButton;
+    @FXML
+    RadioButton twoxRadioButton;
+    @FXML
+    RadioButton fivexRadioButton;
+    @FXML
+    RadioButton tenxRadioButton;
+    
     @FXML
     ListView mainListView;
 
@@ -181,7 +186,7 @@ public class ErrorBarFXMLController implements Initializable {
         XYChart.Data<Number, Number> data;
 
         int numDataPoints = hist.length;
-
+        
         // Build the data series, point by point, adding a 'hover node' to each point
         // so that client can get data coordinate values by putting his cursor on a data point.
         for (int i = 0; i < numDataPoints; i++) {
@@ -202,6 +207,29 @@ public class ErrorBarFXMLController implements Initializable {
             mainChart.getData().clear();
         }
         
+        int yMax;
+        
+        if ( twoxRadioButton.isSelected()) {
+            yMax = numTrials/2;
+        } else if (fivexRadioButton.isSelected()) {
+            yMax = numTrials/5;
+        } else if (tenxRadioButton.isSelected()) {
+            yMax = numTrials/10;
+        } else {
+            yMax = numTrials;
+        }
+        
+        NumberAxis yaxis = (NumberAxis) mainChart.getYAxis();
+        yaxis.setLowerBound(-yMax/10);
+        yaxis.setUpperBound(yMax);
+        yaxis.setTickUnit(yMax/10);
+        
+        NumberAxis xaxis = (NumberAxis) mainChart.getXAxis();
+        xaxis.setLowerBound(-numPoints/10);
+        xaxis.setUpperBound(numPoints + numPoints/10);
+        xaxis.setTickUnit(numPoints/10);
+        
+
         mainChart.getData().add(getMassDistributionSeries(values));
     }
 
