@@ -807,7 +807,7 @@ public class RootViewController implements Initializable {
             } else {
                 series.setName(dataType.getName());
             }
-            chart.getData().add(chartSeries.get(dataType));
+            chart.getData().add(series);
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
                 dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()

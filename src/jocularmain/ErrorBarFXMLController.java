@@ -2,14 +2,18 @@ package jocularmain;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-
+import utils.Observation;
 
 public class ErrorBarFXMLController implements Initializable {
 
@@ -32,6 +36,9 @@ public class ErrorBarFXMLController implements Initializable {
     }
 
     @FXML
+    LineChart<Number,Number> mainChart;
+
+    @FXML
     TextField baselineLevelText;
     @FXML
     TextField eventLevelText;
@@ -50,13 +57,12 @@ public class ErrorBarFXMLController implements Initializable {
     RadioButton leftEdgeRadioButton;
     @FXML
     RadioButton midPointRadioButton;
-    
-    @FXML 
+
+    @FXML
     ListView mainListView;
 
     @FXML
     public void calculateDistribution() {
-        System.out.println("calculateDistribution clicked");
 
         baselineLevel = validateBaselineLevelText();
         if (baselineLevel == EMPTY_FIELD || baselineLevel == FIELD_ENTRY_ERROR) {
@@ -112,8 +118,8 @@ public class ErrorBarFXMLController implements Initializable {
 
         // Just in case none of the radio buttons referenced below is selected, we have a GUI design
         // error, which we crassly turn into an NPE
-        monteCarloMode = null;  
-        
+        monteCarloMode = null;
+
         if (randomRadioButton.isSelected()) {
             monteCarloMode = MonteCarloMode.RANDOM;
         }
@@ -123,7 +129,7 @@ public class ErrorBarFXMLController implements Initializable {
         if (midPointRadioButton.isSelected()) {
             monteCarloMode = MonteCarloMode.MID_POINT;
         }
-        
+
         // OK, time to set up the trial...
         trialParams.baselineLevel = baselineLevel;
         trialParams.eventLevel = eventLevel;
@@ -132,22 +138,55 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.mode = monteCarloMode;
         trialParams.sigmaB = sigmaB;
         trialParams.sigmaA = sigmaA;
-        
+
         // ... and run it.
         MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
         int[] histogram = monteCarloTrial.calcHistogram();
-        
-        
+
         ObservableList<String> items = FXCollections.observableArrayList();
         items = FXCollections.observableArrayList();
-        
+
         items.add("histogram: ");
-        for ( int i = 0; i<histogram.length;i++) {
+        for (int i = 0; i < histogram.length; i++) {
             items.add(String.format("%3d %,8d", i, histogram[i]));
         }
- 
-        
+
         mainListView.setItems(items);
+
+        plotData(histogram);
+    }
+
+    private XYChart.Series<Number, Number> getMassDistributionSeries(int[] hist) {
+        XYChart.Series<Number, Number> series;
+        series = new XYChart.Series<Number, Number>();
+        XYChart.Data<Number, Number> data;
+
+        int numDataPoints = hist.length;
+
+        // Build the data series, point by point, adding a 'hover node' to each point
+        // so that client can get data coordinate values by putting his cursor on a data point.
+        for (int i = 0; i < numDataPoints; i++) {
+            data = new XYChart.Data(i, 0);
+            series.getData().add(data);
+            data = new XYChart.Data(i, hist[i]);
+            series.getData().add(data);
+            data = new XYChart.Data(i, 0);
+            series.getData().add(data);
+        }
+        series.setName("probMassDist");
+
+        return series;
+    }
+
+    private void plotData(int[] values) {
+        mainChart.getData().clear();
+        mainChart.getData().add(getMassDistributionSeries(values));
+
+        Set<Node> dataNodes = mainChart.lookupAll(".series" + (mainChart.getData().size() - 1));
+        for (Node dataNode : dataNodes) {
+            dataNode.setStyle("-fx-stroke: " + "black"
+                + "; -fx-background-color:transparent," + "black");
+        }
     }
 
     @FXML
