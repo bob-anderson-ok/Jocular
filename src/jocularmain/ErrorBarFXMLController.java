@@ -1,19 +1,24 @@
 package jocularmain;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import utils.Observation;
+import javafx.scene.image.WritableImage;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javax.imageio.ImageIO;
 
 public class ErrorBarFXMLController implements Initializable {
 
@@ -36,7 +41,7 @@ public class ErrorBarFXMLController implements Initializable {
     }
 
     @FXML
-    LineChart<Number,Number> mainChart;
+    LineChart<Number, Number> mainChart;
 
     @FXML
     TextField baselineLevelText;
@@ -52,6 +57,9 @@ public class ErrorBarFXMLController implements Initializable {
     TextField numTrialsText;
 
     @FXML
+    CheckBox overplotCheckbox;
+
+    @FXML
     RadioButton randomRadioButton;
     @FXML
     RadioButton leftEdgeRadioButton;
@@ -60,6 +68,39 @@ public class ErrorBarFXMLController implements Initializable {
 
     @FXML
     ListView mainListView;
+
+    @FXML
+    public void showErrorBarHelp() {
+        jocularMain.showHelpDialog("Help/errorbar.help.html");
+    }
+    
+    @FXML
+    public void writePanelToFile() {
+        WritableImage wim = jocularMain.errorBarPanelScene.snapshot(null);
+        saveSnapshotToFile(wim);
+    }
+
+    private void saveSnapshotToFile(WritableImage wim) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Image as png file");
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("png", "*.png"));
+
+        File file = fileChooser.showSaveDialog(new Stage());
+
+        if (file != null) {
+            try {
+                boolean okOrNot = ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
+                if (okOrNot) {
+                    jocularMain.showInformationDialog("Wrote file: " + file, jocularMain.primaryStage);
+                } else {
+                    jocularMain.showErrorDialog("Failed to write: " + file, jocularMain.primaryStage);
+                }
+            } catch (IOException e) {
+                jocularMain.showErrorDialog(e.getMessage(), jocularMain.primaryStage);
+            }
+        }
+    }
+
 
     @FXML
     public void calculateDistribution() {
@@ -179,19 +220,11 @@ public class ErrorBarFXMLController implements Initializable {
     }
 
     private void plotData(int[] values) {
-        mainChart.getData().clear();
-        mainChart.getData().add(getMassDistributionSeries(values));
-
-        Set<Node> dataNodes = mainChart.lookupAll(".series" + (mainChart.getData().size() - 1));
-        for (Node dataNode : dataNodes) {
-            dataNode.setStyle("-fx-stroke: " + "black"
-                + "; -fx-background-color:transparent," + "black");
+        if (!overplotCheckbox.isSelected()) {
+            mainChart.getData().clear();
         }
-    }
-
-    @FXML
-    public void writePanelToFile() {
-        System.out.println("writePanelToFile clicked");
+        
+        mainChart.getData().add(getMassDistributionSeries(values));
     }
 
     private double validateSigmaBtext() {

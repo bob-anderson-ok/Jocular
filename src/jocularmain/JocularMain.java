@@ -32,6 +32,7 @@ public class JocularMain extends Application {
 
     public Scene mainScene;
     public Stage errorBarPanelStage;
+    public Scene errorBarPanelScene;
     public Stage primaryStage;
     
     public static void main(String[] args) {
@@ -95,6 +96,7 @@ public class JocularMain extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
+            errorBarPanelScene = scene;
             
             ErrorBarFXMLController controller = fxmlLoader.getController();
             ErrorBarFXMLController.setMainApp(this);

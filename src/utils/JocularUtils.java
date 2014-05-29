@@ -1,10 +1,18 @@
 package utils;
 
+import java.io.File;
+import java.io.IOException;
 import static java.lang.Math.PI;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.Random;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.WritableImage;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javax.imageio.ImageIO;
+import jocularmain.JocularMain;
 
 public interface JocularUtils {
 
@@ -135,4 +143,5 @@ public interface JocularUtils {
 
         return term1 + term2 - term3 * term3 / 2.0;
     }
+    
 }
