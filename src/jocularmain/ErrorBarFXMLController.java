@@ -73,6 +73,8 @@ public class ErrorBarFXMLController implements Initializable {
     RadioButton fivexRadioButton;
     @FXML
     RadioButton tenxRadioButton;
+    @FXML
+    RadioButton twentyxRadioButton;
 
     @FXML
     ListView mainListView;
@@ -316,6 +318,8 @@ public class ErrorBarFXMLController implements Initializable {
             yMax = numTrials / 5;
         } else if (tenxRadioButton.isSelected()) {
             yMax = numTrials / 10;
+        } else if (twentyxRadioButton.isSelected()) {
+            yMax = numTrials / 20;
         } else {
             yMax = numTrials;
         }
