@@ -65,7 +65,6 @@ public class ErrorBarFXMLController implements Initializable {
     @FXML
     RadioButton midPointRadioButton;
 
-    
     @FXML
     RadioButton onexRadioButton;
     @FXML
@@ -74,7 +73,7 @@ public class ErrorBarFXMLController implements Initializable {
     RadioButton fivexRadioButton;
     @FXML
     RadioButton tenxRadioButton;
-    
+
     @FXML
     ListView mainListView;
     @FXML
@@ -84,11 +83,11 @@ public class ErrorBarFXMLController implements Initializable {
     public void showErrorBarHelp() {
         jocularMain.showHelpDialog("Help/errorbar.help.html");
     }
-    
+
     @FXML
     public void writePanelToFile() {
         WritableImage wim = jocularMain.errorBarPanelScene.snapshot(null);
-        jocularMain.saveSnapshotToFile(wim,jocularMain.errorBarPanelStage);
+        jocularMain.saveSnapshotToFile(wim, jocularMain.errorBarPanelStage);
     }
 
     @FXML
@@ -184,101 +183,95 @@ public class ErrorBarFXMLController implements Initializable {
         mainListView.setItems(items);
 
         plotData(histogram);
-        
-        ArrayList<HistStatItem> statsArray = buildHistStatArray( histogram );
-        sortStatsArrayDescendingOnCounts( statsArray );
-        calculateCumCounts( statsArray );
-        
-        //int cumCountsRequired = (int)(numTrials * 0.67);
-        //ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel( statsArray, cumCountsRequired);
-        //int cumCountActual = contributors.get(contributors.size()-1).cumCount;
-        //sortContributorsAscendingOnPosition( contributors );
-        
-        //int indexOfBarCenter = statsArray.get(0).position;
-        //int indexOfBarLeftEdge = contributors.get(0).position;
-        //int indexOfBarRightEdge = contributors.get(contributors.size()-1).position;
-        
-        
+
+        ArrayList<HistStatItem> statsArray = buildHistStatArray(histogram);
+        sortStatsArrayDescendingOnCounts(statsArray);
+        calculateCumCounts(statsArray);
+
         ObservableList<String> resultItems = FXCollections.observableArrayList();
         resultItems = FXCollections.observableArrayList();
-//        resultItems.add(String.format("target 67%s  left=%d  center=%d  right=%d  confidence level=%4.3f", 
-//                                "%",indexOfBarLeftEdge, indexOfBarCenter, indexOfBarRightEdge, 
-//                                ((double)cumCountActual/numTrials)*100.0));
+
+        resultItems.add("CI     CI act  left  center  right  width  +/-");
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 67));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
-        
+
         resultsListView.setItems(resultItems);
-        
+
     }
-    
-    private String getReportAtConfidenceLevel( ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel) {
+
+    private String getReportAtConfidenceLevel(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel) {
         int cumCountsRequired = (int) (numTrials * confidenceLevel * 0.01);
-        ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel( statsArray, cumCountsRequired);
-        int cumCountActual = contributors.get(contributors.size()-1).cumCount;
-        sortContributorsAscendingOnPosition( contributors );
-        
+        ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel(statsArray, cumCountsRequired);
+        int cumCountActual = contributors.get(contributors.size() - 1).cumCount;
+        sortContributorsAscendingOnPosition(contributors);
+
         int indexOfBarCenter = statsArray.get(0).position;
         int indexOfBarLeftEdge = contributors.get(0).position;
-        int indexOfBarRightEdge = contributors.get(contributors.size()-1).position;
-        
-        
-        //ObservableList<String> resultItems = FXCollections.observableArrayList();
-        //resultItems = FXCollections.observableArrayList();
-        return String.format("target %d%s  left=%d  center=%d  right=%d  confidence level=%4.3f", 
-                                confidenceLevel, "%",indexOfBarLeftEdge, indexOfBarCenter, indexOfBarRightEdge, 
-                                ((double)cumCountActual/numTrials)*100.0);
+        int indexOfBarRightEdge = contributors.get(contributors.size() - 1).position;
+
+        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %d/%d",
+                             confidenceLevel, "%",
+                             ((double) cumCountActual / numTrials) * 100.0, "%",
+                             indexOfBarLeftEdge,
+                             indexOfBarCenter,
+                             indexOfBarRightEdge,
+                             indexOfBarRightEdge - indexOfBarLeftEdge + 1,
+                             indexOfBarRightEdge - indexOfBarCenter,
+                             indexOfBarCenter - indexOfBarLeftEdge
+        );
     }
-    
-    private ArrayList<HistStatItem> contributorsRequiredForGivenConfidenceLevel( ArrayList<HistStatItem> statsArray, int cumCountNeeded) {
+
+    private ArrayList<HistStatItem> contributorsRequiredForGivenConfidenceLevel(ArrayList<HistStatItem> statsArray, int cumCountNeeded) {
         ArrayList<HistStatItem> shortList = new ArrayList<>();
-        for (HistStatItem item: statsArray) {
+        for (HistStatItem item : statsArray) {
             shortList.add(item);
             if (item.cumCount >= cumCountNeeded) {
                 break;
-            } 
+            }
         }
         return shortList;
     }
-    
-    private void calculateCumCounts( ArrayList<HistStatItem> statsArray) {
+
+    private void calculateCumCounts(ArrayList<HistStatItem> statsArray) {
         int cumCount = 0;
-        for (HistStatItem item: statsArray) {
+        for (HistStatItem item : statsArray) {
             cumCount += item.count;
             item.cumCount = cumCount;
         }
     }
-    
-    private void sortStatsArrayDescendingOnCounts( ArrayList<HistStatItem> statsArray) {
+
+    private void sortStatsArrayDescendingOnCounts(ArrayList<HistStatItem> statsArray) {
         DescendingCountComparator descendingCountComparator = new DescendingCountComparator();
-        Collections.sort(statsArray, descendingCountComparator);  
+        Collections.sort(statsArray, descendingCountComparator);
     }
-    
+
     class DescendingCountComparator implements Comparator<HistStatItem> {
+
         @Override
         public int compare(HistStatItem one, HistStatItem two) {
             return Integer.compare(two.count, one.count);
         }
     }
-    
-    private void sortContributorsAscendingOnPosition( ArrayList<HistStatItem> contributors) {
+
+    private void sortContributorsAscendingOnPosition(ArrayList<HistStatItem> contributors) {
         AscendingPositionComparator ascendingPositionComparator = new AscendingPositionComparator();
         Collections.sort(contributors, ascendingPositionComparator);
     }
-    
-    
+
     class AscendingPositionComparator implements Comparator<HistStatItem> {
+
         @Override
         public int compare(HistStatItem one, HistStatItem two) {
             return Integer.compare(one.position, two.position);
         }
     }
-    
-    private ArrayList<HistStatItem> buildHistStatArray( int[] hist) {
+
+    private ArrayList<HistStatItem> buildHistStatArray(int[] hist) {
         ArrayList<HistStatItem> arrayList = new ArrayList<>();
-        
-        for (int i=0; i < hist.length; i++) {
+
+        for (int i = 0; i < hist.length; i++) {
             HistStatItem item = new HistStatItem();
             item.count = hist[i];
             item.position = i;
@@ -294,7 +287,7 @@ public class ErrorBarFXMLController implements Initializable {
         XYChart.Data<Number, Number> data;
 
         int numDataPoints = hist.length;
-        
+
         // Build the data series, point by point, adding a 'hover node' to each point
         // so that client can get data coordinate values by putting his cursor on a data point.
         for (int i = 0; i < numDataPoints; i++) {
@@ -314,29 +307,28 @@ public class ErrorBarFXMLController implements Initializable {
         if (!overplotCheckbox.isSelected()) {
             mainChart.getData().clear();
         }
-        
+
         int yMax;
-        
-        if ( twoxRadioButton.isSelected()) {
-            yMax = numTrials/2;
+
+        if (twoxRadioButton.isSelected()) {
+            yMax = numTrials / 2;
         } else if (fivexRadioButton.isSelected()) {
-            yMax = numTrials/5;
+            yMax = numTrials / 5;
         } else if (tenxRadioButton.isSelected()) {
-            yMax = numTrials/10;
+            yMax = numTrials / 10;
         } else {
             yMax = numTrials;
         }
-        
+
         NumberAxis yaxis = (NumberAxis) mainChart.getYAxis();
-        yaxis.setLowerBound(-yMax/10);
+        yaxis.setLowerBound(-yMax / 10);
         yaxis.setUpperBound(yMax);
-        yaxis.setTickUnit(yMax/10);
-        
+        yaxis.setTickUnit(yMax / 10);
+
         NumberAxis xaxis = (NumberAxis) mainChart.getXAxis();
-        xaxis.setLowerBound(-numPoints/10);
-        xaxis.setUpperBound(numPoints + numPoints/10);
-        xaxis.setTickUnit(numPoints/10);
-        
+        xaxis.setLowerBound(-numPoints / 10);
+        xaxis.setUpperBound(numPoints + numPoints / 10);
+        xaxis.setTickUnit(numPoints / 10);
 
         mainChart.getData().add(getMassDistributionSeries(values));
     }

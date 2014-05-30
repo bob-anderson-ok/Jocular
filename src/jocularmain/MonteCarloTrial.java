@@ -1,8 +1,10 @@
 package jocularmain;
 
+import static java.lang.Math.log;
 import utils.JocularUtils;
 import static utils.JocularUtils.gaussianVariate;
 import static utils.JocularUtils.logL;
+import static utils.JocularUtils.aicc;
 
 public class MonteCarloTrial {
 
@@ -25,7 +27,8 @@ public class MonteCarloTrial {
     }
 
     public int[] calcHistogram() {
-        int[] histogram = new int[trialParams.sampleWidth];  // Output
+        // Initialize the output vector
+        int[] histogram = new int[trialParams.sampleWidth];
 
         double[] logLB = new double[trialParams.sampleWidth];
         double[] logLA = new double[trialParams.sampleWidth];
@@ -33,6 +36,9 @@ public class MonteCarloTrial {
         double[] logLT = new double[trialParams.sampleWidth];
         double[] rdgs = new double[trialParams.sampleWidth];
         int[] offset = new int[trialParams.sampleWidth];
+
+        double logLstraightLine = 0.0;
+        int rejectedSolutions = 0;
 
         int centerIndex = trialParams.sampleWidth / 2;
 
@@ -49,28 +55,29 @@ public class MonteCarloTrial {
 
             if (trialParams.mode == MonteCarloMode.LEFT_EDGE) {
                 rdgs[centerIndex] = gaussianVariate(trialParams.sigmaA) + trialParams.eventLevel;
-            }
-
-            if (trialParams.mode == MonteCarloMode.RIGHT_EDGE) {
+            } else if (trialParams.mode == MonteCarloMode.RIGHT_EDGE) {
                 rdgs[centerIndex] = gaussianVariate(trialParams.sigmaB) + trialParams.baselineLevel;
-            }
-
-            if (trialParams.mode == MonteCarloMode.MID_POINT) {
+            } else if (trialParams.mode == MonteCarloMode.MID_POINT) {
                 rdgs[centerIndex] = gaussianVariate((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
                     + (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
-            }
-            
-            if ( trialParams.mode == MonteCarloMode.RANDOM ) {
+            } else if (trialParams.mode == MonteCarloMode.RANDOM) {
                 double frac = JocularUtils.linearVariateZeroToOne();
                 double level = trialParams.baselineLevel * (1.0 - frac) + trialParams.eventLevel * frac;
-                double noiseAtLevel = trialParams.sigmaB * (1.0-frac) + trialParams.sigmaA * frac;
+                double noiseAtLevel = trialParams.sigmaB * (1.0 - frac) + trialParams.sigmaA * frac;
                 rdgs[centerIndex] = gaussianVariate(noiseAtLevel) + level;
+            } else {
+                throw new InternalError("Design error: MonteCarlo mode not implemented.");
             }
 
             for (int i = centerIndex + 1; i < rdgs.length; i++) {
                 rdgs[i] = gaussianVariate(trialParams.sigmaB) + trialParams.baselineLevel;
             }
 
+            // The test case has now been created.  Calculate the various arrays that depend on this case.
+            double midLevel = (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
+            double midSigma = (trialParams.sigmaA + trialParams.sigmaB) / 2.0;
+
+            logLstraightLine = 0.0;
             for (int i = 0; i < trialParams.sampleWidth; i++) {
                 logLB[i] = logL(rdgs[i], trialParams.baselineLevel, trialParams.sigmaB);
                 logLA[i] = logL(rdgs[i], trialParams.eventLevel, trialParams.sigmaA);
@@ -81,6 +88,7 @@ public class MonteCarloTrial {
                     logLM[i] = logLA[i];
                     offset[i] = 0;
                 }
+                logLstraightLine += logL(rdgs[i], midLevel, midSigma);
             }
 
             // Initialize first cum logL term to begin iterative computation
@@ -98,10 +106,25 @@ public class MonteCarloTrial {
             if (transitionIndex < 0) {
                 transitionIndex = 0;
             }
+            
+            // We will discard any trail that result in a detected edge that is more 'probable'
+            // than a simple straight line by at least 50
+            double aiccMarginOfEdgeOverLine = log(50.0);
 
-            histogram[transitionIndex]++;
+            if (aicc(logLstraightLine, 1, trialParams.sampleWidth) < 
+                aicc(logLT[indexOfMaxLogL], 3, trialParams.sampleWidth) + aiccMarginOfEdgeOverLine) {
+                // The trial does not contain a valid edge.
+                rejectedSolutions += 1;
+                k--; // Force a repeat try
+            } else {
+                histogram[transitionIndex]++;
+            }
 
+            //System.out.println("logLmax=" + logLT[indexOfMaxLogL] + "  logLSL=" + logLstraightLine);
+            //histogram[transitionIndex]++;
         }
+
+        System.out.println("Rejected solutions: " + rejectedSolutions);
         return histogram;
     }
 }
