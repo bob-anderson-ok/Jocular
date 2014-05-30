@@ -151,7 +151,7 @@ public class ErrorBarFXMLController implements Initializable {
         }
 
         // Just in case none of the radio buttons referenced below is selected, we have a GUI design
-        // error, which we crassly turn into an NPE
+        // error, which we crassly turn into a NPE
         monteCarloMode = null;
 
         if (randomRadioButton.isSelected()) {
@@ -174,12 +174,10 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.sigmaA = sigmaA;
 
         // ... and run it.
-        int[] histogram = new int[trialParams.sampleWidth];
-        MonteCarloResult monteCarloResult = new MonteCarloResult();
+        MonteCarloResult monteCarloResult;
         try {
             MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
             monteCarloResult = monteCarloTrial.calcHistogram();
-            histogram = monteCarloResult.histogram;
         } catch (IllegalArgumentException e) {
             jocularMain.showErrorDialog(e.getMessage(), jocularMain.errorBarPanelStage);
             mainListView.setItems(null);
@@ -187,27 +185,25 @@ public class ErrorBarFXMLController implements Initializable {
             mainChart.getData().clear();
             return;
         }
-        
-        if ( monteCarloResult.numRejections > trialParams.numTrials / 50 ) {
-            jocularMain.showInformationDialog("There were " + monteCarloResult.numRejections + " rejections." +
-                "Number of points in each trial sample should be increased.", jocularMain.errorBarPanelStage);
+
+        if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
+            jocularMain.showInformationDialog("There were " + monteCarloResult.numRejections + " rejections."
+                + "Number of points in each trial sample should be increased.", jocularMain.errorBarPanelStage);
         }
 
         ObservableList<String> items;
         items = FXCollections.observableArrayList();
 
         items.add("  R    num @ R");
-        for (int i = 0; i < histogram.length; i++) {
-            items.add(String.format("%3d %,8d", i, histogram[i]));
+        for (int i = 0; i < monteCarloResult.histogram.length; i++) {
+            items.add(String.format("%3d %,8d", i, monteCarloResult.histogram[i]));
         }
 
         mainListView.setItems(items);
 
-        plotData(histogram);
+        plotData(monteCarloResult.histogram);
 
-        ArrayList<HistStatItem> statsArray = buildHistStatArray(histogram);
-        sortStatsArrayDescendingOnCounts(statsArray);
-        calculateCumCounts(statsArray);
+        ArrayList<HistStatItem> statsArray = buildHistStatArray(monteCarloResult.histogram);
 
         ObservableList<String> resultItems;
         resultItems = FXCollections.observableArrayList();
@@ -217,10 +213,78 @@ public class ErrorBarFXMLController implements Initializable {
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
-        resultItems.add(String.format("\n%,d samples were rejected in order to reach %,d trials", 
+        resultItems.add(String.format("\n%,d samples were rejected on the way to %,d  good trials.",
                                       monteCarloResult.numRejections, trialParams.numTrials));
 
         resultsListView.setItems(resultItems);
+    }
+
+    private boolean validateInputTextFields() {
+        baselineLevel = validateBaselineLevelText();
+        if (baselineLevel == EMPTY_FIELD || baselineLevel == FIELD_ENTRY_ERROR) {
+            return false;
+        }
+
+        eventLevel = validateEventLevelText();
+        if (eventLevel == EMPTY_FIELD || eventLevel == FIELD_ENTRY_ERROR) {
+            return false;
+        }
+
+        sigmaB = validateSigmaBtext();
+        if (sigmaB == EMPTY_FIELD || sigmaB == FIELD_ENTRY_ERROR) {
+            return false;
+        }
+
+        sigmaA = validateSigmaAtext();
+        if (sigmaA == EMPTY_FIELD || sigmaA == FIELD_ENTRY_ERROR) {
+            return false;
+        }
+
+        try {
+            String text = numPointsText.getText();
+            if (text.isEmpty()) {
+                jocularMain.showErrorDialog(" Number of points in trial cannot be empty", jocularMain.errorBarPanelStage);
+                return false;
+            }
+            numPoints = Integer.parseInt(text);
+            if (numPoints <= 0.0) {
+                jocularMain.showErrorDialog(" Number of points in trial must be > 0.0", jocularMain.errorBarPanelStage);
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            jocularMain.showErrorDialog(" number format error: " + e.getMessage(), jocularMain.errorBarPanelStage);
+            return false;
+        }
+
+        try {
+            String text = numTrialsText.getText();
+            if (text.isEmpty()) {
+                jocularMain.showErrorDialog(" Number of trials cannot be empty", jocularMain.errorBarPanelStage);
+                return false;
+            }
+            numTrials = Integer.parseInt(text);
+            if (numTrials <= 0.0) {
+                jocularMain.showErrorDialog(" Number of trials must be > 0.0", jocularMain.errorBarPanelStage);
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            jocularMain.showErrorDialog(" number format error: " + e.getMessage(), jocularMain.errorBarPanelStage);
+            return false;
+        }
+
+        if (randomRadioButton.isSelected()) {
+            monteCarloMode = MonteCarloMode.RANDOM;
+        } else if (leftEdgeRadioButton.isSelected()) {
+            monteCarloMode = MonteCarloMode.LEFT_EDGE;
+        } else if (midPointRadioButton.isSelected()) {
+            monteCarloMode = MonteCarloMode.MID_POINT;
+        } else {
+            jocularMain.showErrorDialog("Program design error: unimplemented Monte Carlo Mode radio button",
+                                        jocularMain.errorBarPanelStage);
+            return false;
+        }
+
+        return true;
     }
 
     private String getReportAtConfidenceLevel(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel) {
@@ -299,6 +363,7 @@ public class ErrorBarFXMLController implements Initializable {
     private ArrayList<HistStatItem> buildHistStatArray(int[] hist) {
         ArrayList<HistStatItem> arrayList = new ArrayList<>();
 
+        // Initialize arrayList.
         for (int i = 0; i < hist.length; i++) {
             HistStatItem item = new HistStatItem();
             item.count = hist[i];
@@ -306,6 +371,13 @@ public class ErrorBarFXMLController implements Initializable {
             item.cumCount = 0;
             arrayList.add(item);
         }
+
+        // Process arrayList to set cumCounts.
+        calculateCumCounts(arrayList);
+
+        // And sort it descending order of count
+        sortStatsArrayDescendingOnCounts(arrayList);
+
         return arrayList;
     }
 
