@@ -1,8 +1,8 @@
 package jocularmain;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 import static org.fest.assertions.api.Assertions.assertThat;
+import utils.MonteCarloResult;
 
 public class MonteCarloTrialTest {
     
@@ -15,8 +15,8 @@ public class MonteCarloTrialTest {
     public void calcHistogram_shouldReturnHistogramOfCorrectLength() {        
         trialParams.sampleWidth = 100;
         MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-        int[] histogram = monteCarloTrial.calcHistogram();
-        assertThat(histogram.length).isEqualTo(100);
+        MonteCarloResult result =monteCarloTrial.calcHistogram();
+        assertThat(result.histogram.length).isEqualTo(100);
     }
     
     @Test
@@ -34,11 +34,11 @@ public class MonteCarloTrialTest {
         trialParams.mode = MonteCarloMode.LEFT_EDGE;
         
         MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-        int[] histogram = monteCarloTrial.calcHistogram();
+        MonteCarloResult result =monteCarloTrial.calcHistogram();
         
         System.out.println("histogram: ");
-        for ( int i = 0; i<histogram.length;i++) {
-            System.out.println(String.format("%3d %,8d", i, histogram[i]));
+        for ( int i = 0; i<result.histogram.length;i++) {
+            System.out.println(String.format("%3d %,8d", i, result.histogram[i]));
         }
         
     } 

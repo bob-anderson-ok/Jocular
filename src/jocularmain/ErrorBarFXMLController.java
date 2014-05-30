@@ -213,10 +213,12 @@ public class ErrorBarFXMLController implements Initializable {
         resultItems = FXCollections.observableArrayList();
 
         resultItems.add("CI     CI act  left   peak   right  width    +/-");
-        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 67));
+        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 68));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
+        resultItems.add(String.format("\n%,d samples were rejected in order to reach %,d trials", 
+                                      monteCarloResult.numRejections, trialParams.numTrials));
 
         resultsListView.setItems(resultItems);
     }
@@ -243,7 +245,7 @@ public class ErrorBarFXMLController implements Initializable {
                              indexOfBarLeftEdge,
                              indexOfBarPeak,
                              indexOfBarRightEdge,
-                             indexOfBarRightEdge - indexOfBarLeftEdge + 1,
+                             indexOfBarRightEdge - indexOfBarLeftEdge,
                              indexOfBarRightEdge - barCenter,
                              barCenter - indexOfBarLeftEdge
         );
