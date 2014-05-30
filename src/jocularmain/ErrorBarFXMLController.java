@@ -18,6 +18,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import utils.HistStatItem;
+import utils.MonteCarloResult;
 
 public class ErrorBarFXMLController implements Initializable {
 
@@ -75,6 +76,8 @@ public class ErrorBarFXMLController implements Initializable {
     RadioButton tenxRadioButton;
     @FXML
     RadioButton twentyxRadioButton;
+    @FXML
+    RadioButton scaleToPeakRadioButton;
 
     @FXML
     ListView mainListView;
@@ -171,10 +174,26 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.sigmaA = sigmaA;
 
         // ... and run it.
-        MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-        int[] histogram = monteCarloTrial.calcHistogram();
+        int[] histogram = new int[trialParams.sampleWidth];
+        MonteCarloResult monteCarloResult = new MonteCarloResult();
+        try {
+            MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
+            monteCarloResult = monteCarloTrial.calcHistogram();
+            histogram = monteCarloResult.histogram;
+        } catch (IllegalArgumentException e) {
+            jocularMain.showErrorDialog(e.getMessage(), jocularMain.errorBarPanelStage);
+            mainListView.setItems(null);
+            resultsListView.setItems(null);
+            mainChart.getData().clear();
+            return;
+        }
+        
+        if ( monteCarloResult.numRejections > trialParams.numTrials / 50 ) {
+            jocularMain.showInformationDialog("There were " + monteCarloResult.numRejections + " rejections." +
+                "Number of points in each trial sample should be increased.", jocularMain.errorBarPanelStage);
+        }
 
-        ObservableList<String> items = FXCollections.observableArrayList();
+        ObservableList<String> items;
         items = FXCollections.observableArrayList();
 
         items.add("  R    num @ R");
@@ -190,17 +209,16 @@ public class ErrorBarFXMLController implements Initializable {
         sortStatsArrayDescendingOnCounts(statsArray);
         calculateCumCounts(statsArray);
 
-        ObservableList<String> resultItems = FXCollections.observableArrayList();
+        ObservableList<String> resultItems;
         resultItems = FXCollections.observableArrayList();
 
-        resultItems.add("CI     CI act  left  center  right  width  +/-");
+        resultItems.add("CI     CI act  left   peak   right  width    +/-");
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 67));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
 
         resultsListView.setItems(resultItems);
-
     }
 
     private String getReportAtConfidenceLevel(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel) {
@@ -209,19 +227,25 @@ public class ErrorBarFXMLController implements Initializable {
         int cumCountActual = contributors.get(contributors.size() - 1).cumCount;
         sortContributorsAscendingOnPosition(contributors);
 
-        int indexOfBarCenter = statsArray.get(0).position;
+        int indexOfBarPeak = statsArray.get(0).position;
         int indexOfBarLeftEdge = contributors.get(0).position;
         int indexOfBarRightEdge = contributors.get(contributors.size() - 1).position;
 
-        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %d/%d",
+        double barCenter = indexOfBarPeak;
+
+        if (randomRadioButton.isSelected() || midPointRadioButton.isSelected()) {
+            barCenter = (statsArray.size() / 2) - 0.5;
+        }
+
+        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %.1f/%.1f",
                              confidenceLevel, "%",
                              ((double) cumCountActual / numTrials) * 100.0, "%",
                              indexOfBarLeftEdge,
-                             indexOfBarCenter,
+                             indexOfBarPeak,
                              indexOfBarRightEdge,
                              indexOfBarRightEdge - indexOfBarLeftEdge + 1,
-                             indexOfBarRightEdge - indexOfBarCenter,
-                             indexOfBarCenter - indexOfBarLeftEdge
+                             indexOfBarRightEdge - barCenter,
+                             barCenter - indexOfBarLeftEdge
         );
     }
 
@@ -320,13 +344,15 @@ public class ErrorBarFXMLController implements Initializable {
             yMax = numTrials / 10;
         } else if (twentyxRadioButton.isSelected()) {
             yMax = numTrials / 20;
+        } else if (scaleToPeakRadioButton.isSelected()) {
+            yMax = maxValue(values);
         } else {
             yMax = numTrials;
         }
 
         NumberAxis yaxis = (NumberAxis) mainChart.getYAxis();
         yaxis.setLowerBound(-yMax / 10);
-        yaxis.setUpperBound(yMax);
+        yaxis.setUpperBound(yMax + yMax / 10);
         yaxis.setTickUnit(yMax / 10);
 
         NumberAxis xaxis = (NumberAxis) mainChart.getXAxis();
@@ -335,6 +361,16 @@ public class ErrorBarFXMLController implements Initializable {
         xaxis.setTickUnit(numPoints / 10);
 
         mainChart.getData().add(getMassDistributionSeries(values));
+    }
+
+    private int maxValue(int[] values) {
+        int ans = Integer.MIN_VALUE;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] > ans) {
+                ans = values[i];
+            }
+        }
+        return ans;
     }
 
     private double validateSigmaBtext() {

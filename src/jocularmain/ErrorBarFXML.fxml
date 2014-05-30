@@ -21,7 +21,7 @@
                 <NumberAxis animated="false" autoRanging="false" minorTickCount="1" side="LEFT" />
             </yAxis>
         </LineChart>
-        <HBox alignment="CENTER_LEFT" layoutX="24.0" layoutY="423.0" prefWidth="535.0" spacing="5.0">
+        <HBox alignment="CENTER_LEFT" layoutX="24.0" layoutY="410.0" prefWidth="535.0" spacing="5.0">
             <children>
                 <VBox layoutX="24.96875" layoutY="423.0" prefWidth="80.0">
                     <children>
@@ -61,7 +61,7 @@
                 </VBox>
             </children>
         </HBox>
-        <VBox layoutX="38.0" layoutY="490.0" spacing="5.0">
+        <VBox layoutX="38.0" layoutY="475.0" spacing="5.0">
             <children>
                 <Label text="Position of 'target'" />
                 <Label text="in transition frame..." />
@@ -70,11 +70,11 @@
                         <ToggleGroup fx:id="solutionType" />
                     </toggleGroup>
                 </RadioButton>
-                <RadioButton fx:id="leftEdgeRadioButton" layoutX="38.85205078125" layoutY="517.3999996185303" mnemonicParsing="false" selected="true" text="Left edge" toggleGroup="$solutionType" />
+                <RadioButton fx:id="leftEdgeRadioButton" layoutX="38.85205078125" layoutY="517.3999996185303" mnemonicParsing="false" text="Left edge" toggleGroup="$solutionType" />
                 <RadioButton fx:id="midPointRadioButton" layoutX="39.028076171875" layoutY="545.3999996185303" mnemonicParsing="false" text="Mid-point" toggleGroup="$solutionType" />
             </children>
         </VBox>
-        <VBox layoutX="233.0" layoutY="490.0" spacing="5.0">
+        <VBox layoutX="233.0" layoutY="475.0" spacing="5.0">
             <children>
                 <Button layoutX="233.0" layoutY="490.0" mnemonicParsing="false" onAction="#calculateDistribution" prefWidth="154.0" text="Compute Distribution" />
                 <Button layoutX="240.0" layoutY="530.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" />
@@ -84,15 +84,15 @@
             <effect>
                 <InnerShadow />
             </effect>
-        </ListView><ImageView fitHeight="20.0" fitWidth="16.0" layoutX="288.0" layoutY="572.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
+        </ListView><ImageView fitHeight="20.0" fitWidth="20.0" layoutX="288.0" layoutY="572.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
 <image>
 <Image url="@questionMark.png" />
 </image></ImageView>
-<VBox layoutX="432.0" layoutY="492.0" spacing="5.0">
-<children><CheckBox fx:id="overplotCheckbox" layoutX="404.0" layoutY="494.0" mnemonicParsing="false" text="Overplot" /><RadioButton fx:id="onexRadioButton" mnemonicParsing="false" selected="true" text="1x  vertical">
+<VBox layoutX="432.0" layoutY="465.0" spacing="5.0">
+<children><CheckBox fx:id="overplotCheckbox" layoutX="404.0" layoutY="494.0" mnemonicParsing="false" text="Overplot" /><RadioButton fx:id="onexRadioButton" mnemonicParsing="false" text="1x  vertical">
 <toggleGroup>
 <ToggleGroup fx:id="scaleGroup" />
-</toggleGroup></RadioButton><RadioButton fx:id="twoxRadioButton" layoutX="432.0" layoutY="547.0" mnemonicParsing="false" text="2x  vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="fivexRadioButton" layoutX="432.0" layoutY="571.0" mnemonicParsing="false" text="5x  vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="tenxRadioButton" layoutX="433.0" layoutY="596.0" mnemonicParsing="false" text="10x vertical" toggleGroup="$scaleGroup" />
+</toggleGroup></RadioButton><RadioButton fx:id="twoxRadioButton" layoutX="432.0" layoutY="547.0" mnemonicParsing="false" text="2x  vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="fivexRadioButton" layoutX="432.0" layoutY="571.0" mnemonicParsing="false" text="5x  vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="tenxRadioButton" layoutX="433.0" layoutY="596.0" mnemonicParsing="false" text="10x vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="twentyxRadioButton" mnemonicParsing="false" text="20x vertical" toggleGroup="$scaleGroup" /><RadioButton fx:id="scaleToPeakRadioButton" mnemonicParsing="false" selected="true" text="scale to peak" toggleGroup="$scaleGroup" />
 </children>
 </VBox><Label layoutX="20.0" layoutY="608.0" text="Distribution detail..." /><ListView fx:id="resultsListView" layoutX="250.0" layoutY="630.0" prefHeight="200.0" prefWidth="325.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="630.0">
 <effect>

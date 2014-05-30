@@ -5,6 +5,7 @@ import utils.JocularUtils;
 import static utils.JocularUtils.gaussianVariate;
 import static utils.JocularUtils.logL;
 import static utils.JocularUtils.aicc;
+import utils.MonteCarloResult;
 
 public class MonteCarloTrial {
 
@@ -26,7 +27,7 @@ public class MonteCarloTrial {
         return index;
     }
 
-    public int[] calcHistogram() {
+    public MonteCarloResult calcHistogram() {
         // Initialize the output vector
         int[] histogram = new int[trialParams.sampleWidth];
 
@@ -116,6 +117,10 @@ public class MonteCarloTrial {
                 // The trial does not contain a valid edge.
                 rejectedSolutions += 1;
                 k--; // Force a repeat try
+                if ( rejectedSolutions >= trialParams.numTrials) {
+                    throw new IllegalArgumentException("In MonteCarloTrial: too many trial rejections --- possibly noise too high" + 
+                        " or number of points in trial (sample width) is too small.");
+                }
             } else {
                 histogram[transitionIndex]++;
             }
@@ -125,6 +130,9 @@ public class MonteCarloTrial {
         }
 
         System.out.println("Rejected solutions: " + rejectedSolutions);
-        return histogram;
+        MonteCarloResult ans = new MonteCarloResult();
+        ans.histogram = histogram;
+        ans.numRejections = rejectedSolutions;
+        return ans;
     }
 }
