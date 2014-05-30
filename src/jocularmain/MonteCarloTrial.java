@@ -117,19 +117,16 @@ public class MonteCarloTrial {
                 // The trial does not contain a valid edge.
                 rejectedSolutions += 1;
                 k--; // Force a repeat try
-                if ( rejectedSolutions >= trialParams.numTrials) {
-                    throw new IllegalArgumentException("In MonteCarloTrial: too many trial rejections --- possibly noise too high" + 
-                        " or number of points in trial (sample width) is too small.");
+                if ( rejectedSolutions >= trialParams.numTrials) { 
+                    break;
+//                    throw new IllegalArgumentException("In MonteCarloTrial: too many trial rejections --- possibly noise too high" + 
+//                        " or number of points in trial (sample width) is too small.");
                 }
             } else {
                 histogram[transitionIndex]++;
             }
-
-            //System.out.println("logLmax=" + logLT[indexOfMaxLogL] + "  logLSL=" + logLstraightLine);
-            //histogram[transitionIndex]++;
         }
 
-        System.out.println("Rejected solutions: " + rejectedSolutions);
         MonteCarloResult ans = new MonteCarloResult();
         ans.histogram = histogram;
         ans.numRejections = rejectedSolutions;

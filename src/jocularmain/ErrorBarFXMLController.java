@@ -98,73 +98,12 @@ public class ErrorBarFXMLController implements Initializable {
     @FXML
     public void calculateDistribution() {
 
-        baselineLevel = validateBaselineLevelText();
-        if (baselineLevel == EMPTY_FIELD || baselineLevel == FIELD_ENTRY_ERROR) {
+        if (!validateInputTextFields()) {
             return;
         }
 
-        eventLevel = validateEventLevelText();
-        if (eventLevel == EMPTY_FIELD || eventLevel == FIELD_ENTRY_ERROR) {
-            return;
-        }
-
-        sigmaB = validateSigmaBtext();
-        if (sigmaB == EMPTY_FIELD || sigmaB == FIELD_ENTRY_ERROR) {
-            return;
-        }
-
-        sigmaA = validateSigmaAtext();
-        if (sigmaA == EMPTY_FIELD || sigmaA == FIELD_ENTRY_ERROR) {
-            return;
-        }
-
-        try {
-            String text = numPointsText.getText();
-            if (text.isEmpty()) {
-                jocularMain.showErrorDialog(" Number of points in trial cannot be empty", jocularMain.errorBarPanelStage);
-                return;
-            }
-            numPoints = Integer.parseInt(text);
-            if (numPoints <= 0.0) {
-                jocularMain.showErrorDialog(" Number of points in trial must be > 0.0", jocularMain.errorBarPanelStage);
-                return;
-            }
-        } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog(" number format error: " + e.getMessage(), jocularMain.errorBarPanelStage);
-            return;
-        }
-
-        try {
-            String text = numTrialsText.getText();
-            if (text.isEmpty()) {
-                jocularMain.showErrorDialog(" Number of trials cannot be empty", jocularMain.errorBarPanelStage);
-                return;
-            }
-            numTrials = Integer.parseInt(text);
-            if (numTrials <= 0.0) {
-                jocularMain.showErrorDialog(" Number of trials must be > 0.0", jocularMain.errorBarPanelStage);
-                return;
-            }
-        } catch (NumberFormatException e) {
-            jocularMain.showErrorDialog(" number format error: " + e.getMessage(), jocularMain.errorBarPanelStage);
-            return;
-        }
-
-        // Just in case none of the radio buttons referenced below is selected, we have a GUI design
-        // error, which we crassly turn into a NPE
-        monteCarloMode = null;
-
-        if (randomRadioButton.isSelected()) {
-            monteCarloMode = MonteCarloMode.RANDOM;
-        }
-        if (leftEdgeRadioButton.isSelected()) {
-            monteCarloMode = MonteCarloMode.LEFT_EDGE;
-        }
-        if (midPointRadioButton.isSelected()) {
-            monteCarloMode = MonteCarloMode.MID_POINT;
-        }
-
-        // OK, time to set up the trial...
+        // validateInputTextFields() has filled in all the 'globals' referenced
+        // in the next code block.  Use then to set up the Monte Carlo run.
         trialParams.baselineLevel = baselineLevel;
         trialParams.eventLevel = eventLevel;
         trialParams.numTrials = numTrials;
@@ -173,32 +112,26 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.sigmaB = sigmaB;
         trialParams.sigmaA = sigmaA;
 
-        // ... and run it.
-        MonteCarloResult monteCarloResult;
-        try {
-            MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-            monteCarloResult = monteCarloTrial.calcHistogram();
-        } catch (IllegalArgumentException e) {
-            jocularMain.showErrorDialog(e.getMessage(), jocularMain.errorBarPanelStage);
+        MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
+        MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
+        
+        if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
+            jocularMain.showErrorDialog("More than 2% of the trials were rejected."
+                + " Possibly noise levels are too high or there are not enough points in the trial sample.",
+                                        jocularMain.errorBarPanelStage);
             mainListView.setItems(null);
             resultsListView.setItems(null);
             mainChart.getData().clear();
             return;
         }
 
-        if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
-            jocularMain.showInformationDialog("There were " + monteCarloResult.numRejections + " rejections."
-                + "Number of points in each trial sample should be increased.", jocularMain.errorBarPanelStage);
-        }
-
+        // Display the histogram array in the mainListView.
         ObservableList<String> items;
         items = FXCollections.observableArrayList();
-
         items.add("  R    num @ R");
         for (int i = 0; i < monteCarloResult.histogram.length; i++) {
             items.add(String.format("%3d %,8d", i, monteCarloResult.histogram[i]));
         }
-
         mainListView.setItems(items);
 
         plotData(monteCarloResult.histogram);
@@ -213,7 +146,7 @@ public class ErrorBarFXMLController implements Initializable {
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
         resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
-        resultItems.add(String.format("\n%,d samples were rejected on the way to %,d  good trials.",
+        resultItems.add(String.format("\n%,d samples were rejected on the way to %,d good trials.",
                                       monteCarloResult.numRejections, trialParams.numTrials));
 
         resultsListView.setItems(resultItems);
