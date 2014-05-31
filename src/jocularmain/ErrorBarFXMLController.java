@@ -18,6 +18,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import utils.ErrBarUtils;
 import utils.ErrorBarItem;
 import utils.HistStatItem;
 import utils.MonteCarloResult;
@@ -139,10 +140,10 @@ public class ErrorBarFXMLController implements Initializable {
         // Plot the probability mass distribution.
         plotData(monteCarloResult.histogram);
 
-        ArrayList<HistStatItem> statsArray = buildHistStatArray(monteCarloResult.histogram);
+        ArrayList<HistStatItem> statsArray = ErrBarUtils.getInstance().buildHistStatArray(monteCarloResult.histogram);
         
         boolean centered = randomRadioButton.isSelected() || midPointRadioButton.isSelected();
-        HashMap<Integer, ErrorBarItem> errBarData = getErrorBars(statsArray, centered);
+        HashMap<Integer, ErrorBarItem> errBarData = ErrBarUtils.getInstance().getErrorBars(statsArray, centered);
 
         // Display the error bar stats in the resultsListView
         ObservableList<String> resultItems = FXCollections.observableArrayList();
@@ -169,22 +170,7 @@ public class ErrorBarFXMLController implements Initializable {
         );
     }
 
-    private HashMap<Integer, ErrorBarItem> getErrorBars(ArrayList<HistStatItem> statsArray, boolean centered) {
-        HashMap<Integer, ErrorBarItem> ans = new HashMap<>();
-
-        // Extract numTrials by adding up the counts in statsArray
-        int numTrials = 0;
-        for (HistStatItem item : statsArray) {
-            numTrials += item.count;
-        }
-
-        ans.put(68, getErrorBarItem(statsArray, numTrials, 68, centered));
-        ans.put(90, getErrorBarItem(statsArray, numTrials, 90, centered));
-        ans.put(95, getErrorBarItem(statsArray, numTrials, 95, centered));
-        ans.put(99, getErrorBarItem(statsArray, numTrials, 99, centered));
-
-        return ans;
-    }
+    
 
     private boolean validateInputTextFields() {
         baselineLevel = validateBaselineLevelText();
@@ -254,103 +240,15 @@ public class ErrorBarFXMLController implements Initializable {
         return true;
     }
 
-    private ErrorBarItem getErrorBarItem(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel, boolean centered) {
-        ErrorBarItem errItem = new ErrorBarItem();
+    
 
-        int cumCountsRequired = (int) (numTrials * confidenceLevel * 0.01);
-        ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel(statsArray, cumCountsRequired);
-        int cumCountActual = contributors.get(contributors.size() - 1).cumCount;
-        sortContributorsAscendingOnPosition(contributors);
+    
+    
 
-        int indexOfBarPeak = statsArray.get(0).position;
-        int indexOfBarLeftEdge = contributors.get(0).position;
-        int indexOfBarRightEdge = contributors.get(contributors.size() - 1).position;
+   
 
-        double barCenter = indexOfBarPeak;
-
-        if (centered) {
-            barCenter = (statsArray.size() / 2) - 0.5;
-        }
-
-        errItem.actualCI = (double) cumCountActual / numTrials * 100.0;
-        errItem.targetCI = confidenceLevel;
-        errItem.barCenter = barCenter;
-        errItem.leftIndex = indexOfBarLeftEdge;
-        errItem.rightIndex = indexOfBarRightEdge;
-        errItem.peakIndex = indexOfBarPeak;
-        errItem.width = indexOfBarRightEdge - indexOfBarLeftEdge;
-        errItem.barPlus = indexOfBarRightEdge - barCenter;
-        errItem.barMinus = barCenter - indexOfBarLeftEdge;
-
-        return errItem;
-    }
-
-    private ArrayList<HistStatItem> contributorsRequiredForGivenConfidenceLevel(ArrayList<HistStatItem> statsArray, int cumCountNeeded) {
-        ArrayList<HistStatItem> shortList = new ArrayList<>();
-        for (HistStatItem item : statsArray) {
-            shortList.add(item);
-            if (item.cumCount >= cumCountNeeded) {
-                break;
-            }
-        }
-        return shortList;
-    }
-
-    private void calculateCumCounts(ArrayList<HistStatItem> statsArray) {
-        int cumCount = 0;
-        for (HistStatItem item : statsArray) {
-            cumCount += item.count;
-            item.cumCount = cumCount;
-        }
-    }
-
-    private void sortStatsArrayDescendingOnCounts(ArrayList<HistStatItem> statsArray) {
-        DescendingCountComparator descendingCountComparator = new DescendingCountComparator();
-        Collections.sort(statsArray, descendingCountComparator);
-    }
-
-    class DescendingCountComparator implements Comparator<HistStatItem> {
-
-        @Override
-        public int compare(HistStatItem one, HistStatItem two) {
-            return Integer.compare(two.count, one.count);
-        }
-    }
-
-    private void sortContributorsAscendingOnPosition(ArrayList<HistStatItem> contributors) {
-        AscendingPositionComparator ascendingPositionComparator = new AscendingPositionComparator();
-        Collections.sort(contributors, ascendingPositionComparator);
-    }
-
-    class AscendingPositionComparator implements Comparator<HistStatItem> {
-
-        @Override
-        public int compare(HistStatItem one, HistStatItem two) {
-            return Integer.compare(one.position, two.position);
-        }
-    }
-
-    private ArrayList<HistStatItem> buildHistStatArray(int[] hist) {
-        ArrayList<HistStatItem> arrayList = new ArrayList<>();
-
-        // Initialize arrayList.
-        for (int i = 0; i < hist.length; i++) {
-            HistStatItem item = new HistStatItem();
-            item.count = hist[i];
-            item.position = i;
-            item.cumCount = 0;
-            arrayList.add(item);
-        }
-
-        // Process arrayList to set cumCounts.
-        calculateCumCounts(arrayList);
-
-        // And sort it descending order of count
-        sortStatsArrayDescendingOnCounts(arrayList);
-
-        return arrayList;
-    }
-
+    
+    
     private XYChart.Series<Number, Number> getMassDistributionSeries(int[] hist) {
         XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
