@@ -2,8 +2,6 @@ package jocularmain;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -170,8 +168,6 @@ public class ErrorBarFXMLController implements Initializable {
         );
     }
 
-    
-
     private boolean validateInputTextFields() {
         baselineLevel = validateBaselineLevelText();
         if (baselineLevel == EMPTY_FIELD || baselineLevel == FIELD_ENTRY_ERROR) {
@@ -239,15 +235,6 @@ public class ErrorBarFXMLController implements Initializable {
 
         return true;
     }
-
-    
-
-    
-    
-
-   
-
-    
     
     private XYChart.Series<Number, Number> getMassDistributionSeries(int[] hist) {
         XYChart.Series<Number, Number> series;

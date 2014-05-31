@@ -4,20 +4,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import jocularmain.ErrorBarFXMLController;
 
 public class ErrBarUtils {
 
     private ErrBarUtils() {
     }
 
-    public static ErrBarUtils getInstance() {
-        return ErrBarUtilsHolder.INSTANCE;
+    private static class ErrBarUtilsHolder {
+        private static final ErrBarUtils INSTANCE = new ErrBarUtils();
     }
 
-    private static class ErrBarUtilsHolder {
-
-        private static final ErrBarUtils INSTANCE = new ErrBarUtils();
+    public static ErrBarUtils getInstance() {
+        return ErrBarUtilsHolder.INSTANCE;
     }
 
     public ArrayList<HistStatItem> buildHistStatArray(int[] hist) {
@@ -41,6 +39,23 @@ public class ErrBarUtils {
         return arrayList;
     }
 
+    public HashMap<Integer, ErrorBarItem> getErrorBars(ArrayList<HistStatItem> statsArray, boolean centered) {
+        HashMap<Integer, ErrorBarItem> ans = new HashMap<>();
+
+        // Extract numTrials by adding up the counts in statsArray
+        int numTrials = 0;
+        for (HistStatItem item : statsArray) {
+            numTrials += item.count;
+        }
+
+        ans.put(68, getErrorBarItem(statsArray, numTrials, 68, centered));
+        ans.put(90, getErrorBarItem(statsArray, numTrials, 90, centered));
+        ans.put(95, getErrorBarItem(statsArray, numTrials, 95, centered));
+        ans.put(99, getErrorBarItem(statsArray, numTrials, 99, centered));
+
+        return ans;
+    }
+
     private void calculateCumCounts(ArrayList<HistStatItem> statsArray) {
         int cumCount = 0;
         for (HistStatItem item : statsArray) {
@@ -60,23 +75,6 @@ public class ErrBarUtils {
         public int compare(HistStatItem one, HistStatItem two) {
             return Integer.compare(two.count, one.count);
         }
-    }
-
-    public HashMap<Integer, ErrorBarItem> getErrorBars(ArrayList<HistStatItem> statsArray, boolean centered) {
-        HashMap<Integer, ErrorBarItem> ans = new HashMap<>();
-
-        // Extract numTrials by adding up the counts in statsArray
-        int numTrials = 0;
-        for (HistStatItem item : statsArray) {
-            numTrials += item.count;
-        }
-
-        ans.put(68, getErrorBarItem(statsArray, numTrials, 68, centered));
-        ans.put(90, getErrorBarItem(statsArray, numTrials, 90, centered));
-        ans.put(95, getErrorBarItem(statsArray, numTrials, 95, centered));
-        ans.put(99, getErrorBarItem(statsArray, numTrials, 99, centered));
-
-        return ans;
     }
 
     private ErrorBarItem getErrorBarItem(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel, boolean centered) {
@@ -120,19 +118,17 @@ public class ErrBarUtils {
         }
         return shortList;
     }
-    
+
     private void sortContributorsAscendingOnPosition(ArrayList<HistStatItem> contributors) {
         AscendingPositionComparator ascendingPositionComparator = new AscendingPositionComparator();
         Collections.sort(contributors, ascendingPositionComparator);
     }
 
     class AscendingPositionComparator implements Comparator<HistStatItem> {
+
         @Override
         public int compare(HistStatItem one, HistStatItem two) {
             return Integer.compare(one.position, two.position);
         }
     }
-
-    
-
 }
