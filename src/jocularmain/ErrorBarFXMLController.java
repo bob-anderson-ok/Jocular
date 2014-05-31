@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,6 +18,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import utils.ErrorBarItem;
 import utils.HistStatItem;
 import utils.MonteCarloResult;
 
@@ -103,7 +105,7 @@ public class ErrorBarFXMLController implements Initializable {
         }
 
         // validateInputTextFields() has filled in all the 'globals' referenced
-        // in the next code block.  Use then to set up the Monte Carlo run.
+        // in the next code block.  We use them to set up the parameters for a Monte Carlo run.
         trialParams.baselineLevel = baselineLevel;
         trialParams.eventLevel = eventLevel;
         trialParams.numTrials = numTrials;
@@ -114,7 +116,7 @@ public class ErrorBarFXMLController implements Initializable {
 
         MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
         MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
-        
+
         if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
             jocularMain.showErrorDialog("More than 2% of the trials were rejected."
                 + " Possibly noise levels are too high or there are not enough points in the trial sample.",
@@ -134,22 +136,54 @@ public class ErrorBarFXMLController implements Initializable {
         }
         mainListView.setItems(items);
 
+        // Plot the probability mass distribution.
         plotData(monteCarloResult.histogram);
 
         ArrayList<HistStatItem> statsArray = buildHistStatArray(monteCarloResult.histogram);
+        
+        boolean centered = randomRadioButton.isSelected() || midPointRadioButton.isSelected();
+        HashMap<Integer, ErrorBarItem> errBarData = getErrorBars(statsArray, centered);
 
-        ObservableList<String> resultItems;
-        resultItems = FXCollections.observableArrayList();
-
+        // Display the error bar stats in the resultsListView
+        ObservableList<String> resultItems = FXCollections.observableArrayList();
         resultItems.add("CI     CI act  left   peak   right  width    +/-");
-        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 68));
-        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 90));
-        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 95));
-        resultItems.add(getReportAtConfidenceLevel(statsArray, numTrials, 99));
+        resultItems.add(toStringErrBarItem(errBarData.get(68)));
+        resultItems.add(toStringErrBarItem(errBarData.get(90)));
+        resultItems.add(toStringErrBarItem(errBarData.get(95)));
+        resultItems.add(toStringErrBarItem(errBarData.get(99)));
         resultItems.add(String.format("\n%,d samples were rejected on the way to %,d good trials.",
                                       monteCarloResult.numRejections, trialParams.numTrials));
-
         resultsListView.setItems(resultItems);
+    }
+
+    private String toStringErrBarItem(ErrorBarItem item) {
+        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %.1f/%.1f",
+                             item.targetCI, "%",
+                             item.actualCI, "%",
+                             item.leftIndex,
+                             item.peakIndex,
+                             item.rightIndex,
+                             item.width,
+                             item.barPlus,
+                             item.barMinus
+        );
+    }
+
+    private HashMap<Integer, ErrorBarItem> getErrorBars(ArrayList<HistStatItem> statsArray, boolean centered) {
+        HashMap<Integer, ErrorBarItem> ans = new HashMap<>();
+
+        // Extract numTrials by adding up the counts in statsArray
+        int numTrials = 0;
+        for (HistStatItem item : statsArray) {
+            numTrials += item.count;
+        }
+
+        ans.put(68, getErrorBarItem(statsArray, numTrials, 68, centered));
+        ans.put(90, getErrorBarItem(statsArray, numTrials, 90, centered));
+        ans.put(95, getErrorBarItem(statsArray, numTrials, 95, centered));
+        ans.put(99, getErrorBarItem(statsArray, numTrials, 99, centered));
+
+        return ans;
     }
 
     private boolean validateInputTextFields() {
@@ -220,7 +254,9 @@ public class ErrorBarFXMLController implements Initializable {
         return true;
     }
 
-    private String getReportAtConfidenceLevel(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel) {
+    private ErrorBarItem getErrorBarItem(ArrayList<HistStatItem> statsArray, int numTrials, int confidenceLevel, boolean centered) {
+        ErrorBarItem errItem = new ErrorBarItem();
+
         int cumCountsRequired = (int) (numTrials * confidenceLevel * 0.01);
         ArrayList<HistStatItem> contributors = contributorsRequiredForGivenConfidenceLevel(statsArray, cumCountsRequired);
         int cumCountActual = contributors.get(contributors.size() - 1).cumCount;
@@ -232,20 +268,21 @@ public class ErrorBarFXMLController implements Initializable {
 
         double barCenter = indexOfBarPeak;
 
-        if (randomRadioButton.isSelected() || midPointRadioButton.isSelected()) {
+        if (centered) {
             barCenter = (statsArray.size() / 2) - 0.5;
         }
 
-        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %.1f/%.1f",
-                             confidenceLevel, "%",
-                             ((double) cumCountActual / numTrials) * 100.0, "%",
-                             indexOfBarLeftEdge,
-                             indexOfBarPeak,
-                             indexOfBarRightEdge,
-                             indexOfBarRightEdge - indexOfBarLeftEdge,
-                             indexOfBarRightEdge - barCenter,
-                             barCenter - indexOfBarLeftEdge
-        );
+        errItem.actualCI = (double) cumCountActual / numTrials * 100.0;
+        errItem.targetCI = confidenceLevel;
+        errItem.barCenter = barCenter;
+        errItem.leftIndex = indexOfBarLeftEdge;
+        errItem.rightIndex = indexOfBarRightEdge;
+        errItem.peakIndex = indexOfBarPeak;
+        errItem.width = indexOfBarRightEdge - indexOfBarLeftEdge;
+        errItem.barPlus = indexOfBarRightEdge - barCenter;
+        errItem.barMinus = barCenter - indexOfBarLeftEdge;
+
+        return errItem;
     }
 
     private ArrayList<HistStatItem> contributorsRequiredForGivenConfidenceLevel(ArrayList<HistStatItem> statsArray, int cumCountNeeded) {
