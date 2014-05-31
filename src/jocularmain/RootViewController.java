@@ -97,6 +97,25 @@ public class RootViewController implements Initializable {
     CheckBox obsPointsOnlyCheckbox;
 
     @FXML
+    RadioButton conInt68RadioButton;
+    @FXML
+    RadioButton conInt90RadioButton;
+    @FXML
+    RadioButton conInt95RadioButton;
+    @FXML
+    RadioButton conInt99RadioButton;
+
+    @FXML
+    public void calcErrorBars() {
+        System.out.println("calcErrorBars clicked");
+    }
+    
+    @FXML
+    public void displayReportHelp() {
+       jocularMain.showHelpDialog("Help/report.help.html"); 
+    }
+
+    @FXML
     public void snapshotTheChart() {
         WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
         chart.snapshot(null, wim);
@@ -371,7 +390,6 @@ public class RootViewController implements Initializable {
     @FXML
     public void showIntroHelp() {
         jocularMain.showHelpDialog("Help/gettingstarted.help.html");
-
     }
 
     @FXML
