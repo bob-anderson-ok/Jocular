@@ -11,6 +11,13 @@ public class ExperimentalCalculations {
     }
 
     @Test
+    public void showThreadCount() {
+        System.out.println("Current thread count is " + Thread.activeCount());
+        int processors = Runtime.getRuntime().availableProcessors();
+        System.out.println("Number of available processors is " + processors);
+    }
+    
+    @Test
     public void calculateSubframeTimingWindow() {
         double B = 12.0;
         double A = 2.0;

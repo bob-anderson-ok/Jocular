@@ -122,9 +122,6 @@ public class SqSolver {
             throw new IllegalArgumentException(errMsg);
         }
 
-//        System.out.println("dLeft: " + dLeft + "  dRight: " + dRight
-//            + "  rLeft: " + rLeft + "  rRight: " + rRight);
-
         dTranCandidates = new int[dRight - dLeft + 1];
         rTranCandidates = new int[rRight - rLeft + 1];
 
@@ -198,6 +195,7 @@ public class SqSolver {
             LogLcomparator logLcomparator = new LogLcomparator();
             Collections.sort(sqsolutions, logLcomparator);
             jocularMain.addSolutionCurveToMainPlot(sqsolutions.get(0));
+            jocularMain.setCurrentSolution(sqsolutions.get(0));
 
             // Fill in relative likelihoods
             double minAicc = sqsolutions.get(0).aicc;
