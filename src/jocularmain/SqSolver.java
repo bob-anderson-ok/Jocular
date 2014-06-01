@@ -165,76 +165,13 @@ public class SqSolver {
         jocularMain.solverService.setmaxMagDrop(maxMagDrop);
      
 
-        System.out.println("solverService: " + jocularMain.solverService.getState());
+        //System.out.println("solverService: " + jocularMain.solverService.getState());
         jocularMain.solverService.reset();
-        System.out.println("solverService: " + jocularMain.solverService.getState());
+        //System.out.println("solverService: " + jocularMain.solverService.getState());
         jocularMain.solverService.restart();
-        System.out.println("solverService: " + jocularMain.solverService.getState());
+        //System.out.println("solverService: " + jocularMain.solverService.getState());
 
-//        for (int i = 0; i < dTranCandidates.length; i++) {
-//            for (int j = 0; j < rTranCandidates.length; j++) {
-//                SqSolution newSolution = new SqSolution();
-//                newSolution.dTransitionIndex = dTranCandidates[i];
-//                newSolution.rTransitionIndex = rTranCandidates[j];
-//
-//                newSolution.logL = sqmodel
-//                    .setDtransition(newSolution.dTransitionIndex)
-//                    .setRtransition(newSolution.rTransitionIndex)
-//                    .calcLogL(sigmaB, sigmaA);
-//
-//                // We let sqmodel determine when a dTran:rTran
-//                // combination is valid.  It lets us know the combo
-//                // is invalid (too few event or baseline points) by
-//                // returning NaN for logL.
-//                if (Double.isNaN(newSolution.logL)) {
-//                    continue;
-//                }
-//
-//                solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
-//
-//                if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
-//                    continue;
-//                }
-//
-//                numValidTranPairs++;
-//
-//                newSolution.D = sqmodel.getDsolution();
-//                newSolution.R = sqmodel.getRsolution();
-//                newSolution.B = sqmodel.getB();
-//                newSolution.A = sqmodel.getA();
-//                newSolution.magDrop = solMagDrop;
-//                newSolution.sigmaB = sigmaB;
-//                newSolution.sigmaA = sigmaA;
-//                newSolution.kFactor = sqmodel.getkFactor();
-//                newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
-//
-//                sqsolutions.add(newSolution);
-//            }
-//        }
-//
-//        // If we got any solutions, we've got work to do ...
-//        if (sqsolutions.size() > 0) {
-//            // Sort them in ascending order of AICc
-//            LogLcomparator logLcomparator = new LogLcomparator();
-//            Collections.sort(sqsolutions, logLcomparator);
-//            jocularMain.addSolutionCurveToMainPlot(sqsolutions.get(0));
-//            jocularMain.setCurrentSolution(sqsolutions.get(0));
-//
-//            // Fill in relative likelihoods
-//            double minAicc = sqsolutions.get(0).aicc;
-//            for(SqSolution sol: sqsolutions){
-//                sol.relLikelihood = Math.exp(minAicc - sol.aicc);
-//            }
-//        }
-        //return sqsolutions;
     }
 }
 
-class LogLcomparator implements Comparator<SqSolution> {
 
-    @Override
-    public int compare(SqSolution one, SqSolution two) {
-        // sort is smallest to largest
-        return Double.compare(one.aicc, two.aicc);
-    }
-}

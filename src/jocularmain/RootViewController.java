@@ -2,12 +2,13 @@ package jocularmain;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 import javafx.animation.AnimationTimer;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
@@ -654,7 +655,7 @@ public class RootViewController implements Initializable {
         jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
 
         clearSolutionList();
-        
+
         SqSolver.computeCandidates(
             jocularMain, solutionStats,
             sigmaB, sigmaA,
@@ -663,56 +664,39 @@ public class RootViewController implements Initializable {
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         return;
+    }
 
-//        items = FXCollections.observableArrayList();
-//        if (solutions.isEmpty()) {
-//            items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
-//            solutionList.setItems(items);
-//            return;
-//        }
-//
-//        // !!!!! These are extra header lines in the solution list.
-//        // !!!!! The number MUST always equal SOLUTION_LIST_HEADER SIZE
-//        // !!!!! in order for clicking on a solution list entry to display the correct solution
-//        // Adding one header line
-//        items = FXCollections.observableArrayList();
-//        items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
-//                                solutionStats.numTransitionPairsConsidered,
-//                                solutionStats.numValidTransitionPairs));
-//        double probabilitySqWaveOverLine = Math.exp((solutionStats.straightLineAICc - solutions.get(0).aicc) / 2.0);
-//
-//        // Adding another header line.
-//        if (probabilitySqWaveOverLine > 1000.0) {
-//            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line > 1000",
-//                                    solutionStats.straightLineAICc,
-//                                    solutionStats.straightLineLogL));
-//        } else {
-//            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line= %.1f",
-//                                    solutionStats.straightLineAICc,
-//                                    solutionStats.straightLineLogL,
-//                                    probabilitySqWaveOverLine));
-//        }
-//
-//        // Do not add another header line without updating SOLUTION_LIST_HEADER_SIZE
-//        // Build a string version for the clients viewing pleasure.
-//        for (SqSolution solution : solutions) {
-//            if (solution.relLikelihood < RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED) {
-//                break;
-//            }
-//            items.add(solution.toString());
-//        }
-//
-//        solutionList.setItems(items);
+    class LogLcomparator implements Comparator<SqSolution> {
+        @Override
+        public int compare(SqSolution one, SqSolution two) {
+            // sort is smallest to largest
+            return Double.compare(one.aicc, two.aicc);
+        }
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
         System.out.println("SolverService completed its work.");
-        List<SqSolution> solutions = jocularMain.solverService.getValue();
+        solutions = jocularMain.solverService.getValue();
         ObservableList<String> items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
             items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
             solutionList.setItems(items);
             return;
+        }
+
+        // If we got any solutions, we've got work to do ...
+        if (solutions.size() > 0) {
+            // Sort them in ascending order of AICc
+            LogLcomparator logLcomparator = new LogLcomparator();
+            Collections.sort(solutions, logLcomparator);
+            jocularMain.addSolutionCurveToMainPlot(solutions.get(0));
+            jocularMain.setCurrentSolution(solutions.get(0));
+
+            // Fill in relative likelihoods
+            double minAicc = solutions.get(0).aicc;
+            for (SqSolution sol : solutions) {
+                sol.relLikelihood = Math.exp(minAicc - sol.aicc);
+            }
         }
 
         SolutionStats solutionStats = jocularMain.solverService.getsolutionStats();
