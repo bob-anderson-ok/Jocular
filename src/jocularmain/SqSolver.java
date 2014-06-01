@@ -9,6 +9,8 @@ import utils.SqSolution;
 
 public class SqSolver {
 
+    //private static SolverService solverService = new SolverService();
+    
     public static int[] dTranCandidates;  // made public to simplify testing
     public static int[] rTranCandidates;  // made public to simplify testing
 
@@ -147,7 +149,17 @@ public class SqSolver {
         int n = jocularMain.getCurrentObservation().obsData.length;
 
         double solMagDrop;
+        
 
+        jocularMain.solverService.setdTranCandidates(dTranCandidates);
+        jocularMain.solverService.setrTranCandidates(rTranCandidates);
+        jocularMain.solverService.setsqmodel(sqmodel);
+        jocularMain.solverService.setsigmaB(sigmaB);
+        jocularMain.solverService.setsigmaA(sigmaA);
+        jocularMain.solverService.setn(n);
+        jocularMain.solverService.setminMagDrop(minMagDrop);
+        jocularMain.solverService.setmaxMagDrop(maxMagDrop);
+        
         for (int i = 0; i < dTranCandidates.length; i++) {
             for (int j = 0; j < rTranCandidates.length; j++) {
                 SqSolution newSolution = new SqSolution();
@@ -199,8 +211,8 @@ public class SqSolver {
 
             // Fill in relative likelihoods
             double minAicc = sqsolutions.get(0).aicc;
-            for ( int i=0; i < sqsolutions.size(); i++) {
-               sqsolutions.get(i).relLikelihood = Math.exp(minAicc - sqsolutions.get(i).aicc);
+            for(SqSolution sol: sqsolutions){
+                sol.relLikelihood = Math.exp(minAicc - sol.aicc);
             }
         }
 
@@ -213,12 +225,107 @@ public class SqSolver {
     }
 }
 
-class LogLcomparator implements Comparator<SqSolution> {
+//class SolverService extends Service<List<SqSolution>> {
+//
+//    // private variables go here
+//    int[] dTranCandidates;
+//    int[] rTranCandidates;
+//    int n;
+//    SqModel sqmodel;
+//    double sigmaB;
+//    double sigmaA;
+//    double solMagDrop;
+//    double minMagDrop;
+//    double maxMagDrop;
+//    int numValidTranPairs;
+//    // setters of private variable go here
+//    public final void setdTranCandidates(int[] dTran) {
+//        dTranCandidates = dTran;
+//    }
+//    public final void setrTranCandidates(int[] rTran) {
+//        rTranCandidates = rTran;
+//    }
+//    public final void setsqmodel( SqModel sqmodel) {
+//        this.sqmodel = sqmodel;
+//    }
+//    public final void setsigmaB(double sigmaB) {
+//        this.sigmaB = sigmaB;
+//    }
+//    public final void setsigmaA(double sigmaA){
+//        this.sigmaA= sigmaA;
+//    }
+//    public final void setn( int n) {
+//        this.n = n;
+//    }
+//    public final void setminMagDrop(double minMagDrop) {
+//        this.minMagDrop = minMagDrop;
+//    }
+//    public final void setmaxMagDrop(double maxMagDrop) {
+//        this.maxMagDrop = maxMagDrop;
+//    }
+//    // getters go here
+//    public final int getNumValidTranPairs() {
+//        return numValidTranPairs;
+//    }
+//
+//    @Override
+//    protected Task<List<SqSolution>> createTask() {
+//        return new Task<List<SqSolution>>() {
+//            @Override
+//            protected List<SqSolution> call() {
+//                List<SqSolution> sqsolutions = new ArrayList<>();
+//                // work goes in here
+//                numValidTranPairs = 0;
+//                for (int i = 0; i < dTranCandidates.length; i++) {
+//                    for (int j = 0; j < rTranCandidates.length; j++) {
+//                        SqSolution newSolution = new SqSolution();
+//                        newSolution.dTransitionIndex = dTranCandidates[i];
+//                        newSolution.rTransitionIndex = rTranCandidates[j];
+//
+//                        newSolution.logL = sqmodel
+//                            .setDtransition(newSolution.dTransitionIndex)
+//                            .setRtransition(newSolution.rTransitionIndex)
+//                            .calcLogL(sigmaB, sigmaA);
+//
+//                        // We let sqmodel determine when a dTran:rTran
+//                        // combination is valid.  It lets us know the combo
+//                        // is invalid (too few event or baseline points) by
+//                        // returning NaN for logL.
+//                        if (Double.isNaN(newSolution.logL)) {
+//                            continue;
+//                        }
+//
+//                        solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
+//
+//                        if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
+//                            continue;
+//                        }
+//
+//                        numValidTranPairs++;
+//
+//                        newSolution.D = sqmodel.getDsolution();
+//                        newSolution.R = sqmodel.getRsolution();
+//                        newSolution.B = sqmodel.getB();
+//                        newSolution.A = sqmodel.getA();
+//                        newSolution.magDrop = solMagDrop;
+//                        newSolution.sigmaB = sigmaB;
+//                        newSolution.sigmaA = sigmaA;
+//                        newSolution.kFactor = sqmodel.getkFactor();
+//                        newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
+//
+//                        sqsolutions.add(newSolution);
+//                    }
+//                }
+//                return sqsolutions;
+//            }
+//        };
+//    }
+//}
 
+class LogLcomparator implements Comparator<SqSolution> {
     @Override
     public int compare(SqSolution one, SqSolution two) {
         // sort is smallest to largest
         return Double.compare(one.aicc, two.aicc);
     }
-
 }

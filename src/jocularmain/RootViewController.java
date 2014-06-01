@@ -13,7 +13,6 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
@@ -231,6 +230,8 @@ public class RootViewController implements Initializable {
         serviceTask.reset();
         serviceTask.restart();
 
+        jocularMain.mainScene.setCursor(Cursor.WAIT);
+        
         return;
     }
 
@@ -247,7 +248,7 @@ public class RootViewController implements Initializable {
                         Thread.sleep(10L);
                         updateProgress(i, max);
                         if (i % 100 == 0) {
-                            System.out.println("I'm here.");
+                            System.out.println("i = " + i);
                         }
                     }
                     return max;
@@ -650,14 +651,6 @@ public class RootViewController implements Initializable {
 
         SolutionStats solutionStats = new SolutionStats();
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                jocularMain.mainScene.setCursor(Cursor.WAIT);
-            }
-        });
-
-        //jocularMain.mainScene.setCursor(Cursor.WAIT);
         solutions = SqSolver.computeCandidates(
             jocularMain, solutionStats,
             sigmaB, sigmaA,
@@ -1217,10 +1210,12 @@ public class RootViewController implements Initializable {
     private void handleSuccess(WorkerStateEvent e) {
         generalPurposeProgressBar.visibleProperty().set(false);
         System.out.println("taskResponse = " + e.getSource().getValue());
+        jocularMain.mainScene.setCursor(Cursor.DEFAULT);
     }
 
     private void handleCancelled(WorkerStateEvent e) {
         System.out.println("task was cancelled");
+        jocularMain.mainScene.setCursor(Cursor.DEFAULT);
     }
 
     @Override
