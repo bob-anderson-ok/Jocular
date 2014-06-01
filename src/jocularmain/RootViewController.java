@@ -347,11 +347,21 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doReadLimovieFile() {
+        if ( jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
+                " observation is in progress.", jocularMain.primaryStage);
+            return;
+        }
         jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
     }
 
     @FXML
     public void doReadTangraFile() {
+        if ( jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
+                " observation is in progress.", jocularMain.primaryStage);
+            return;
+        }
         jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
     }
 

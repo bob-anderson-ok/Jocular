@@ -49,6 +49,11 @@ public class SampleDataDialogController {
 
     @FXML
     void handleMouseClick() {
+        if (jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
+                " observation is in progress.", jocularMain.errorBarPanelStage);
+            return;
+        }
         checkParametersAndDisplayIfValid();
     }
 
@@ -145,6 +150,7 @@ public class SampleDataDialogController {
     }
 
     private Observation createSampleData() {
+        
         SampleDataGenerator dataGen = new SampleDataGenerator("artificial data");
 
         dataGen
