@@ -651,21 +651,14 @@ public class RootViewController implements Initializable {
 
         SolutionStats solutionStats = new SolutionStats();
 
+        jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
         solutions = SqSolver.computeCandidates(
             jocularMain, solutionStats,
             sigmaB, sigmaA,
             minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                jocularMain.mainScene.setCursor(Cursor.DEFAULT);
-            }
-        });
-        //jocularMain.mainScene.setCursor(Cursor.DEFAULT);
-
+        
         items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
             items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
@@ -705,6 +698,10 @@ public class RootViewController implements Initializable {
         }
 
         solutionList.setItems(items);
+    }
+    
+    private void handleSolverDone(WorkerStateEvent event) {
+        System.out.println("SolverService completed its work.");
     }
 
     private double validateSigmaBtext() {
