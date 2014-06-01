@@ -584,6 +584,11 @@ public class RootViewController implements Initializable {
     }
 
     @FXML
+    public void cancelSolution() {
+        jocularMain.solverService.cancel();
+    }
+    
+    @FXML
     public void computeCandidates() {
 
         if (jocularMain.getCurrentObservation() == null) {
@@ -653,7 +658,11 @@ public class RootViewController implements Initializable {
         SolutionStats solutionStats = new SolutionStats();
 
         jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
-
+        jocularMain.solverService.setOnCancelled(this::handleSolverCancelled);
+        jocularMain.solverService.setOnFailed(this::handleSolverFailed);
+        
+        generalPurposeProgressBar.visibleProperty().set(true);
+        generalPurposeProgressBar.progressProperty().bind(jocularMain.solverService.progressProperty());
         clearSolutionList();
 
         SqSolver.computeCandidates(
@@ -674,8 +683,18 @@ public class RootViewController implements Initializable {
         }
     }
 
+    private void handleSolverCancelled(WorkerStateEvent event) {
+        System.out.println("Solver was cancelled.");
+        generalPurposeProgressBar.visibleProperty().set(false);
+    }
+    
+    private void handleSolverFailed(WorkerStateEvent event) {
+        System.out.println("Solver failed.");
+        generalPurposeProgressBar.visibleProperty().set(false);
+    }
     private void handleSolverDone(WorkerStateEvent event) {
         System.out.println("SolverService completed its work.");
+        generalPurposeProgressBar.visibleProperty().set(false);
         solutions = jocularMain.solverService.getValue();
         ObservableList<String> items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {

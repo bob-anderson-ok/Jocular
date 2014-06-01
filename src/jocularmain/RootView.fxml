@@ -148,6 +148,6 @@
 <image>
 <Image url="jocularmain/questionMark.png" />
 </image>
-</ImageView><ProgressBar fx:id="generalPurposeProgressBar" layoutX="378.33837890625" layoutY="643.1999998092651" prefWidth="200.0" progress="0.27" visible="false" /><Button layoutX="678.33837890625" layoutY="640.0" mnemonicParsing="false" onAction="#testProgressBar" text="Test Progress Bar" />
+</ImageView><ProgressBar fx:id="generalPurposeProgressBar" layoutX="378.33837890625" layoutY="643.1999998092651" prefWidth="200.0" progress="0.27" visible="false" /><Button layoutX="591.0" layoutY="640.0" mnemonicParsing="false" onAction="#cancelSolution" text="Cancel" />
     </children>
 </AnchorPane>

@@ -42,8 +42,8 @@ public class JocularMain extends Application {
     public Stage errorBarPanelStage;
     public Scene errorBarPanelScene;
     public Stage primaryStage;
-    
-    public SolverService solverService;
+
+    public SolverService solverService = new SolverService();
 
     public static void main(String[] args) {
         launch(args);
@@ -52,8 +52,6 @@ public class JocularMain extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        solverService = new SolverService();
-        
         // We save this reference because some other dialogs that we will be
         // creating need to be able to provide it as a 'parent'
         this.primaryStage = primaryStage;
@@ -314,111 +312,128 @@ public class JocularMain extends Application {
     public void clearSolutionList() {
         rootViewController.clearSolutionList();
     }
-    
+
     public class SolverService extends Service<List<SqSolution>> {
 
-    // private variables go here
-    int[] dTranCandidates;
-    int[] rTranCandidates;
-    int n;
-    SqModel sqmodel;
-    double sigmaB;
-    double sigmaA;
-    double solMagDrop;
-    double minMagDrop;
-    double maxMagDrop;
-    int numValidTranPairs;
-    SolutionStats solutionStats;
-    
-    // setters of private variable go here
-    public final void setsolutionStats(SolutionStats solutionStats) {
-        this.solutionStats = solutionStats;
-    }
-    public final void setdTranCandidates(int[] dTran) {
-        dTranCandidates = dTran;
-    }
-    public final void setrTranCandidates(int[] rTran) {
-        rTranCandidates = rTran;
-    }
-    public final void setsqmodel( SqModel sqmodel) {
-        this.sqmodel = sqmodel;
-    }
-    public final void setsigmaB(double sigmaB) {
-        this.sigmaB = sigmaB;
-    }
-    public final void setsigmaA(double sigmaA){
-        this.sigmaA= sigmaA;
-    }
-    public final void setn( int n) {
-        this.n = n;
-    }
-    public final void setminMagDrop(double minMagDrop) {
-        this.minMagDrop = minMagDrop;
-    }
-    public final void setmaxMagDrop(double maxMagDrop) {
-        this.maxMagDrop = maxMagDrop;
-    }
-    // getters go here
-    public final int getNumValidTranPairs() {
-        return numValidTranPairs;
-    }
-    public final SolutionStats getsolutionStats() {
-        return solutionStats;
-    }
+        // private variables go here
+        int[] dTranCandidates;
+        int[] rTranCandidates;
+        int n;
+        SqModel sqmodel;
+        double sigmaB;
+        double sigmaA;
+        double solMagDrop;
+        double minMagDrop;
+        double maxMagDrop;
+        int numValidTranPairs;
+        SolutionStats solutionStats;
 
-    @Override
-    protected Task<List<SqSolution>> createTask() {
-        return new Task<List<SqSolution>>() {
-            @Override
-            protected List<SqSolution> call() {
-                List<SqSolution> sqsolutions = new ArrayList<>();
-                // work goes in here
-                numValidTranPairs = 0;
-                for (int i = 0; i < dTranCandidates.length; i++) {
-                    for (int j = 0; j < rTranCandidates.length; j++) {
-                        SqSolution newSolution = new SqSolution();
-                        newSolution.dTransitionIndex = dTranCandidates[i];
-                        newSolution.rTransitionIndex = rTranCandidates[j];
+        // setters of private variable go here
+        public final void setsolutionStats(SolutionStats solutionStats) {
+            this.solutionStats = solutionStats;
+        }
 
-                        newSolution.logL = sqmodel
-                            .setDtransition(newSolution.dTransitionIndex)
-                            .setRtransition(newSolution.rTransitionIndex)
-                            .calcLogL(sigmaB, sigmaA);
+        public final void setdTranCandidates(int[] dTran) {
+            dTranCandidates = dTran;
+        }
 
-                        // We let sqmodel determine when a dTran:rTran
-                        // combination is valid.  It lets us know the combo
-                        // is invalid (too few event or baseline points) by
-                        // returning NaN for logL.
-                        if (Double.isNaN(newSolution.logL)) {
-                            continue;
+        public final void setrTranCandidates(int[] rTran) {
+            rTranCandidates = rTran;
+        }
+
+        public final void setsqmodel(SqModel sqmodel) {
+            this.sqmodel = sqmodel;
+        }
+
+        public final void setsigmaB(double sigmaB) {
+            this.sigmaB = sigmaB;
+        }
+
+        public final void setsigmaA(double sigmaA) {
+            this.sigmaA = sigmaA;
+        }
+
+        public final void setn(int n) {
+            this.n = n;
+        }
+
+        public final void setminMagDrop(double minMagDrop) {
+            this.minMagDrop = minMagDrop;
+        }
+
+        public final void setmaxMagDrop(double maxMagDrop) {
+            this.maxMagDrop = maxMagDrop;
+        }
+
+        // getters go here
+        public final int getNumValidTranPairs() {
+            return numValidTranPairs;
+        }
+
+        public final SolutionStats getsolutionStats() {
+            return solutionStats;
+        }
+
+        @Override
+        protected Task<List<SqSolution>> createTask() {
+            return new Task<List<SqSolution>>() {
+                @Override
+                protected List<SqSolution> call() {
+                    List<SqSolution> sqsolutions = new ArrayList<>();
+                    // work goes in here
+                    numValidTranPairs = 0;
+                    int loopCount = 0;
+                    int maxLoopCount = dTranCandidates.length * rTranCandidates.length;
+                    search:
+                    for (int i = 0; i < dTranCandidates.length; i++) {
+                        for (int j = 0; j < rTranCandidates.length; j++) {
+                            if (isCancelled()) {
+                                break search;
+                            }
+                            loopCount++;
+                            updateProgress(loopCount, maxLoopCount);
+                            SqSolution newSolution = new SqSolution();
+                            newSolution.dTransitionIndex = dTranCandidates[i];
+                            newSolution.rTransitionIndex = rTranCandidates[j];
+
+                            newSolution.logL = sqmodel
+                                .setDtransition(newSolution.dTransitionIndex)
+                                .setRtransition(newSolution.rTransitionIndex)
+                                .calcLogL(sigmaB, sigmaA);
+
+                            // We let sqmodel determine when a dTran:rTran
+                            // combination is valid.  It lets us know the combo
+                            // is invalid (too few event or baseline points) by
+                            // returning NaN for logL.
+                            if (Double.isNaN(newSolution.logL)) {
+                                continue;
+                            }
+
+                            solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
+
+                            if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
+                                continue;
+                            }
+
+                            numValidTranPairs++;
+
+                            newSolution.D = sqmodel.getDsolution();
+                            newSolution.R = sqmodel.getRsolution();
+                            newSolution.B = sqmodel.getB();
+                            newSolution.A = sqmodel.getA();
+                            newSolution.magDrop = solMagDrop;
+                            newSolution.sigmaB = sigmaB;
+                            newSolution.sigmaA = sigmaA;
+                            newSolution.kFactor = sqmodel.getkFactor();
+                            newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
+
+                            sqsolutions.add(newSolution);
                         }
-
-                        solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
-
-                        if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
-                            continue;
-                        }
-
-                        numValidTranPairs++;
-
-                        newSolution.D = sqmodel.getDsolution();
-                        newSolution.R = sqmodel.getRsolution();
-                        newSolution.B = sqmodel.getB();
-                        newSolution.A = sqmodel.getA();
-                        newSolution.magDrop = solMagDrop;
-                        newSolution.sigmaB = sigmaB;
-                        newSolution.sigmaA = sigmaA;
-                        newSolution.kFactor = sqmodel.getkFactor();
-                        newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
-
-                        sqsolutions.add(newSolution);
                     }
+                    return sqsolutions;
                 }
-                return sqsolutions;
-            }
-        };
+            };
+        }
     }
-}
-
 
 }
