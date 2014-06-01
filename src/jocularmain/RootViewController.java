@@ -51,6 +51,8 @@ public class RootViewController implements Initializable {
     private static final int SOLUTION_LIST_HEADER_SIZE = 2;
     private static double RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED = 0.01;
 
+    private TestService serviceTask = new TestService();
+
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
 
@@ -182,19 +184,6 @@ public class RootViewController implements Initializable {
         MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
         MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
 
-        generalPurposeProgressBar.visibleProperty().set(true);
-        TestService serviceTask = new TestService();
-        generalPurposeProgressBar.progressProperty().bind(serviceTask.progressProperty());
-        serviceTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override 
-            public void handle(WorkerStateEvent t){
-                generalPurposeProgressBar.visibleProperty().set(false);
-            }
-        });
-        serviceTask.start();
-
-        //generalPurposeProgressBar.progressProperty().set(0.0);
-
         jocularMain.mainScene.setCursor(Cursor.DEFAULT);
 
         // The following message should never be triggered. The numPointsInTrialSample was experimentally
@@ -226,20 +215,42 @@ public class RootViewController implements Initializable {
         reportListView.setItems(resultItems);
     }
 
-    public static class TestService extends Service<Void> {
+    @FXML
+    public void testProgressBar() {
+        System.out.println("Task state = " + serviceTask.getState());
 
-        protected Task createTask() {
-            return new Task<Void>() {
-                protected Void call() throws Exception {
+        if (serviceTask.getState() == Task.State.RUNNING) {
+            serviceTask.cancel();
+            generalPurposeProgressBar.visibleProperty().set(false);
+            return;
+        }
+
+        generalPurposeProgressBar.visibleProperty().set(true);
+        generalPurposeProgressBar.progressProperty().bind(serviceTask.progressProperty());
+
+        serviceTask.reset();
+        serviceTask.restart();
+
+        return;
+    }
+
+    public static class TestService extends Service<Integer> {
+
+        protected Task<Integer> createTask() {
+            return new Task<Integer>() {
+                protected Integer call() throws Exception {
                     final int max = 1000;
                     for (int i = 0; i < max; i++) {
                         if (isCancelled()) {
-                            break;
+                            return i;
                         }
                         Thread.sleep(10L);
                         updateProgress(i, max);
+                        if (i % 100 == 0) {
+                            System.out.println("I'm here.");
+                        }
                     }
-                    return null;
+                    return max;
                 }
             };
         }
@@ -1203,8 +1214,21 @@ public class RootViewController implements Initializable {
         }
     }
 
+    private void handleSuccess(WorkerStateEvent e) {
+        generalPurposeProgressBar.visibleProperty().set(false);
+        System.out.println("taskResponse = " + e.getSource().getValue());
+    }
+
+    private void handleCancelled(WorkerStateEvent e) {
+        System.out.println("task was cancelled");
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+
+        serviceTask.setOnSucceeded(this::handleSuccess);
+
+        serviceTask.setOnCancelled(this::handleCancelled);
 
         setupLeftClickResponder();
 
