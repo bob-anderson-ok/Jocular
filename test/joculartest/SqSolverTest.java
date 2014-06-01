@@ -65,37 +65,37 @@ public class SqSolverTest {
         when(rRightMarker.getXValue()).thenReturn(81.5);
     }
 
-    @Test
-    public void computeCandidates_getsDandRlimitsRight_whenAllInBounds() {
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        List<SqSolution> answers = SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        assertThat(SqSolver.dLeft).isEqualTo(8);
-        assertThat(SqSolver.dRight).isEqualTo(15);
-        assertThat(SqSolver.rLeft).isEqualTo(71);
-        assertThat(SqSolver.rRight).isEqualTo(81);
-
-        assertThat(SqSolver.dTranCandidates.length).isEqualTo(8);
-        assertThat(SqSolver.rTranCandidates.length).isEqualTo(11);
-
-        assertThat(SqSolver.dTranCandidates[0]).isEqualTo(8);
-        assertThat(SqSolver.dTranCandidates[7]).isEqualTo(15);
-
-        assertThat(SqSolver.rTranCandidates[0]).isEqualTo(71);
-        assertThat(SqSolver.rTranCandidates[10]).isEqualTo(81);
-
-        for (SqSolution answer : answers) {
-            System.out.println(answer);
-        }
-
-    }
+//    @Test
+//    public void computeCandidates_getsDandRlimitsRight_whenAllInBounds() {
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        List<SqSolution> answers = SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//
+//        assertThat(SqSolver.dLeft).isEqualTo(8);
+//        assertThat(SqSolver.dRight).isEqualTo(15);
+//        assertThat(SqSolver.rLeft).isEqualTo(71);
+//        assertThat(SqSolver.rRight).isEqualTo(81);
+//
+//        assertThat(SqSolver.dTranCandidates.length).isEqualTo(8);
+//        assertThat(SqSolver.rTranCandidates.length).isEqualTo(11);
+//
+//        assertThat(SqSolver.dTranCandidates[0]).isEqualTo(8);
+//        assertThat(SqSolver.dTranCandidates[7]).isEqualTo(15);
+//
+//        assertThat(SqSolver.rTranCandidates[0]).isEqualTo(71);
+//        assertThat(SqSolver.rTranCandidates[10]).isEqualTo(81);
+//
+//        for (SqSolution answer : answers) {
+//            System.out.println(answer);
+//        }
+//
+//    }
 
     @Test
     public void computeCandidates_getsDandRlimitsRight_whenDmarkersNotInUse() {

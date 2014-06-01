@@ -231,7 +231,7 @@ public class RootViewController implements Initializable {
         serviceTask.restart();
 
         jocularMain.mainScene.setCursor(Cursor.WAIT);
-        
+
         return;
     }
 
@@ -652,20 +652,72 @@ public class RootViewController implements Initializable {
         SolutionStats solutionStats = new SolutionStats();
 
         jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
-        solutions = SqSolver.computeCandidates(
+
+        clearSolutionList();
+        
+        SqSolver.computeCandidates(
             jocularMain, solutionStats,
             sigmaB, sigmaA,
             minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-        
-        items = FXCollections.observableArrayList();
+
+        return;
+
+//        items = FXCollections.observableArrayList();
+//        if (solutions.isEmpty()) {
+//            items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
+//            solutionList.setItems(items);
+//            return;
+//        }
+//
+//        // !!!!! These are extra header lines in the solution list.
+//        // !!!!! The number MUST always equal SOLUTION_LIST_HEADER SIZE
+//        // !!!!! in order for clicking on a solution list entry to display the correct solution
+//        // Adding one header line
+//        items = FXCollections.observableArrayList();
+//        items.add(String.format("Number of transition pairs considered: %,d   Number of valid transition pairs: %,d",
+//                                solutionStats.numTransitionPairsConsidered,
+//                                solutionStats.numValidTransitionPairs));
+//        double probabilitySqWaveOverLine = Math.exp((solutionStats.straightLineAICc - solutions.get(0).aicc) / 2.0);
+//
+//        // Adding another header line.
+//        if (probabilitySqWaveOverLine > 1000.0) {
+//            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line > 1000",
+//                                    solutionStats.straightLineAICc,
+//                                    solutionStats.straightLineLogL));
+//        } else {
+//            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line= %.1f",
+//                                    solutionStats.straightLineAICc,
+//                                    solutionStats.straightLineLogL,
+//                                    probabilitySqWaveOverLine));
+//        }
+//
+//        // Do not add another header line without updating SOLUTION_LIST_HEADER_SIZE
+//        // Build a string version for the clients viewing pleasure.
+//        for (SqSolution solution : solutions) {
+//            if (solution.relLikelihood < RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED) {
+//                break;
+//            }
+//            items.add(solution.toString());
+//        }
+//
+//        solutionList.setItems(items);
+    }
+
+    private void handleSolverDone(WorkerStateEvent event) {
+        System.out.println("SolverService completed its work.");
+        List<SqSolution> solutions = jocularMain.solverService.getValue();
+        ObservableList<String> items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
             items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
             solutionList.setItems(items);
             return;
         }
 
+        SolutionStats solutionStats = jocularMain.solverService.getsolutionStats();
+
+        solutionStats.numValidTransitionPairs = jocularMain.solverService.getNumValidTranPairs();
         // !!!!! These are extra header lines in the solution list.
         // !!!!! The number MUST always equal SOLUTION_LIST_HEADER SIZE
         // !!!!! in order for clicking on a solution list entry to display the correct solution
@@ -698,10 +750,6 @@ public class RootViewController implements Initializable {
         }
 
         solutionList.setItems(items);
-    }
-    
-    private void handleSolverDone(WorkerStateEvent event) {
-        System.out.println("SolverService completed its work.");
     }
 
     private double validateSigmaBtext() {

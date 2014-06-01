@@ -328,7 +328,12 @@ public class JocularMain extends Application {
     double minMagDrop;
     double maxMagDrop;
     int numValidTranPairs;
+    SolutionStats solutionStats;
+    
     // setters of private variable go here
+    public final void setsolutionStats(SolutionStats solutionStats) {
+        this.solutionStats = solutionStats;
+    }
     public final void setdTranCandidates(int[] dTran) {
         dTranCandidates = dTran;
     }
@@ -356,6 +361,9 @@ public class JocularMain extends Application {
     // getters go here
     public final int getNumValidTranPairs() {
         return numValidTranPairs;
+    }
+    public final SolutionStats getsolutionStats() {
+        return solutionStats;
     }
 
     @Override
