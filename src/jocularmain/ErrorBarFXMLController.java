@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
@@ -113,9 +114,19 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.sigmaB = sigmaB;
         trialParams.sigmaA = sigmaA;
 
-        MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-        MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
+        jocularMain.errBarService.settrialParams(trialParams);
+        jocularMain.errBarService.setOnSucceeded(this::handleErrBarServiceSucceeded);
+        jocularMain.errBarService.reset();
+        jocularMain.errBarService.restart();
+        //MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
+        //MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
 
+    }
+
+    private void handleErrBarServiceSucceeded(WorkerStateEvent event) {
+        
+        MonteCarloResult monteCarloResult = jocularMain.errBarService.getAnswer();
+        
         if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
             jocularMain.showErrorDialog("More than 2% of the trials were rejected."
                 + " Possibly noise levels are too high or there are not enough points in the trial sample.",
@@ -139,7 +150,7 @@ public class ErrorBarFXMLController implements Initializable {
         plotData(monteCarloResult.histogram);
 
         ArrayList<HistStatItem> statsArray = ErrBarUtils.getInstance().buildHistStatArray(monteCarloResult.histogram);
-        
+
         boolean centered = randomRadioButton.isSelected() || midPointRadioButton.isSelected();
         HashMap<Integer, ErrorBarItem> errBarData = ErrBarUtils.getInstance().getErrorBars(statsArray, centered);
 
@@ -153,6 +164,7 @@ public class ErrorBarFXMLController implements Initializable {
         resultItems.add(String.format("\n%,d samples were rejected on the way to %,d good trials.",
                                       monteCarloResult.numRejections, trialParams.numTrials));
         resultsListView.setItems(resultItems);
+
     }
 
     private String toStringErrBarItem(ErrorBarItem item) {
@@ -235,7 +247,7 @@ public class ErrorBarFXMLController implements Initializable {
 
         return true;
     }
-    
+
     private XYChart.Series<Number, Number> getMassDistributionSeries(int[] hist) {
         XYChart.Series<Number, Number> series;
         series = new XYChart.Series<Number, Number>();
