@@ -39,8 +39,8 @@ public class ErrBarUtils {
         return arrayList;
     }
 
-    public HashMap<Integer, ErrorBarItem> getErrorBars(ArrayList<HistStatItem> statsArray, boolean centered) {
-        HashMap<Integer, ErrorBarItem> ans = new HashMap<>();
+    public HashMap<String, ErrorBarItem> getErrorBars(ArrayList<HistStatItem> statsArray, boolean centered) {
+        HashMap<String, ErrorBarItem> ans = new HashMap<>();
 
         // Extract numTrials by adding up the counts in statsArray
         int numTrials = 0;
@@ -48,12 +48,37 @@ public class ErrBarUtils {
             numTrials += item.count;
         }
 
-        ans.put(68, getErrorBarItem(statsArray, numTrials, 68, centered));
-        ans.put(90, getErrorBarItem(statsArray, numTrials, 90, centered));
-        ans.put(95, getErrorBarItem(statsArray, numTrials, 95, centered));
-        ans.put(99, getErrorBarItem(statsArray, numTrials, 99, centered));
+        ErrorBarItem ci68 = getErrorBarItem(statsArray, numTrials, 68, centered);
+        ErrorBarItem ci90 = getErrorBarItem(statsArray, numTrials, 90, centered);
+        ErrorBarItem ci95 = getErrorBarItem(statsArray, numTrials, 95, centered);
+        ErrorBarItem ci99 = getErrorBarItem(statsArray, numTrials, 99, centered);
+        
+        ans.put("D68", ci68);
+        ans.put("D90", ci90);
+        ans.put("D95", ci95);
+        ans.put("D99", ci99);
+        
+        ans.put("R68", swapPlusAndMinusBarValues(ci68));
+        ans.put("R90", swapPlusAndMinusBarValues(ci90));
+        ans.put("R95", swapPlusAndMinusBarValues(ci95));
+        ans.put("R99", swapPlusAndMinusBarValues(ci99));
 
         return ans;
+    }
+    
+    private ErrorBarItem swapPlusAndMinusBarValues(ErrorBarItem errBarItem) {
+        ErrorBarItem copy = new ErrorBarItem();
+        copy.actualCI = errBarItem.actualCI;
+        copy.barCenter = errBarItem.barCenter;
+        copy.barMinus = errBarItem.barPlus;    // swapping
+        copy.barPlus = errBarItem.barMinus;    // swapping
+        copy.leftIndex = errBarItem.leftIndex;
+        copy.peakIndex = errBarItem.peakIndex;
+        copy.rightIndex = errBarItem.rightIndex;
+        copy.targetCI = errBarItem.targetCI;
+        copy.width = errBarItem.width;
+
+        return copy;
     }
 
     private void calculateCumCounts(ArrayList<HistStatItem> statsArray) {

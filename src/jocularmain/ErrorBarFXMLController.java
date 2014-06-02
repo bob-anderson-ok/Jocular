@@ -133,7 +133,6 @@ public class ErrorBarFXMLController implements Initializable {
             this::handleErrBarServiceNonSuccess,
             trialsProgressBar.progressProperty()
         );
-
     }
 
     private void clearListViewsAndPlot() {
@@ -185,15 +184,15 @@ public class ErrorBarFXMLController implements Initializable {
         ArrayList<HistStatItem> statsArray = ErrBarUtils.getInstance().buildHistStatArray(monteCarloResult.histogram);
 
         boolean centered = randomRadioButton.isSelected() || midPointRadioButton.isSelected();
-        HashMap<Integer, ErrorBarItem> errBarData = ErrBarUtils.getInstance().getErrorBars(statsArray, centered);
+        HashMap<String, ErrorBarItem> errBarData = ErrBarUtils.getInstance().getErrorBars(statsArray, centered);
 
         // Display the error bar stats in the resultsListView
         ObservableList<String> resultItems = FXCollections.observableArrayList();
         resultItems.add("CI     CI act  left   peak   right  width    +/-");
-        resultItems.add(toStringErrBarItem(errBarData.get(68)));
-        resultItems.add(toStringErrBarItem(errBarData.get(90)));
-        resultItems.add(toStringErrBarItem(errBarData.get(95)));
-        resultItems.add(toStringErrBarItem(errBarData.get(99)));
+        resultItems.add(toStringErrBarItem(errBarData.get("D68")));
+        resultItems.add(toStringErrBarItem(errBarData.get("D90")));
+        resultItems.add(toStringErrBarItem(errBarData.get("D95")));
+        resultItems.add(toStringErrBarItem(errBarData.get("D99")));
         resultItems.add(String.format("\n%,d samples were rejected on the way to %,d good trials.",
                                       monteCarloResult.numRejections, numTrials));
         resultItems.add(String.format("\n%d cores were used in this calculation", Runtime.getRuntime().availableProcessors()));

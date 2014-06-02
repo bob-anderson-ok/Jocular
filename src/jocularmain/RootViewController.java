@@ -50,8 +50,7 @@ public class RootViewController implements Initializable {
     private static final int FIELD_ENTRY_ERROR = -2;
     private static final int SOLUTION_LIST_HEADER_SIZE = 2;
     private static double RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED = 0.01;
-
-    private TestService serviceTask = new TestService();
+    private static final int NUM_TRIALS_FOR_ERR_BAR_DETERMINATION = 100000;
 
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
@@ -132,7 +131,18 @@ public class RootViewController implements Initializable {
     @FXML
     public void calcErrorBars() {
         if (jocularMain.getCurrentSolution() == null) {
-            jocularMain.showErrorDialog("There is no solution to determine confidence intervals for.", jocularMain.primaryStage);
+            jocularMain.showErrorDialog(
+                "There is no solution to determine confidence intervals for.",
+                jocularMain.primaryStage
+            );
+            return;
+        }
+
+        if (jocularMain.errBarServiceRunning() || jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog(
+                "There is already an error bar calculation or solution in progress",
+                jocularMain.primaryStage
+            );
             return;
         }
 
@@ -140,6 +150,13 @@ public class RootViewController implements Initializable {
 
         if (Double.isNaN(sqSol.sigmaA) || Double.isNaN(sqSol.sigmaB)) {
             jocularMain.showErrorDialog("Noise levels missing.", jocularMain.primaryStage);
+            return;
+        }
+
+        if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
+                                        sqSol.sigmaB, sqSol.sigmaA,
+                                        sqSol.B, sqSol.A)) {
+            System.out.println("In subframe-timing noise regime");
             return;
         }
 
@@ -173,23 +190,52 @@ public class RootViewController implements Initializable {
         TrialParams trialParams = new TrialParams();
         trialParams.baselineLevel = sqSol.B;
         trialParams.eventLevel = sqSol.A;
-        trialParams.numTrials = 100000;
+        trialParams.numTrials = NUM_TRIALS_FOR_ERR_BAR_DETERMINATION;
         trialParams.sampleWidth = numPointsInTrialSample;
         trialParams.mode = MonteCarloMode.RANDOM;
         trialParams.sigmaB = sqSol.sigmaB;
         trialParams.sigmaA = sqSol.sigmaA;
 
-        jocularMain.mainScene.setCursor(Cursor.WAIT);
+        generalPurposeProgressBar.setVisible(true);
 
-        MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-        MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
+        jocularMain.errBarServiceStart(
+            trialParams,
+            this::handleSuccessfulErrBarService,
+            this::handleNonSuccessfulErrBarService,
+            this::handleNonSuccessfulErrBarService,
+            generalPurposeProgressBar.progressProperty()
+        );
+    }
 
-        jocularMain.mainScene.setCursor(Cursor.DEFAULT);
+    private boolean inSubframeTimingNoiseRegime(int n, double sigB, double sigA, double solutionB, double solutionA) {
+        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+
+        if (bSFL <= eSFL) {
+            return false;
+        }
+        return true;
+    }
+
+    private void handleNonSuccessfulErrBarService(WorkerStateEvent event) {
+        generalPurposeProgressBar.setVisible(false);
+    }
+
+    private void handleSuccessfulErrBarService(WorkerStateEvent event) {
+
+        if (!jocularMain.errBarServiceFinished()) {
+            return;
+        }
+
+        generalPurposeProgressBar.setVisible(false);
+
+        MonteCarloResult monteCarloResult = new MonteCarloResult();
+
+        monteCarloResult = jocularMain.getErrBarServiceCumResults();
 
         // The following message should never be triggered. The numPointsInTrialSample was experimentally
         // determined to result in < 2% reject rate.
-        if (monteCarloResult.numRejections > trialParams.numTrials
-            / 10) {
+        if (monteCarloResult.numRejections > NUM_TRIALS_FOR_ERR_BAR_DETERMINATION / 10) {
             jocularMain.showErrorDialog("Program error: More than 10% of the trials were rejected. This indicates an"
                 + " algorithm failure in determining the appropriate number of points in a trial sample.",
                                         jocularMain.errorBarPanelStage);
@@ -199,73 +245,44 @@ public class RootViewController implements Initializable {
         ArrayList<HistStatItem> statsArray = ErrBarUtils.getInstance().buildHistStatArray(monteCarloResult.histogram);
 
         boolean centered = true;  // Because the trial was run with MonteCarloMode.Random, the solutions are 'centered' around mid-frame
-        HashMap<Integer, ErrorBarItem> errBarData = ErrBarUtils.getInstance().getErrorBars(statsArray, centered);
+        HashMap<String, ErrorBarItem> errBarData = ErrBarUtils.getInstance().getErrorBars(statsArray, centered);
+
+        jocularMain.setCurrentErrBarValues(errBarData);
 
         // For now, let's just write them to the reportListView
         // Display the error bar stats in the resultsListView
         ObservableList<String> resultItems = FXCollections.observableArrayList();
 
-        resultItems.add(
-            "CI     CI act  left   peak   right  width    +/-");
-        resultItems.add(toStringErrBarItem(errBarData.get(68)));
-        resultItems.add(toStringErrBarItem(errBarData.get(90)));
-        resultItems.add(toStringErrBarItem(errBarData.get(95)));
-        resultItems.add(toStringErrBarItem(errBarData.get(99)));
+//        resultItems.add(
+//            "CI     CI act  left   peak   right  width    +/-");
+        resultItems.add("CI     CI act   +/-  (D edge)");
+        resultItems.add(toStringErrBarItem(errBarData.get("D68")));
+        resultItems.add(toStringErrBarItem(errBarData.get("D90")));
+        resultItems.add(toStringErrBarItem(errBarData.get("D95")));
+        resultItems.add(toStringErrBarItem(errBarData.get("D99")));
+        resultItems.add("CI     CI act   +/-  (R edge)");
+        resultItems.add(toStringErrBarItem(errBarData.get("R68")));
+        resultItems.add(toStringErrBarItem(errBarData.get("R90")));
+        resultItems.add(toStringErrBarItem(errBarData.get("R95")));
+        resultItems.add(toStringErrBarItem(errBarData.get("R99")));
 
         reportListView.setItems(resultItems);
     }
 
-    @FXML
-    public void testProgressBar() {
-        System.out.println("Task state = " + serviceTask.getState());
-
-        if (serviceTask.getState() == Task.State.RUNNING) {
-            serviceTask.cancel();
-            generalPurposeProgressBar.visibleProperty().set(false);
-            return;
-        }
-
-        generalPurposeProgressBar.visibleProperty().set(true);
-        generalPurposeProgressBar.progressProperty().bind(serviceTask.progressProperty());
-
-        serviceTask.reset();
-        serviceTask.restart();
-
-        jocularMain.mainScene.setCursor(Cursor.WAIT);
-
-        return;
-    }
-
-    public static class TestService extends Service<Integer> {
-
-        protected Task<Integer> createTask() {
-            return new Task<Integer>() {
-                protected Integer call() throws Exception {
-                    final int max = 1000;
-                    for (int i = 0; i < max; i++) {
-                        if (isCancelled()) {
-                            return i;
-                        }
-                        Thread.sleep(10L);
-                        updateProgress(i, max);
-                        if (i % 100 == 0) {
-                            System.out.println("i = " + i);
-                        }
-                    }
-                    return max;
-                }
-            };
-        }
-    };
-
     private String toStringErrBarItem(ErrorBarItem item) {
-        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %.1f/%.1f",
+//        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %.1f/%.1f",
+//                             item.targetCI, "%",
+//                             item.actualCI, "%",
+//                             item.leftIndex,
+//                             item.peakIndex,
+//                             item.rightIndex,
+//                             item.width,
+//                             item.barPlus,
+//                             item.barMinus
+//        );
+        return String.format("%d.0%s  %4.1f%s  %.1f/%.1f",
                              item.targetCI, "%",
                              item.actualCI, "%",
-                             item.leftIndex,
-                             item.peakIndex,
-                             item.rightIndex,
-                             item.width,
                              item.barPlus,
                              item.barMinus
         );
@@ -347,9 +364,9 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doReadLimovieFile() {
-        if ( jocularMain.solverService.isRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
-                " observation is in progress.", jocularMain.primaryStage);
+        if (jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.primaryStage);
             return;
         }
         jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
@@ -357,9 +374,9 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doReadTangraFile() {
-        if ( jocularMain.solverService.isRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
-                " observation is in progress.", jocularMain.primaryStage);
+        if (jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.primaryStage);
             return;
         }
         jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
@@ -401,7 +418,7 @@ public class RootViewController implements Initializable {
         double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
 
         if (bSFL <= eSFL) {
-            jocularMain.showInformationDialog("Subframe timing is not applicable for this soultion.", jocularMain.primaryStage);
+            jocularMain.showInformationDialog("Subframe timing is not applicable for this solution.", jocularMain.primaryStage);
             return;
         }
 
@@ -596,8 +613,9 @@ public class RootViewController implements Initializable {
     @FXML
     public void cancelSolution() {
         jocularMain.solverService.cancel();
+        jocularMain.cancelErrBarService();
     }
-    
+
     @FXML
     public void computeCandidates() {
 
@@ -670,7 +688,7 @@ public class RootViewController implements Initializable {
         jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
         jocularMain.solverService.setOnCancelled(this::handleSolverCancelled);
         jocularMain.solverService.setOnFailed(this::handleSolverFailed);
-        
+
         generalPurposeProgressBar.visibleProperty().set(true);
         generalPurposeProgressBar.progressProperty().bind(jocularMain.solverService.progressProperty());
         clearSolutionList();
@@ -686,6 +704,7 @@ public class RootViewController implements Initializable {
     }
 
     class LogLcomparator implements Comparator<SqSolution> {
+
         @Override
         public int compare(SqSolution one, SqSolution two) {
             // sort is smallest to largest
@@ -697,11 +716,12 @@ public class RootViewController implements Initializable {
         System.out.println("Solver was cancelled.");
         generalPurposeProgressBar.visibleProperty().set(false);
     }
-    
+
     private void handleSolverFailed(WorkerStateEvent event) {
         System.out.println("Solver failed.");
         generalPurposeProgressBar.visibleProperty().set(false);
     }
+
     private void handleSolverDone(WorkerStateEvent event) {
         System.out.println("SolverService completed its work.");
         generalPurposeProgressBar.visibleProperty().set(false);
@@ -1279,10 +1299,6 @@ public class RootViewController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        serviceTask.setOnSucceeded(this::handleSuccess);
-
-        serviceTask.setOnCancelled(this::handleCancelled);
-
         setupLeftClickResponder();
 
         // Add zoom, pan, and marker managers to 'chart'.  Note that this will
@@ -1296,8 +1312,10 @@ public class RootViewController implements Initializable {
         //makeChartDataMouseTransparent();
         //
         /**
-         * In order to have the 'markers' adapt to window resizing and axes // changes, they have to be redrawn continuously. So we register
-         * a // new handler with AnimationTimer. That handler gets called about // 60 times a second.
+         * In order to have the 'markers' adapt to window resizing and axes //
+         * changes, they have to be redrawn continuously. So we register a //
+         * new handler with AnimationTimer. That handler gets called about // 60
+         * times a second.
          */
         new AnimationTimer() {
             @Override

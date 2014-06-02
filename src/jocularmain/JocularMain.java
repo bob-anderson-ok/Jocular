@@ -5,6 +5,7 @@ import java.io.IOException;
 import static java.lang.Math.log;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import javafx.application.Application;
@@ -27,6 +28,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javax.imageio.ImageIO;
+import utils.ErrorBarItem;
 import utils.JocularUtils;
 import static utils.JocularUtils.aicc;
 import static utils.JocularUtils.logL;
@@ -42,7 +44,8 @@ public class JocularMain extends Application {
 
     private Observation obsInMainPlot = null;
     private SqSolution currentSqSolution = null;
-
+    private HashMap<String, ErrorBarItem> errBarData;
+    
     private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
@@ -308,6 +311,8 @@ public class JocularMain extends Application {
 
     public void setCurrentObservation(Observation newObs) {
         obsInMainPlot = newObs;
+        currentSqSolution = null;
+        errBarData = null;
     }
 
     public SqSolution getCurrentSolution() {
@@ -316,8 +321,17 @@ public class JocularMain extends Application {
 
     public void setCurrentSolution(SqSolution newSolution) {
         currentSqSolution = newSolution;
+        errBarData = null;
     }
 
+    public void setCurrentErrBarValues(HashMap<String, ErrorBarItem> errBarData) {
+        this.errBarData = errBarData;
+    }
+    
+    public HashMap<String, ErrorBarItem> getCurrentErrBarValues() {
+        return errBarData;
+    }
+    
     public void addSampleCurveToMainPlot(SqSolution solution) {
         rootViewController.addSampleCurveToMainPlot(solution);
     }
@@ -492,6 +506,15 @@ public class JocularMain extends Application {
         return true;
     }
     
+    public boolean errBarServiceRunning() {
+        for (ErrBarService ebs : multiCoreErrBarServices) {
+            if (ebs.getState() == Worker.State.RUNNING || ebs.getState() == Worker.State.SCHEDULED) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public MonteCarloResult getErrBarServiceCumResults() {
         MonteCarloResult monteCarloResult = new MonteCarloResult();
         MonteCarloResult partialResult = new MonteCarloResult();
@@ -570,7 +593,7 @@ public class JocularMain extends Application {
                         }
 
                         trialNum++;
-                        updateProgress(trialNum, trialParams.numTrials);
+                        updateProgress(trialNum, trialsPerCore);
 
                         // Make a new sample
                         for (int i = 0; i < centerIndex; i++) {
