@@ -51,6 +51,8 @@ public class JocularMain extends Application {
     public SolverService solverService = new SolverService();
     public ErrBarService errBarService = new ErrBarService();
 
+    public List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -58,6 +60,11 @@ public class JocularMain extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+            ErrBarService ebs = new ErrBarService();
+            multiCoreErrBarServices.add(ebs);
+        }
+        
         // We save this reference because some other dialogs that we will be
         // creating need to be able to provide it as a 'parent'
         this.primaryStage = primaryStage;

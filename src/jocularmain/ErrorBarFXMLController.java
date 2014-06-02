@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -18,6 +19,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import jocularmain.JocularMain.ErrBarService;
 import utils.ErrBarUtils;
 import utils.ErrorBarItem;
 import utils.HistStatItem;
@@ -86,7 +88,7 @@ public class ErrorBarFXMLController implements Initializable {
     ListView mainListView;
     @FXML
     ListView resultsListView;
-    
+
     @FXML
     ProgressBar trialsProgressBar;
 
@@ -94,7 +96,7 @@ public class ErrorBarFXMLController implements Initializable {
     public void cancelTrials() {
         jocularMain.errBarService.cancel();
     }
-    
+
     @FXML
     public void showErrorBarHelp() {
         jocularMain.showHelpDialog("Help/errorbar.help.html");
@@ -117,7 +119,7 @@ public class ErrorBarFXMLController implements Initializable {
         // in the next code block.  We use them to set up the parameters for a Monte Carlo run.
         trialParams.baselineLevel = baselineLevel;
         trialParams.eventLevel = eventLevel;
-        trialParams.numTrials = numTrials;
+        trialParams.numTrials = numTrials / Runtime.getRuntime().availableProcessors();
         trialParams.sampleWidth = numPoints;
         trialParams.mode = monteCarloMode;
         trialParams.sigmaB = sigmaB;
@@ -126,13 +128,16 @@ public class ErrorBarFXMLController implements Initializable {
         clearListViewsAndPlot();
         trialsProgressBar.setVisible(true);
         trialsProgressBar.progressProperty().bind(jocularMain.errBarService.progressProperty());
-        
-        jocularMain.errBarService.settrialParams(trialParams);
-        jocularMain.errBarService.setOnSucceeded(this::handleErrBarServiceSucceeded);
-        jocularMain.errBarService.setOnCancelled(this::handleErrBarServiceNonSuccess);
-        jocularMain.errBarService.setOnFailed(this::handleErrBarServiceNonSuccess);
-        jocularMain.errBarService.reset();
-        jocularMain.errBarService.restart();
+
+        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
+            trialsProgressBar.progressProperty().bind(ebs.progressProperty());
+            ebs.settrialParams(trialParams);
+            ebs.setOnSucceeded(this::handleErrBarServiceSucceeded);
+            ebs.setOnCancelled(this::handleErrBarServiceNonSuccess);
+            ebs.setOnFailed(this::handleErrBarServiceNonSuccess);
+            ebs.reset();
+            ebs.restart();
+        }
     }
 
     private void clearListViewsAndPlot() {
@@ -142,20 +147,39 @@ public class ErrorBarFXMLController implements Initializable {
             mainChart.getData().clear();
         }
     }
-    
+
     private void handleErrBarServiceNonSuccess(WorkerStateEvent event) {
         trialsProgressBar.setVisible(false);
     }
 
     private void handleErrBarServiceSucceeded(WorkerStateEvent event) {
 
-        trialsProgressBar.setVisible(false);
-        
-        MonteCarloResult monteCarloResult = jocularMain.errBarService.getAnswer();
+        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
+            if (ebs.getState() != Worker.State.SUCCEEDED) {
+                return;
+            }
+        }
 
-        if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
+        trialsProgressBar.setVisible(false);
+
+        // Assemble composite results
+        MonteCarloResult monteCarloResult = new MonteCarloResult();
+        MonteCarloResult partialResult = new MonteCarloResult();
+        
+        monteCarloResult.histogram = new int[numPoints];
+        
+        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
+            partialResult = ebs.getAnswer();
+            for (int i=0; i<partialResult.histogram.length;i++) {
+                monteCarloResult.histogram[i] += partialResult.histogram[i];
+            }
+            monteCarloResult.numRejections += partialResult.numRejections;
+        }
+
+        if (monteCarloResult.numRejections > numTrials / 50) {
             jocularMain.showErrorDialog("More than 2% of the trials were rejected."
-                + " Possibly noise levels are too high or there are not enough points in the trial sample.",
+                + " Possibly noise levels are too high or there are not enough points in the trial sample."
+                + " Number of rejects: " + monteCarloResult.numRejections,
                                         jocularMain.errorBarPanelStage);
             clearListViewsAndPlot();
             return;
@@ -186,7 +210,8 @@ public class ErrorBarFXMLController implements Initializable {
         resultItems.add(toStringErrBarItem(errBarData.get(95)));
         resultItems.add(toStringErrBarItem(errBarData.get(99)));
         resultItems.add(String.format("\n%,d samples were rejected on the way to %,d good trials.",
-                                      monteCarloResult.numRejections, trialParams.numTrials));
+                                      monteCarloResult.numRejections, numTrials));
+        resultItems.add(String.format("\n%d cores were used in this calculation", Runtime.getRuntime().availableProcessors()));
         resultsListView.setItems(resultItems);
 
     }
