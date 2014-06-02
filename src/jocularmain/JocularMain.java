@@ -8,9 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import javafx.application.Application;
+import javafx.beans.property.DoubleProperty;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.WritableImage;
@@ -49,7 +53,7 @@ public class JocularMain extends Application {
     public Stage primaryStage;
 
     public SolverService solverService = new SolverService();
-    public ErrBarService errBarService = new ErrBarService();
+    //public ErrBarService errBarService = new ErrBarService();
 
     public List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
 
@@ -448,14 +452,80 @@ public class JocularMain extends Application {
             };
         }
     }
+    
+    public void errBarServiceStart (TrialParams trialParams,
+                                    EventHandler<WorkerStateEvent> successHandler,
+                                    EventHandler<WorkerStateEvent> cancelledHandler,
+                                    EventHandler<WorkerStateEvent> failedHandler,
+                                    DoubleProperty progressProperty) {
+        
+        int totalTrials = trialParams.numTrials;
+        int numCores = Runtime.getRuntime().availableProcessors();
+        int numTrialsPerCore = totalTrials / numCores;
+        
+        for (ErrBarService ebs : multiCoreErrBarServices) {
+            progressProperty.bind(ebs.progressProperty());
+            ebs.settrialParams(trialParams);
+            ebs.settrialsPerCore(numTrialsPerCore);
+            ebs.setOnSucceeded(successHandler);
+            ebs.setOnCancelled(cancelledHandler);
+            ebs.setOnFailed(failedHandler);
+        }
+        
+        // If the numTrials was not an even multiple of the number of cores,
+        // we need to add the remainder to one of the threads.
+        multiCoreErrBarServices.get(0).setExtraTrials(totalTrials % numCores);
+        
+        for (ErrBarService ebs : multiCoreErrBarServices) {
+            ebs.reset();
+            ebs.restart();
+        }
+        
+    }
+    
+    public boolean errBarServiceFinished() {
+        for (ErrBarService ebs : multiCoreErrBarServices) {
+            if (ebs.getState() != Worker.State.SUCCEEDED) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public MonteCarloResult getErrBarServiceCumResults() {
+        MonteCarloResult monteCarloResult = new MonteCarloResult();
+        MonteCarloResult partialResult = new MonteCarloResult();
+
+        int numPoints = multiCoreErrBarServices.get(0).ans.histogram.length;
+        monteCarloResult.histogram = new int[numPoints];
+
+        for (ErrBarService ebs : multiCoreErrBarServices) {
+            partialResult = ebs.getAnswer();
+            for (int i = 0; i < partialResult.histogram.length; i++) {
+                monteCarloResult.histogram[i] += partialResult.histogram[i];
+            }
+            monteCarloResult.numRejections += partialResult.numRejections;
+        }
+        return monteCarloResult;
+    }
 
     public class ErrBarService extends Service<Void> {
 
         private TrialParams trialParams;
         private MonteCarloResult ans;
+        private int extraTrials=0;
+        private int trialsPerCore=0;
 
         public void settrialParams(TrialParams trialParams) {
             this.trialParams = trialParams;
+        }
+        
+        public void setExtraTrials(int extraTrials) {
+            this.extraTrials = extraTrials;
+        }
+        
+        public void settrialsPerCore(int trialsPerCore) {
+            this.trialsPerCore = trialsPerCore;
         }
 
         public final MonteCarloResult getAnswer() {
@@ -488,7 +558,7 @@ public class JocularMain extends Application {
 
                     int trialNum = 0;
 
-                    for (int k = 0; k < trialParams.numTrials; k++) {
+                    for (int k = 0; k < trialsPerCore + extraTrials; k++) {
                         if (isCancelled()) {
                             break;
                         }

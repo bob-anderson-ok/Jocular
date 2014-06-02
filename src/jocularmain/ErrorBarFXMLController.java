@@ -94,7 +94,9 @@ public class ErrorBarFXMLController implements Initializable {
 
     @FXML
     public void cancelTrials() {
-        jocularMain.errBarService.cancel();
+        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
+            ebs.cancel();
+        }
     }
 
     @FXML
@@ -119,7 +121,7 @@ public class ErrorBarFXMLController implements Initializable {
         // in the next code block.  We use them to set up the parameters for a Monte Carlo run.
         trialParams.baselineLevel = baselineLevel;
         trialParams.eventLevel = eventLevel;
-        trialParams.numTrials = numTrials / Runtime.getRuntime().availableProcessors();
+        trialParams.numTrials = numTrials;
         trialParams.sampleWidth = numPoints;
         trialParams.mode = monteCarloMode;
         trialParams.sigmaB = sigmaB;
@@ -127,17 +129,15 @@ public class ErrorBarFXMLController implements Initializable {
 
         clearListViewsAndPlot();
         trialsProgressBar.setVisible(true);
-        trialsProgressBar.progressProperty().bind(jocularMain.errBarService.progressProperty());
 
-        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
-            trialsProgressBar.progressProperty().bind(ebs.progressProperty());
-            ebs.settrialParams(trialParams);
-            ebs.setOnSucceeded(this::handleErrBarServiceSucceeded);
-            ebs.setOnCancelled(this::handleErrBarServiceNonSuccess);
-            ebs.setOnFailed(this::handleErrBarServiceNonSuccess);
-            ebs.reset();
-            ebs.restart();
-        }
+        jocularMain.errBarServiceStart(
+            trialParams,
+            this::handleErrBarServiceSucceeded,
+            this::handleErrBarServiceNonSuccess,
+            this::handleErrBarServiceNonSuccess,
+            trialsProgressBar.progressProperty()
+        );
+
     }
 
     private void clearListViewsAndPlot() {
@@ -154,27 +154,16 @@ public class ErrorBarFXMLController implements Initializable {
 
     private void handleErrBarServiceSucceeded(WorkerStateEvent event) {
 
-        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
-            if (ebs.getState() != Worker.State.SUCCEEDED) {
-                return;
-            }
+        // Since we're (possibly) muti-threaded, we get called at the completion
+        // of each thread. But they might not all be done, so we need to ask
+        // whether all threads have completed before grabbibg the results.
+        if ( ! jocularMain.errBarServiceFinished()) {
+            return;
         }
 
         trialsProgressBar.setVisible(false);
 
-        // Assemble composite results
-        MonteCarloResult monteCarloResult = new MonteCarloResult();
-        MonteCarloResult partialResult = new MonteCarloResult();
-        
-        monteCarloResult.histogram = new int[numPoints];
-        
-        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
-            partialResult = ebs.getAnswer();
-            for (int i=0; i<partialResult.histogram.length;i++) {
-                monteCarloResult.histogram[i] += partialResult.histogram[i];
-            }
-            monteCarloResult.numRejections += partialResult.numRejections;
-        }
+        MonteCarloResult monteCarloResult = jocularMain.getErrBarServiceCumResults();
 
         if (monteCarloResult.numRejections > numTrials / 50) {
             jocularMain.showErrorDialog("More than 2% of the trials were rejected."
@@ -212,6 +201,12 @@ public class ErrorBarFXMLController implements Initializable {
         resultItems.add(String.format("\n%,d samples were rejected on the way to %,d good trials.",
                                       monteCarloResult.numRejections, numTrials));
         resultItems.add(String.format("\n%d cores were used in this calculation", Runtime.getRuntime().availableProcessors()));
+        
+        int numHistEntries = 0;
+        for(int i=0;i<monteCarloResult.histogram.length;i++) {
+            numHistEntries += monteCarloResult.histogram[i];
+        }
+        resultItems.add("Number of histogram entries: " + numHistEntries);
         resultsListView.setItems(resultItems);
 
     }
