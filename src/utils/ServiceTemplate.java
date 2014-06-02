@@ -61,7 +61,8 @@ public class ServiceTemplate extends Service<Void> {
                         }
                         // Include code like the following two lines
                         // if you want to be able to 'bind' a progress
-                        // bar to this service's progressProperty()
+                        // bar to this service's progressProperty() like this ...
+                        // someProgressBar.progressProperty().bind(jocularMain.serviceTemplate.progressProperty());
                         loopCount++;
                         updateProgress(loopCount, maxLoopCount);
                         // Here we do the time consuming calculations to

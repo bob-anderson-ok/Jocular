@@ -14,6 +14,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
@@ -85,7 +86,15 @@ public class ErrorBarFXMLController implements Initializable {
     ListView mainListView;
     @FXML
     ListView resultsListView;
+    
+    @FXML
+    ProgressBar trialsProgressBar;
 
+    @FXML
+    public void cancelTrials() {
+        jocularMain.errBarService.cancel();
+    }
+    
     @FXML
     public void showErrorBarHelp() {
         jocularMain.showHelpDialog("Help/errorbar.help.html");
@@ -114,26 +123,41 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.sigmaB = sigmaB;
         trialParams.sigmaA = sigmaA;
 
+        clearListViewsAndPlot();
+        trialsProgressBar.setVisible(true);
+        trialsProgressBar.progressProperty().bind(jocularMain.errBarService.progressProperty());
+        
         jocularMain.errBarService.settrialParams(trialParams);
         jocularMain.errBarService.setOnSucceeded(this::handleErrBarServiceSucceeded);
+        jocularMain.errBarService.setOnCancelled(this::handleErrBarServiceNonSuccess);
+        jocularMain.errBarService.setOnFailed(this::handleErrBarServiceNonSuccess);
         jocularMain.errBarService.reset();
         jocularMain.errBarService.restart();
-        //MonteCarloTrial monteCarloTrial = new MonteCarloTrial(trialParams);
-        //MonteCarloResult monteCarloResult = monteCarloTrial.calcHistogram();
+    }
 
+    private void clearListViewsAndPlot() {
+        mainListView.setItems(null);
+        resultsListView.setItems(null);
+        if (!overplotCheckbox.isSelected()) {
+            mainChart.getData().clear();
+        }
+    }
+    
+    private void handleErrBarServiceNonSuccess(WorkerStateEvent event) {
+        trialsProgressBar.setVisible(false);
     }
 
     private void handleErrBarServiceSucceeded(WorkerStateEvent event) {
+
+        trialsProgressBar.setVisible(false);
         
         MonteCarloResult monteCarloResult = jocularMain.errBarService.getAnswer();
-        
+
         if (monteCarloResult.numRejections > trialParams.numTrials / 50) {
             jocularMain.showErrorDialog("More than 2% of the trials were rejected."
                 + " Possibly noise levels are too high or there are not enough points in the trial sample.",
                                         jocularMain.errorBarPanelStage);
-            mainListView.setItems(null);
-            resultsListView.setItems(null);
-            mainChart.getData().clear();
+            clearListViewsAndPlot();
             return;
         }
 

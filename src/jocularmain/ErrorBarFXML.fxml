@@ -77,14 +77,14 @@
         <VBox layoutX="233.0" layoutY="475.0" spacing="5.0">
             <children>
                 <Button layoutX="233.0" layoutY="490.0" mnemonicParsing="false" onAction="#calculateDistribution" prefWidth="154.0" text="Compute Distribution" />
-                <Button layoutX="240.0" layoutY="530.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" />
+                <Button layoutX="240.0" layoutY="530.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" /><Button mnemonicParsing="false" onAction="#cancelTrials" prefWidth="154.0" text="Cancel" />
             </children>
         </VBox>
         <ListView fx:id="mainListView" layoutX="176.5" layoutY="616.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="630.0">
             <effect>
                 <InnerShadow />
             </effect>
-        </ListView><ImageView fitHeight="20.0" fitWidth="20.0" layoutX="288.0" layoutY="572.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
+        </ListView><ImageView fitHeight="20.0" fitWidth="20.0" layoutX="580.0" layoutY="426.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
 <image>
 <Image url="@questionMark.png" />
 </image></ImageView>
@@ -97,6 +97,6 @@
 </VBox><Label layoutX="20.0" layoutY="608.0" text="Distribution detail..." /><ListView fx:id="resultsListView" layoutX="250.0" layoutY="630.0" prefHeight="200.0" prefWidth="325.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="630.0">
 <effect>
 <InnerShadow />
-</effect></ListView>
+</effect></ListView><ProgressBar fx:id="trialsProgressBar" layoutX="191.5" layoutY="581.1999998092651" prefWidth="200.0" progress="0.2" visible="false" />
     </children>
 </AnchorPane>
