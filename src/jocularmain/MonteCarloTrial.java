@@ -1,8 +1,7 @@
 package jocularmain;
 
 import static java.lang.Math.log;
-import utils.JocularUtils;
-import static utils.JocularUtils.gaussianVariate;
+import java.util.concurrent.ThreadLocalRandom;
 import static utils.JocularUtils.logL;
 import static utils.JocularUtils.aicc;
 import utils.MonteCarloResult;
@@ -51,27 +50,31 @@ public class MonteCarloTrial {
 
             // Make a new sample
             for (int i = 0; i < centerIndex; i++) {
-                rdgs[i] = gaussianVariate(trialParams.sigmaA) + trialParams.eventLevel;
+                rdgs[i] = ThreadLocalRandom.current().nextGaussian()*trialParams.sigmaA 
+                    + trialParams.eventLevel;
             }
 
             if (trialParams.mode == MonteCarloMode.LEFT_EDGE) {
-                rdgs[centerIndex] = gaussianVariate(trialParams.sigmaA) + trialParams.eventLevel;
+                rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian()*trialParams.sigmaA 
+                    + trialParams.eventLevel;
             } else if (trialParams.mode == MonteCarloMode.RIGHT_EDGE) {
-                rdgs[centerIndex] = gaussianVariate(trialParams.sigmaB) + trialParams.baselineLevel;
+                rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian()*trialParams.sigmaB 
+                    + trialParams.baselineLevel;
             } else if (trialParams.mode == MonteCarloMode.MID_POINT) {
-                rdgs[centerIndex] = gaussianVariate((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
+                rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian()*((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
                     + (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
             } else if (trialParams.mode == MonteCarloMode.RANDOM) {
-                double frac = JocularUtils.linearVariateZeroToOne();
+                double frac = ThreadLocalRandom.current().nextDouble();
                 double level = trialParams.baselineLevel * (1.0 - frac) + trialParams.eventLevel * frac;
                 double noiseAtLevel = trialParams.sigmaB * (1.0 - frac) + trialParams.sigmaA * frac;
-                rdgs[centerIndex] = gaussianVariate(noiseAtLevel) + level;
+                rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian()*noiseAtLevel + level;
             } else {
                 throw new InternalError("Design error: MonteCarlo mode not implemented.");
             }
 
             for (int i = centerIndex + 1; i < rdgs.length; i++) {
-                rdgs[i] = gaussianVariate(trialParams.sigmaB) + trialParams.baselineLevel;
+                rdgs[i] = ThreadLocalRandom.current().nextGaussian()*trialParams.sigmaB 
+                    + trialParams.baselineLevel;
             }
 
             // The test case has now been created.  Calculate the various arrays that depend on this case.
@@ -119,8 +122,6 @@ public class MonteCarloTrial {
                 k--; // Force a repeat try
                 if ( rejectedSolutions >= trialParams.numTrials) { 
                     break;
-//                    throw new IllegalArgumentException("In MonteCarloTrial: too many trial rejections --- possibly noise too high" + 
-//                        " or number of points in trial (sample width) is too small.");
                 }
             } else {
                 histogram[transitionIndex]++;
