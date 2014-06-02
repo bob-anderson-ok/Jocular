@@ -55,7 +55,7 @@ public class JocularMain extends Application {
     public SolverService solverService = new SolverService();
     //public ErrBarService errBarService = new ErrBarService();
 
-    public List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
+    private List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
 
     public static void main(String[] args) {
         launch(args);
@@ -508,8 +508,14 @@ public class JocularMain extends Application {
         }
         return monteCarloResult;
     }
+    
+    public void cancelErrBarService() {
+        for (ErrBarService ebs : multiCoreErrBarServices) {
+            ebs.cancel();
+        }
+    }
 
-    public class ErrBarService extends Service<Void> {
+    private class ErrBarService extends Service<Void> {
 
         private TrialParams trialParams;
         private MonteCarloResult ans;

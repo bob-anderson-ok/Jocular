@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -19,7 +18,6 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
-import jocularmain.JocularMain.ErrBarService;
 import utils.ErrBarUtils;
 import utils.ErrorBarItem;
 import utils.HistStatItem;
@@ -94,9 +92,7 @@ public class ErrorBarFXMLController implements Initializable {
 
     @FXML
     public void cancelTrials() {
-        for (ErrBarService ebs : jocularMain.multiCoreErrBarServices) {
-            ebs.cancel();
-        }
+        jocularMain.cancelErrBarService();
     }
 
     @FXML
