@@ -127,8 +127,8 @@ public class ErrBarUtils {
         errItem.rightIndex = indexOfBarRightEdge;
         errItem.peakIndex = indexOfBarPeak;
         errItem.width = indexOfBarRightEdge - indexOfBarLeftEdge;
-        errItem.barPlus = indexOfBarRightEdge - barCenter;
-        errItem.barMinus = barCenter - indexOfBarLeftEdge;
+        errItem.barPlus = Math.abs(indexOfBarRightEdge - barCenter);
+        errItem.barMinus = Math.abs(barCenter - indexOfBarLeftEdge);
 
         return errItem;
     }

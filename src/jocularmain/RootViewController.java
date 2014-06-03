@@ -11,8 +11,6 @@ import java.util.Set;
 import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -157,6 +155,24 @@ public class RootViewController implements Initializable {
                                         sqSol.sigmaB, sqSol.sigmaA,
                                         sqSol.B, sqSol.A)) {
             System.out.println("In subframe-timing noise regime");
+            jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
+            // For now, let's just write them to the reportListView
+            // Display the error bar stats in the resultsListView
+            ObservableList<String> resultItems = FXCollections.observableArrayList();
+
+            HashMap<String, ErrorBarItem> errBarData = jocularMain.getCurrentErrBarValues();
+            resultItems.add("CI     CI act   +/-  (D edge)");
+            resultItems.add(toStringErrBarItem(errBarData.get("D68")));
+            resultItems.add(toStringErrBarItem(errBarData.get("D90")));
+            resultItems.add(toStringErrBarItem(errBarData.get("D95")));
+            resultItems.add(toStringErrBarItem(errBarData.get("D99")));
+            resultItems.add("CI     CI act   +/-  (R edge)");
+            resultItems.add(toStringErrBarItem(errBarData.get("R68")));
+            resultItems.add(toStringErrBarItem(errBarData.get("R90")));
+            resultItems.add(toStringErrBarItem(errBarData.get("R95")));
+            resultItems.add(toStringErrBarItem(errBarData.get("R99")));
+
+            reportListView.setItems(resultItems);
             return;
         }
 
@@ -207,6 +223,87 @@ public class RootViewController implements Initializable {
         );
     }
 
+    private HashMap<String, ErrorBarItem> getErrBarDataForSubframeCase() {
+        HashMap<String, ErrorBarItem> ans = new HashMap<>();
+
+        SqSolution curSol = jocularMain.getCurrentSolution();
+        double sigma;
+
+        double frac;
+        double D = curSol.D;
+        double R = curSol.R;
+
+        if (!Double.isNaN(D)) {
+
+            frac = curSol.dTransitionIndex - D;
+            sigma = curSol.sigmaB - (curSol.sigmaB - curSol.sigmaA) * frac;
+
+            ErrorBarItem errItem = new ErrorBarItem();
+            errItem.barPlus = sigma;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 68;
+            errItem.actualCI = 68.0;
+            ans.put("D68", errItem);
+
+            errItem = new ErrorBarItem();
+            errItem.barPlus = sigma * 1.644854;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 90;
+            errItem.actualCI = 90.0;
+            ans.put("D90", errItem);
+
+            errItem = new ErrorBarItem();
+            errItem.barPlus = sigma * 1.959964;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 95;
+            errItem.actualCI = 95.0;
+            ans.put("D95", errItem);
+
+            errItem = new ErrorBarItem();
+            errItem.barPlus = sigma * 2.575829;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 99;
+            errItem.actualCI = 99.0;
+            ans.put("D99", errItem);
+
+        }
+
+        if (!Double.isNaN(R)) {
+            frac = curSol.rTransitionIndex - R;
+            sigma = curSol.sigmaA + (curSol.sigmaB - curSol.sigmaA) * frac;
+
+            ErrorBarItem errItem = new ErrorBarItem();
+            errItem.barPlus = sigma;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 68;
+            errItem.actualCI = 68.0;
+            ans.put("R68", errItem);
+
+            errItem = new ErrorBarItem();
+            errItem.barPlus = sigma * 1.644854;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 90;
+            errItem.actualCI = 90.0;
+            ans.put("R90", errItem);
+
+            errItem = new ErrorBarItem();
+            errItem.barPlus = sigma * 1.959964;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 95;
+            errItem.actualCI = 95.0;
+            ans.put("R95", errItem);
+
+            errItem = new ErrorBarItem();
+            errItem.barPlus = sigma * 2.575829;
+            errItem.barMinus = errItem.barPlus;
+            errItem.targetCI = 99;
+            errItem.actualCI = 99.0;
+            ans.put("R99", errItem);
+        }
+
+        return ans;
+    }
+
     private boolean inSubframeTimingNoiseRegime(int n, double sigB, double sigA, double solutionB, double solutionA) {
         double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
         double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
@@ -253,8 +350,6 @@ public class RootViewController implements Initializable {
         // Display the error bar stats in the resultsListView
         ObservableList<String> resultItems = FXCollections.observableArrayList();
 
-//        resultItems.add(
-//            "CI     CI act  left   peak   right  width    +/-");
         resultItems.add("CI     CI act   +/-  (D edge)");
         resultItems.add(toStringErrBarItem(errBarData.get("D68")));
         resultItems.add(toStringErrBarItem(errBarData.get("D90")));
@@ -270,16 +365,6 @@ public class RootViewController implements Initializable {
     }
 
     private String toStringErrBarItem(ErrorBarItem item) {
-//        return String.format("%d.0%s  %4.1f%s %5d  %5d  %5d  %5d    %.1f/%.1f",
-//                             item.targetCI, "%",
-//                             item.actualCI, "%",
-//                             item.leftIndex,
-//                             item.peakIndex,
-//                             item.rightIndex,
-//                             item.width,
-//                             item.barPlus,
-//                             item.barMinus
-//        );
         return String.format("%d.0%s  %4.1f%s  %.1f/%.1f",
                              item.targetCI, "%",
                              item.actualCI, "%",
@@ -313,6 +398,7 @@ public class RootViewController implements Initializable {
             chartSeries.put(DataType.SUBFRAME_BAND, null);
             addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
             jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            reportListView.setItems(null);
         }
     }
 
@@ -552,7 +638,7 @@ public class RootViewController implements Initializable {
         }
 
         double sigma = JocularUtils.calcSigma(baselinePoints);
-        jocularMain.getCurrentSolution().sigmaB = sigma;
+        //jocularMain.getCurrentSolution().sigmaB = sigma;
         sigmaBtext.setText(String.format("%.4f", sigma));
 
         if (useBaselineNoiseAsEventNoiseCheckbox.isSelected() || eventPoints.size() < 2) {
@@ -561,7 +647,7 @@ public class RootViewController implements Initializable {
         }
 
         sigma = JocularUtils.calcSigma(eventPoints);
-        jocularMain.getCurrentSolution().sigmaA = sigma;
+        //jocularMain.getCurrentSolution().sigmaA = sigma;
         sigmaAtext.setText(String.format("%.4f", sigma));
 
         if (eventPoints.size() < 10) {
@@ -635,14 +721,14 @@ public class RootViewController implements Initializable {
 
         double sigmaB = validateSigmaBtext();
         if (sigmaB == FIELD_ENTRY_ERROR || sigmaB == EMPTY_FIELD) {
-            items.add("No solutions: invalid Baseline Noise entry");
+            jocularMain.showErrorDialog("Baseline noise estimate missing or invalid.", jocularMain.primaryStage);
             solutionList.setItems(items);
             return;
         }
 
         double sigmaA = validateSigmaAtext();
         if (sigmaA == FIELD_ENTRY_ERROR) {
-            items.add("No solutions: invalid Event Noise entry");
+            jocularMain.showErrorDialog("Event noise entry is invalid.", jocularMain.primaryStage);
             solutionList.setItems(items);
             return;
         } else if (sigmaA == EMPTY_FIELD) {
@@ -652,20 +738,20 @@ public class RootViewController implements Initializable {
 
         int minEventSize = validateMinEventText();
         if (minEventSize == FIELD_ENTRY_ERROR) {
-            items.add("No solutions: invalid minEventSize entry");
+            jocularMain.showErrorDialog("Invalid minEventSize entry.", jocularMain.primaryStage);
             solutionList.setItems(items);
             return;
         }
 
         int maxEventSize = validateMaxEventText();
         if (minEventSize == FIELD_ENTRY_ERROR) {
-            items.add("No solutions: invalid maxEventSize entry");
+            jocularMain.showErrorDialog("Invalid maxEventSize entry.", jocularMain.primaryStage);
             solutionList.setItems(items);
             return;
         }
 
         if (minEventSize > maxEventSize && maxEventSize != EMPTY_FIELD) {
-            items.add("No solutions: minEventSize is > maxEventSize");
+            jocularMain.showErrorDialog("Invalid: minEventSize is > maxEventSize", jocularMain.primaryStage);
             solutionList.setItems(items);
             return;
         }
@@ -883,9 +969,9 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void clearSolutionList() {
-        ObservableList<String> items = FXCollections.observableArrayList();
-        items.add("");
-        solutionList.setItems(items);
+        solutionList.setItems(null);
+        reportListView.setItems(null);
+        jocularMain.setCurrentSolution(null);
         chartSeries.put(DataType.SOLUTION, null);
         chartSeries.put(DataType.SUBFRAME_BAND, null);
         repaintChart();

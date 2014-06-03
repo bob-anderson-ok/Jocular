@@ -26,10 +26,6 @@ public interface JocularUtils {
         return randomGenerator.nextGaussian() * sigma;
     }
     
-    static double linearVariateZeroToOne() {
-        return randomGenerator.nextDouble();
-    }
-
     static double[] generateGaussianNoise(int length, double sigma) {
 
         double[] result = new double[length];

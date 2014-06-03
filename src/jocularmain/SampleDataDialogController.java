@@ -85,6 +85,7 @@ public class SampleDataDialogController {
                     jocularMain.repaintObservation();
                 }
                 jocularMain.clearSolutionList();
+                jocularMain.setCurrentSolution(null);
 
             } catch (NumberFormatException e) {
                 errorLabel.setText("Error creating artificial data: " + e.getMessage());
