@@ -452,6 +452,8 @@ public class JocularMain extends Application {
                             newSolution.R = sqmodel.getRsolution();
                             newSolution.B = sqmodel.getB();
                             newSolution.A = sqmodel.getA();
+                            newSolution.numBaselinePoints = sqmodel.getNumBaselinePoints();
+                            newSolution.numEventPoints = sqmodel.getNumEventPoints();
                             newSolution.magDrop = solMagDrop;
                             newSolution.sigmaB = sigmaB;
                             newSolution.sigmaA = sigmaA;

@@ -15,6 +15,8 @@ public class SqSolution {
     public int kFactor;
     public double aicc = Double.NaN;
     public double relLikelihood = Double.NaN;
+    public int numBaselinePoints;
+    public int numEventPoints;
 
     @Override
     public String toString() {

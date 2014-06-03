@@ -120,8 +120,8 @@
 <Image url="jocularmain/questionMark.png" />
 </image>
 </ImageView>
-<VBox layoutX="1039.0" layoutY="479.0" spacing="5.0" AnchorPane.bottomAnchor="368.0" AnchorPane.leftAnchor="700.0">
-<children><Label text="Obs Plot options" /><CheckBox fx:id="obsPointsOnlyCheckbox" alignment="TOP_CENTER" layoutX="1039.318603515625" layoutY="479.2120361328125" mnemonicParsing="false" onAction="#replotObservation" text="dots only" /><CheckBox fx:id="obsLightFontCheckbox" layoutX="1080.0" layoutY="510.0" mnemonicParsing="false" onAction="#replotObservation" text="lighter font" />
+<VBox layoutX="1039.0" layoutY="479.0" spacing="5.0" AnchorPane.bottomAnchor="348.0" AnchorPane.leftAnchor="700.0">
+<children><Label text="Obs Plot options" /><CheckBox fx:id="obsPointsOnlyCheckbox" alignment="TOP_CENTER" layoutX="1039.318603515625" layoutY="479.2120361328125" mnemonicParsing="false" onAction="#replotObservation" text="dots only" /><CheckBox fx:id="obsLightFontCheckbox" layoutX="1080.0" layoutY="510.0" mnemonicParsing="false" onAction="#replotObservation" text="lighter font" /><CheckBox fx:id="solutionEnvelopeCheckbox" mnemonicParsing="false" onAction="#solEnvelopeClicked" text="sol envelope" />
 </children>
 </VBox><Button layoutX="65.0" layoutY="495.0" mnemonicParsing="false" onAction="#applyTrims" prefHeight="14.0" prefWidth="54.0" text="Apply" AnchorPane.bottomAnchor="384.0" AnchorPane.leftAnchor="68.0">
 <font>

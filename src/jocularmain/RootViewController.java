@@ -1,5 +1,6 @@
 package jocularmain;
 
+import static java.lang.Math.sqrt;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import utils.ErrBarUtils;
 import utils.ErrorBarItem;
 import utils.HistStatItem;
 import utils.JocularUtils;
+import static utils.JocularUtils.calcMagDrop;
 import utils.MonteCarloResult;
 import utils.Observation;
 import utils.SqSolution;
@@ -94,6 +96,8 @@ public class RootViewController implements Initializable {
     CheckBox obsLightFontCheckbox;
     @FXML
     CheckBox obsPointsOnlyCheckbox;
+    @FXML
+    CheckBox solutionEnvelopeCheckbox;
 
     // Confidence Interval selection buttons
     @FXML
@@ -127,10 +131,15 @@ public class RootViewController implements Initializable {
     ProgressBar generalPurposeProgressBar;
 
     @FXML
-    public void confidenceIntervalButtonClicked() {
-        System.out.println("CI button clicked.");
+    public void solEnvelopeClicked() {
+        System.out.println("solEnvelope clicked");
     }
     
+    @FXML
+    public void confidenceIntervalButtonClicked() {
+        prepareAndShowReport();
+    }
+
     @FXML
     public void calcErrorBars() {
         if (jocularMain.getCurrentSolution() == null) {
@@ -162,7 +171,7 @@ public class RootViewController implements Initializable {
             System.out.println("In subframe-timing noise regime");
             jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
             prepareAndShowReport();
-            
+
             return;
         }
 
@@ -188,8 +197,9 @@ public class RootViewController implements Initializable {
         } else if (snrEff >= 0.25) {
             numPointsInTrialSample = 1800;
         } else {
-            jocularMain.showInformationDialog(String.format("SNR must be >= 0.25 but is %.2f", snrEff), jocularMain.primaryStage);
-            return;
+            //jocularMain.showInformationDialog(String.format("SNR must be >= 0.25 but is %.2f", snrEff), jocularMain.primaryStage);
+            //return;
+            numPointsInTrialSample = 2000;
         }
 
         // Set up the parameters for a monte carlo estimation of confidence intervals.
@@ -225,28 +235,66 @@ public class RootViewController implements Initializable {
 
         int conInterval = getSelectedConfidenceInterval();
 
-        
-        resultItems.add(String.format("B = %8.2f  +/- %.1f",
-                                      curSol.B, sigmaAtCI(conInterval, curSol.sigmaB)));
-        resultItems.add(String.format("A = %8.2f  +/- %.1f",
-                                      curSol.A, sigmaAtCI(conInterval, curSol.sigmaA)));
-        resultItems.add(String.format("magDrop = %.2f", curSol.magDrop));
+        double baselineSD = sigmaAtCI(conInterval, curSol.sigmaB) / sqrt(curSol.numBaselinePoints - 1);
+        double eventSD = sigmaAtCI(conInterval, curSol.sigmaA) / sqrt(curSol.numEventPoints - 1);
+
+        resultItems.add(
+            String.format(
+                "B = %8.2f  +/- %.2f @ %d%s",
+                curSol.B,
+                baselineSD,
+                conInterval,
+                "%"
+            ) +
+            String.format(
+                "\nA = %8.2f  +/- %.2f @ %d%s",
+                curSol.A,
+                eventSD,
+                conInterval,
+                "%"
+            )
+        );
+
+        String magDropReport = prepareMagDropReport(
+            curSol.B, baselineSD, curSol.A, eventSD
+        );
+        resultItems.add(magDropReport);
+
         if (!Double.isNaN(curSol.D)) {
-            resultItems.add(String.format("D = %.2f  %.1f/%.1f @ %d confidence",
-                                          curSol.D,
-                                          errBars.get("D" + conInterval).barPlus,
-                                          errBars.get("D" + conInterval).barMinus,
-                                          conInterval));
+            resultItems.add(
+                String.format(
+                    "D = %.2f  +%.2f/-%.2f @ %d%s",
+                    curSol.D,
+                    errBars.get("D" + conInterval).barPlus,
+                    errBars.get("D" + conInterval).barMinus,
+                    conInterval,
+                    "%"
+                )
+            );
         }
         if (!Double.isNaN(curSol.R)) {
-            resultItems.add(String.format("R = %.2f  %.1f/%.1f @ %d confidence",
-                                          curSol.R,
-                                          errBars.get("R" + conInterval).barPlus,
-                                          errBars.get("R" + conInterval).barMinus,
-                                          conInterval));
+            resultItems.add(
+                String.format(
+                    "R = %.2f  +%.2f/-%.2f @ %d%s",
+                    curSol.R,
+                    errBars.get("R" + conInterval).barPlus,
+                    errBars.get("R" + conInterval).barMinus,
+                    conInterval,
+                    "%"
+                )
+            );
         }
 
         reportListView.setItems(resultItems);
+    }
+
+    private String prepareMagDropReport(double B, double Bsd, double A, double Asd) {
+        double nominalMagDrop = calcMagDrop(B, A);
+        double minMagDrop = calcMagDrop(B - Bsd, A + Asd);
+        double maxMagDrop = calcMagDrop(B + Bsd, A - Asd);
+        return String.format(
+            "min magDrop: %5.2f\nnom magDrop: %5.2f\nmax magDrop: %5.2f",
+            minMagDrop, nominalMagDrop, maxMagDrop);
     }
 
     private int getSelectedConfidenceInterval() {
@@ -291,9 +339,9 @@ public class RootViewController implements Initializable {
             && (jocularMain.getCurrentErrBarValues() != null);
     }
 
-    private void fillErrItemFields(ErrorBarItem errItem, int confidenceInterval, double sigma) {
+    private void fillErrItemFields(ErrorBarItem errItem, int confidenceInterval, double sigmaRdg) {
         errItem.targetCI = confidenceInterval;
-        errItem.barPlus = sigmaAtCI(errItem.targetCI, sigma);
+        errItem.barPlus = sigmaAtCI(errItem.targetCI, sigmaRdg);
         errItem.barMinus = errItem.barPlus;
         errItem.actualCI = (double) errItem.targetCI;
     }
@@ -312,22 +360,22 @@ public class RootViewController implements Initializable {
 
             frac = curSol.dTransitionIndex - D;
             sigma = curSol.sigmaB - (curSol.sigmaB - curSol.sigmaA) * frac;
-            sigma = sigma / (curSol.B - curSol.A);
-            
+            double sigmaRdg = sigma / (curSol.B - curSol.A);
+
             ErrorBarItem errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 68, sigma);
+            fillErrItemFields(errItem, 68, sigmaRdg);
             ans.put("D68", errItem);
 
             errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 90, sigma);
+            fillErrItemFields(errItem, 90, sigmaRdg);
             ans.put("D90", errItem);
 
             errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 95, sigma);
+            fillErrItemFields(errItem, 95, sigmaRdg);
             ans.put("D95", errItem);
 
             errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 99, sigma);
+            fillErrItemFields(errItem, 99, sigmaRdg);
             ans.put("D99", errItem);
 
         }
@@ -335,22 +383,22 @@ public class RootViewController implements Initializable {
         if (!Double.isNaN(R)) {
             frac = curSol.rTransitionIndex - R;
             sigma = curSol.sigmaA + (curSol.sigmaB - curSol.sigmaA) * frac;
-            sigma = sigma / (curSol.B - curSol.A);
+            double sigmaRdg = sigma / (curSol.B - curSol.A);
 
             ErrorBarItem errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 68, sigma);
+            fillErrItemFields(errItem, 68, sigmaRdg);
             ans.put("R68", errItem);
 
             errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 90, sigma);
+            fillErrItemFields(errItem, 90, sigmaRdg);
             ans.put("R90", errItem);
 
             errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 95, sigma);
+            fillErrItemFields(errItem, 95, sigmaRdg);
             ans.put("R95", errItem);
 
             errItem = new ErrorBarItem();
-            fillErrItemFields(errItem, 99, sigma);
+            fillErrItemFields(errItem, 99, sigmaRdg);
             ans.put("R99", errItem);
         }
 
@@ -399,22 +447,7 @@ public class RootViewController implements Initializable {
 
         jocularMain.setCurrentErrBarValues(errBarData);
 
-        // For now, let's just write them to the reportListView
-        // Display the error bar stats in the resultsListView
-        ObservableList<String> resultItems = FXCollections.observableArrayList();
-
-        resultItems.add("CI     CI act   +/-  (D edge)");
-        resultItems.add(toStringErrBarItem(errBarData.get("D68")));
-        resultItems.add(toStringErrBarItem(errBarData.get("D90")));
-        resultItems.add(toStringErrBarItem(errBarData.get("D95")));
-        resultItems.add(toStringErrBarItem(errBarData.get("D99")));
-        resultItems.add("CI     CI act   +/-  (R edge)");
-        resultItems.add(toStringErrBarItem(errBarData.get("R68")));
-        resultItems.add(toStringErrBarItem(errBarData.get("R90")));
-        resultItems.add(toStringErrBarItem(errBarData.get("R95")));
-        resultItems.add(toStringErrBarItem(errBarData.get("R99")));
-
-        reportListView.setItems(resultItems);
+        prepareAndShowReport();
     }
 
     private String toStringErrBarItem(ErrorBarItem item) {
@@ -605,7 +638,7 @@ public class RootViewController implements Initializable {
 
     private void useLowSnrNoiseEstimation() {
         // In the case of low SNR observations, it is difficult to place markers around the
-        // transitions.  Here use a trick: we differentiate the obsData, get the sigma for
+        // transitions.  Here we employ a useful procedure: we differentiate the obsData, get the sigma for
         // the differentiated obsData, then adjust for the increase in noise (sqrt(2)) due
         // to the differentiation procedure.
 
@@ -625,9 +658,8 @@ public class RootViewController implements Initializable {
         sigmaAtext.setText(String.format("%.4f", sigma));
         sigmaBtext.setText(sigmaAtext.getText());
 
-        jocularMain.getCurrentSolution().sigmaB = sigma;
-        jocularMain.getCurrentSolution().sigmaA = sigma;
-
+        //jocularMain.getCurrentSolution().sigmaB = sigma;
+        //jocularMain.getCurrentSolution().sigmaA = sigma;
         return;
     }
 
@@ -763,6 +795,11 @@ public class RootViewController implements Initializable {
             return;
         }
 
+        if (jocularMain.solverService.isRunning()) {
+            jocularMain.showInformationDialog("There is a solution already in progress.", jocularMain.primaryStage);
+            return;
+        }
+
         // Provide an empty Solution List
         ObservableList<String> items = FXCollections.observableArrayList();
         items.add("");
@@ -862,7 +899,6 @@ public class RootViewController implements Initializable {
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
-        System.out.println("SolverService completed its work.");
         generalPurposeProgressBar.visibleProperty().set(false);
         solutions = jocularMain.solverService.getValue();
         ObservableList<String> items = FXCollections.observableArrayList();
