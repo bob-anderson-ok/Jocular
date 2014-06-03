@@ -127,6 +127,11 @@ public class RootViewController implements Initializable {
     ProgressBar generalPurposeProgressBar;
 
     @FXML
+    public void confidenceIntervalButtonClicked() {
+        System.out.println("CI button clicked.");
+    }
+    
+    @FXML
     public void calcErrorBars() {
         if (jocularMain.getCurrentSolution() == null) {
             jocularMain.showErrorDialog(
@@ -156,23 +161,8 @@ public class RootViewController implements Initializable {
                                         sqSol.B, sqSol.A)) {
             System.out.println("In subframe-timing noise regime");
             jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
-            // For now, let's just write them to the reportListView
-            // Display the error bar stats in the resultsListView
-            ObservableList<String> resultItems = FXCollections.observableArrayList();
-
-            HashMap<String, ErrorBarItem> errBarData = jocularMain.getCurrentErrBarValues();
-            resultItems.add("CI     CI act   +/-  (D edge)");
-            resultItems.add(toStringErrBarItem(errBarData.get("D68")));
-            resultItems.add(toStringErrBarItem(errBarData.get("D90")));
-            resultItems.add(toStringErrBarItem(errBarData.get("D95")));
-            resultItems.add(toStringErrBarItem(errBarData.get("D99")));
-            resultItems.add("CI     CI act   +/-  (R edge)");
-            resultItems.add(toStringErrBarItem(errBarData.get("R68")));
-            resultItems.add(toStringErrBarItem(errBarData.get("R90")));
-            resultItems.add(toStringErrBarItem(errBarData.get("R95")));
-            resultItems.add(toStringErrBarItem(errBarData.get("R99")));
-
-            reportListView.setItems(resultItems);
+            prepareAndShowReport();
+            
             return;
         }
 
@@ -223,6 +213,91 @@ public class RootViewController implements Initializable {
         );
     }
 
+    private void prepareAndShowReport() {
+        if (!reportIsPossible()) {
+            return;
+        }
+
+        SqSolution curSol = jocularMain.getCurrentSolution();
+        HashMap<String, ErrorBarItem> errBars = jocularMain.getCurrentErrBarValues();
+
+        ObservableList<String> resultItems = FXCollections.observableArrayList();
+
+        int conInterval = getSelectedConfidenceInterval();
+
+        
+        resultItems.add(String.format("B = %8.2f  +/- %.1f",
+                                      curSol.B, sigmaAtCI(conInterval, curSol.sigmaB)));
+        resultItems.add(String.format("A = %8.2f  +/- %.1f",
+                                      curSol.A, sigmaAtCI(conInterval, curSol.sigmaA)));
+        resultItems.add(String.format("magDrop = %.2f", curSol.magDrop));
+        if (!Double.isNaN(curSol.D)) {
+            resultItems.add(String.format("D = %.2f  %.1f/%.1f @ %d confidence",
+                                          curSol.D,
+                                          errBars.get("D" + conInterval).barPlus,
+                                          errBars.get("D" + conInterval).barMinus,
+                                          conInterval));
+        }
+        if (!Double.isNaN(curSol.R)) {
+            resultItems.add(String.format("R = %.2f  %.1f/%.1f @ %d confidence",
+                                          curSol.R,
+                                          errBars.get("R" + conInterval).barPlus,
+                                          errBars.get("R" + conInterval).barMinus,
+                                          conInterval));
+        }
+
+        reportListView.setItems(resultItems);
+    }
+
+    private int getSelectedConfidenceInterval() {
+        if (conInt68RadioButton.isSelected()) {
+            return 68;
+        }
+        if (conInt90RadioButton.isSelected()) {
+            return 90;
+        }
+        if (conInt95RadioButton.isSelected()) {
+            return 95;
+        }
+        if (conInt99RadioButton.isSelected()) {
+            return 99;
+        }
+        return -1;
+    }
+
+    private double sigmaAtCI(int confidenceInterval, double sigma) {
+        double sigmaMultiplier = 1.0;
+        switch (confidenceInterval) {
+            case 68:
+                sigmaMultiplier = 1.0;
+                break;
+            case 90:
+                sigmaMultiplier = 1.644854;
+                break;
+            case 95:
+                sigmaMultiplier = 1.959964;
+                break;
+            case 99:
+                sigmaMultiplier = 2.575829;
+                break;
+            default:
+                throw new IllegalArgumentException("sigmaAtCI() invalid confidence interval: " + confidenceInterval);
+        }
+        return sigma * sigmaMultiplier;
+    }
+
+    private boolean reportIsPossible() {
+        return (jocularMain.getCurrentSolution() != null)
+            && (jocularMain.getCurrentErrBarValues() != null);
+    }
+
+    private void fillErrItemFields(ErrorBarItem errItem, int confidenceInterval, double sigma) {
+        errItem.targetCI = confidenceInterval;
+        errItem.barPlus = sigmaAtCI(errItem.targetCI, sigma);
+        errItem.barMinus = errItem.barPlus;
+        errItem.actualCI = (double) errItem.targetCI;
+    }
+
     private HashMap<String, ErrorBarItem> getErrBarDataForSubframeCase() {
         HashMap<String, ErrorBarItem> ans = new HashMap<>();
 
@@ -237,33 +312,22 @@ public class RootViewController implements Initializable {
 
             frac = curSol.dTransitionIndex - D;
             sigma = curSol.sigmaB - (curSol.sigmaB - curSol.sigmaA) * frac;
-
+            sigma = sigma / (curSol.B - curSol.A);
+            
             ErrorBarItem errItem = new ErrorBarItem();
-            errItem.barPlus = sigma;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 68;
-            errItem.actualCI = 68.0;
+            fillErrItemFields(errItem, 68, sigma);
             ans.put("D68", errItem);
 
             errItem = new ErrorBarItem();
-            errItem.barPlus = sigma * 1.644854;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 90;
-            errItem.actualCI = 90.0;
+            fillErrItemFields(errItem, 90, sigma);
             ans.put("D90", errItem);
 
             errItem = new ErrorBarItem();
-            errItem.barPlus = sigma * 1.959964;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 95;
-            errItem.actualCI = 95.0;
+            fillErrItemFields(errItem, 95, sigma);
             ans.put("D95", errItem);
 
             errItem = new ErrorBarItem();
-            errItem.barPlus = sigma * 2.575829;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 99;
-            errItem.actualCI = 99.0;
+            fillErrItemFields(errItem, 99, sigma);
             ans.put("D99", errItem);
 
         }
@@ -271,33 +335,22 @@ public class RootViewController implements Initializable {
         if (!Double.isNaN(R)) {
             frac = curSol.rTransitionIndex - R;
             sigma = curSol.sigmaA + (curSol.sigmaB - curSol.sigmaA) * frac;
+            sigma = sigma / (curSol.B - curSol.A);
 
             ErrorBarItem errItem = new ErrorBarItem();
-            errItem.barPlus = sigma;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 68;
-            errItem.actualCI = 68.0;
+            fillErrItemFields(errItem, 68, sigma);
             ans.put("R68", errItem);
 
             errItem = new ErrorBarItem();
-            errItem.barPlus = sigma * 1.644854;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 90;
-            errItem.actualCI = 90.0;
+            fillErrItemFields(errItem, 90, sigma);
             ans.put("R90", errItem);
 
             errItem = new ErrorBarItem();
-            errItem.barPlus = sigma * 1.959964;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 95;
-            errItem.actualCI = 95.0;
+            fillErrItemFields(errItem, 95, sigma);
             ans.put("R95", errItem);
 
             errItem = new ErrorBarItem();
-            errItem.barPlus = sigma * 2.575829;
-            errItem.barMinus = errItem.barPlus;
-            errItem.targetCI = 99;
-            errItem.actualCI = 99.0;
+            fillErrItemFields(errItem, 99, sigma);
             ans.put("R99", errItem);
         }
 
