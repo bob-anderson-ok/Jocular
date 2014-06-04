@@ -132,9 +132,15 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void solEnvelopeClicked() {
-        System.out.println("solEnvelope clicked");
+        if (solutionEnvelopeCheckbox.isSelected()) {
+            showSolutionEnvelope();
+        } else {
+            chartSeries.put(DataType.UPPER_ENVELOPE, null);
+            chartSeries.put(DataType.LOWER_ENVELOPE, null);
+        }
+        repaintChart();
     }
-    
+
     @FXML
     public void confidenceIntervalButtonClicked() {
         prepareAndShowReport();
@@ -245,8 +251,8 @@ public class RootViewController implements Initializable {
                 baselineSD,
                 conInterval,
                 "%"
-            ) +
-            String.format(
+            )
+            + String.format(
                 "\nA = %8.2f  +/- %.2f @ %d%s",
                 curSol.A,
                 eventSD,
@@ -286,6 +292,11 @@ public class RootViewController implements Initializable {
         }
 
         reportListView.setItems(resultItems);
+
+        if (solutionEnvelopeCheckbox.isSelected()) {
+            showSolutionEnvelope();
+            repaintChart();
+        }
     }
 
     private String prepareMagDropReport(double B, double Bsd, double A, double Asd) {
@@ -1122,7 +1133,7 @@ public class RootViewController implements Initializable {
         rightTrimMarker.setInUse(false);
         leftTrimMarker.setInUse(false);
     }
-    
+
     private void eraseSolutionAndRelatedSeries() {
         chartSeries.put(DataType.SOLUTION, null);
         chartSeries.put(DataType.SUBFRAME_BAND, null);
@@ -1192,6 +1203,182 @@ public class RootViewController implements Initializable {
                 final Rectangle rectangle = new Rectangle(10, 2, Color.web(lineColor));
                 label.setGraphic(rectangle);
             }
+        }
+    }
+
+    private void showSolutionEnvelope() {
+        SqSolution curSol = jocularMain.getCurrentSolution();
+        if (curSol == null) {
+            return;
+        }
+
+        HashMap<String, ErrorBarItem> errBars = jocularMain.getCurrentErrBarValues();
+        if (errBars == null) {
+            return;
+        }
+        int conInterval = getSelectedConfidenceInterval();
+
+        double B = curSol.B;
+        double A = curSol.A;
+
+        double Bbar = sigmaAtCI(conInterval, curSol.sigmaB) / sqrt(curSol.numBaselinePoints - 1);
+        double Abar = sigmaAtCI(conInterval, curSol.sigmaA) / sqrt(curSol.numEventPoints - 1);
+
+        double DplusBar = errBars.get("D" + conInterval).barPlus;
+        double DminusBar = errBars.get("D" + conInterval).barMinus;
+
+        double RplusBar = errBars.get("R" + conInterval).barPlus;
+        double RminusBar = errBars.get("R" + conInterval).barMinus;
+
+        double D = curSol.D;
+        double R = curSol.R;
+
+        double begin = jocularMain.getCurrentObservation().readingNumbers[0];
+        int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
+        double end = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
+
+        XYChart.Series<Number, Number> series;
+        XYChart.Data<Number, Number> data;
+
+        if (Double.isNaN(R)) {
+            // Process solution with only a D edge
+            // Prepare points for upper envelope.
+            series = new XYChart.Series<Number, Number>();
+            data = new XYChart.Data(begin, B + Bbar);
+            series.getData().add(data);
+            if (D + DplusBar >= end) {
+                data = new XYChart.Data(end, B + Bbar);
+                series.getData().add(data);
+            } else {
+                data = new XYChart.Data(D + DplusBar, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D + DplusBar, A + Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, A + Abar);
+                series.getData().add(data);
+            }
+            chartSeries.put(DataType.UPPER_ENVELOPE, series);
+
+            // Prepare points for lower envelope.
+            series = new XYChart.Series<Number, Number>();
+            if (D - DminusBar < begin) {
+                data = new XYChart.Data(begin, A - Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, A - Abar);
+                series.getData().add(data);
+            } else {
+                data = new XYChart.Data(begin, B - Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D - DminusBar, B - Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D - DminusBar, A - Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, A - Abar);
+                series.getData().add(data);
+            }
+            chartSeries.put(DataType.LOWER_ENVELOPE, series);
+        } else if (Double.isNaN(D)) {
+            // Process solution with only an R edge
+            // Prepare points for upper envelope
+            series = new XYChart.Series<Number, Number>();
+            if (R - RminusBar > begin) {
+                data = new XYChart.Data(begin, A + Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(R - RminusBar, A + Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(R - RminusBar, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, B + Bbar);
+                series.getData().add(data);
+            } else {
+                data = new XYChart.Data(begin, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, B + Bbar);
+                series.getData().add(data);
+            }
+            chartSeries.put(DataType.UPPER_ENVELOPE, series);
+
+            // Prepare points for lower envelope
+            series = new XYChart.Series<Number, Number>();
+            if ( R + RplusBar < end) {
+                data = new XYChart.Data(begin, A - Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(R + RplusBar, A - Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(R + RplusBar, B - Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, B - Bbar);
+                series.getData().add(data);
+            } else {
+                data = new XYChart.Data(begin, A - Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, A - Abar);
+                series.getData().add(data);
+            }
+            chartSeries.put(DataType.LOWER_ENVELOPE, series);
+        } else {
+            // Process solution with both a D and an R
+            // Prepare points for upper envelope.
+            series = new XYChart.Series<Number, Number>();
+            if (D + DplusBar >= R - RminusBar) {
+                jocularMain.showInformationDialog("Solution has overlapping D and R edges !!", jocularMain.primaryStage);
+                data = new XYChart.Data(begin, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, B + Bbar);
+                series.getData().add(data);
+            } else {
+                data = new XYChart.Data(begin, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D + DplusBar, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D + DplusBar, A + Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(R - RminusBar, A + Abar);
+                series.getData().add(data);
+                data = new XYChart.Data(R - RminusBar, B + Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(end, B + Bbar);
+                series.getData().add(data);
+            }
+            chartSeries.put(DataType.UPPER_ENVELOPE, series);
+
+            // Prepare points for lower envelope.
+            series = new XYChart.Series<Number, Number>();
+            if (D - DminusBar > begin) {
+                data = new XYChart.Data(begin, B - Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D - DminusBar, B - Bbar);
+                series.getData().add(data);
+                data = new XYChart.Data(D - DminusBar, A - Abar);
+                series.getData().add(data);
+                if (R + RplusBar < end) {
+                    data = new XYChart.Data(R + RplusBar, A - Abar);
+                    series.getData().add(data);
+                    data = new XYChart.Data(R + RplusBar, B - Bbar);
+                    series.getData().add(data);
+                    data = new XYChart.Data(end, B - Bbar);
+                    series.getData().add(data);
+                } else {
+                    data = new XYChart.Data(end, A - Abar);
+                    series.getData().add(data);
+                }
+
+            } else {
+                data = new XYChart.Data(begin, A - Abar);
+                series.getData().add(data);
+                if (R + RplusBar < end) {
+                    data = new XYChart.Data(R + RplusBar, A - Abar);
+                    series.getData().add(data);
+                    data = new XYChart.Data(R + RplusBar, B - Bbar);
+                    series.getData().add(data);
+                    data = new XYChart.Data(end, B - Bbar);
+                    series.getData().add(data);
+                } else {
+                    data = new XYChart.Data(begin, A - Abar);
+                    series.getData().add(data);
+                }
+            }
+            chartSeries.put(DataType.LOWER_ENVELOPE, series);
         }
     }
 
