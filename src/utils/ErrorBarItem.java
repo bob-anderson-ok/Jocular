@@ -1,6 +1,7 @@
 package utils;
 
 public class ErrorBarItem {
+    public boolean subFrameTimingEstimate;
     public int targetCI;
     public double actualCI;
     public int leftIndex;

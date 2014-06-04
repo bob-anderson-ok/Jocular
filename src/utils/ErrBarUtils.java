@@ -120,6 +120,7 @@ public class ErrBarUtils {
             barCenter = (statsArray.size() / 2) - 0.5;
         }
 
+        errItem.subFrameTimingEstimate = false;
         errItem.actualCI = (double) cumCountActual / numTrials * 100.0;
         errItem.targetCI = confidenceLevel;
         errItem.barCenter = barCenter;

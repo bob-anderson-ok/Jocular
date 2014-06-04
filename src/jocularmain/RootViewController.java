@@ -27,6 +27,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
@@ -110,7 +111,7 @@ public class RootViewController implements Initializable {
     RadioButton conInt99RadioButton;
 
     @FXML
-    CheckBox useBaselineNoiseAsEventNoiseCheckbox;
+    CheckBox allowManualNoiseEntryCheckbox;
 
     @FXML
     TextField sigmaBtext;
@@ -129,6 +130,13 @@ public class RootViewController implements Initializable {
 
     @FXML
     ProgressBar generalPurposeProgressBar;
+    
+    @FXML
+    public void manualNoiseClicked() {
+        sigmaAtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
+        sigmaBtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
+        
+    }
 
     @FXML
     public void solEnvelopeClicked() {
@@ -174,7 +182,7 @@ public class RootViewController implements Initializable {
         if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
                                         sqSol.sigmaB, sqSol.sigmaA,
                                         sqSol.B, sqSol.A)) {
-            System.out.println("In subframe-timing noise regime");
+            //System.out.println("In subframe-timing noise regime");
             jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
             prepareAndShowReport();
 
@@ -237,12 +245,20 @@ public class RootViewController implements Initializable {
         SqSolution curSol = jocularMain.getCurrentSolution();
         HashMap<String, ErrorBarItem> errBars = jocularMain.getCurrentErrBarValues();
 
+        boolean subFrameTimingUsed = errBars.get("D68").subFrameTimingEstimate;
+
         ObservableList<String> resultItems = FXCollections.observableArrayList();
 
         int conInterval = getSelectedConfidenceInterval();
 
         double baselineSD = sigmaAtCI(conInterval, curSol.sigmaB) / sqrt(curSol.numBaselinePoints - 1);
         double eventSD = sigmaAtCI(conInterval, curSol.sigmaA) / sqrt(curSol.numEventPoints - 1);
+
+        if (subFrameTimingUsed) {
+            resultItems.add("Error bars: sub-frame timing");
+        } else {
+            resultItems.add("Error bars: monte carlo trials");
+        }
 
         resultItems.add(
             String.format(
@@ -355,6 +371,7 @@ public class RootViewController implements Initializable {
         errItem.barPlus = sigmaAtCI(errItem.targetCI, sigmaRdg);
         errItem.barMinus = errItem.barPlus;
         errItem.actualCI = (double) errItem.targetCI;
+        errItem.subFrameTimingEstimate = true;
     }
 
     private HashMap<String, ErrorBarItem> getErrBarDataForSubframeCase() {
@@ -438,7 +455,7 @@ public class RootViewController implements Initializable {
 
         generalPurposeProgressBar.setVisible(false);
 
-        MonteCarloResult monteCarloResult = new MonteCarloResult();
+        MonteCarloResult monteCarloResult;
 
         monteCarloResult = jocularMain.getErrBarServiceCumResults();
 
@@ -494,6 +511,7 @@ public class RootViewController implements Initializable {
         if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
             eraseSolutionAndRelatedSeries();
             addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            repaintChart();
             jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
             reportListView.setItems(null);
         }
@@ -505,13 +523,6 @@ public class RootViewController implements Initializable {
         // on the look of the observation data display (points, points and lines, light or dark)
         // and gets called whenver one of those checkboxes is clicked.
         repaintChart();
-    }
-
-    @FXML
-    public void setEventAndBaselineNoiseEqual() {
-        if (useBaselineNoiseAsEventNoiseCheckbox.isSelected()) {
-            sigmaAtext.setText(sigmaBtext.getText());
-        }
     }
 
     private String getUserPreferredObsStyle() {
@@ -737,26 +748,29 @@ public class RootViewController implements Initializable {
         //jocularMain.getCurrentSolution().sigmaB = sigma;
         sigmaBtext.setText(String.format("%.4f", sigma));
 
-        if (useBaselineNoiseAsEventNoiseCheckbox.isSelected() || eventPoints.size() < 2) {
-            sigmaAtext.setText(sigmaBtext.getText());
-            return;
-        }
+//        if (useBaselineNoiseAsEventNoiseCheckbox.isSelected() || eventPoints.size() < 2) {
+//            sigmaAtext.setText(sigmaBtext.getText());
+//            return;
+//        }
 
         sigma = JocularUtils.calcSigma(eventPoints);
         //jocularMain.getCurrentSolution().sigmaA = sigma;
         sigmaAtext.setText(String.format("%.4f", sigma));
 
         if (eventPoints.size() < 10) {
-            jocularMain.showInformationDialog("There are only " + eventPoints.size() + "points in the 'event'."
-                + "  This will give an unreliable estimate of the event noise.  Consider checking the box "
-                + "that allows the baseline noise estimate to be used as the event noise estimate.", jocularMain.primaryStage);
+            jocularMain.showInformationDialog(
+                "There are only " + eventPoints.size() + " points in the 'event'."
+                + "  This will give an unreliable estimate of the event noise.",
+                jocularMain.primaryStage
+            );
         }
 
         if (baselinePoints.size() < 10) {
-            jocularMain.showInformationDialog("There are only " + baselinePoints.size() + "points in the 'baseline'."
-                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain. "
-                + "Suggestion: trim so that only event points remain; estimate noise with no markers; remember this value; "
-                + "untrim the data, manually enter noise values, set proper proper markers, and run solution.", jocularMain.primaryStage);
+            jocularMain.showInformationDialog(
+                "There are only " + baselinePoints.size() + " points in the 'baseline'."
+                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain.", 
+                jocularMain.primaryStage
+            );
         }
     }
 
@@ -1157,6 +1171,7 @@ public class RootViewController implements Initializable {
             series.getData().add(data);
         }
         chartSeries.put(DataType.OBSDATA, series);
+        repaintChart();
         return series;
     }
 
@@ -1224,16 +1239,31 @@ public class RootViewController implements Initializable {
         double Bbar = sigmaAtCI(conInterval, curSol.sigmaB) / sqrt(curSol.numBaselinePoints - 1);
         double Abar = sigmaAtCI(conInterval, curSol.sigmaA) / sqrt(curSol.numEventPoints - 1);
 
-        double DplusBar = errBars.get("D" + conInterval).barPlus;
-        double DminusBar = errBars.get("D" + conInterval).barMinus;
-
-        double RplusBar = errBars.get("R" + conInterval).barPlus;
-        double RminusBar = errBars.get("R" + conInterval).barMinus;
-
         double D = curSol.D;
         double R = curSol.R;
 
-        double begin = jocularMain.getCurrentObservation().readingNumbers[0];
+        double DplusBar;
+        double DminusBar;
+
+        if (Double.isNaN(D)) {
+            DplusBar = 0.0;
+            DminusBar = 0.0;
+        } else {
+            DplusBar = errBars.get("D" + conInterval).barPlus;
+            DminusBar = errBars.get("D" + conInterval).barMinus;
+        }
+
+        double RplusBar;
+        double RminusBar;
+        if (Double.isNaN(R)) {
+            RplusBar = 0.0;
+            RminusBar = 0.0;
+        } else {
+            RplusBar = errBars.get("R" + conInterval).barPlus;
+            RminusBar = errBars.get("R" + conInterval).barMinus;
+        }
+
+        double begin = jocularMain.getCurrentObservation().readingNumbers[0] - 1.0;
         int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
         double end = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
 
@@ -1300,7 +1330,7 @@ public class RootViewController implements Initializable {
 
             // Prepare points for lower envelope
             series = new XYChart.Series<Number, Number>();
-            if ( R + RplusBar < end) {
+            if (R + RplusBar < end) {
                 data = new XYChart.Data(begin, A - Abar);
                 series.getData().add(data);
                 data = new XYChart.Data(R + RplusBar, A - Abar);
@@ -1385,6 +1415,7 @@ public class RootViewController implements Initializable {
     public void repaintChart() {
         chart.getData().clear();
 
+        //System.out.println("Repainting chart...");
         XYChart.Series<Number, Number> series;
 
         Set<DataType> dataTypes = chartSeries.keySet();
@@ -1398,11 +1429,17 @@ public class RootViewController implements Initializable {
             } else {
                 series.setName(dataType.getName());
             }
+
             chart.getData().add(series);
+
+            String lineColor = PlotType.lookup(series.getName()).lineColor();
+            String symbolColor = PlotType.lookup(series.getName()).symbolColor();
+
+            //System.out.println("   series:" + series.getName() + "  lineColor:" + lineColor + "  symbolColor:" + symbolColor);
             Set<Node> dataNodes = chart.lookupAll(".series" + (chart.getData().size() - 1));
             for (Node dataNode : dataNodes) {
-                dataNode.setStyle("-fx-stroke: " + PlotType.lookup(series.getName()).lineColor()
-                    + "; -fx-background-color:transparent," + PlotType.lookup(series.getName()).symbolColor());
+                dataNode.setStyle("-fx-stroke: " + lineColor
+                    + "; -fx-background-color:transparent," + symbolColor);
             }
         }
 
