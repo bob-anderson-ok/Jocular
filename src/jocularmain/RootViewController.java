@@ -481,7 +481,7 @@ public class RootViewController implements Initializable {
     public void getSelectedSolution(MouseEvent arg) {
         int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
         if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
-            chartSeries.put(DataType.SUBFRAME_BAND, null);
+            eraseSolutionAndRelatedSeries();
             addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
             jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
             reportListView.setItems(null);
@@ -805,8 +805,7 @@ public class RootViewController implements Initializable {
         items.add("");
         solutionList.setItems(items);
 
-        chartSeries.put(DataType.SOLUTION, null);
-        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        eraseSolutionAndRelatedSeries();
         repaintChart();
 
         double sigmaB = validateSigmaBtext();
@@ -1061,8 +1060,7 @@ public class RootViewController implements Initializable {
         solutionList.setItems(null);
         reportListView.setItems(null);
         jocularMain.setCurrentSolution(null);
-        chartSeries.put(DataType.SOLUTION, null);
-        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        eraseSolutionAndRelatedSeries();
         repaintChart();
     }
 
@@ -1115,14 +1113,21 @@ public class RootViewController implements Initializable {
 
         chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
 
-        // Since we've (probably) changed the data set, erase previous solution and subframe band.
-        chartSeries.put(DataType.SOLUTION, null);
-        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        // Since we've (probably) changed the data set, erase previous solution
+        // and everything related to it.
+        eraseSolutionAndRelatedSeries();
         repaintChart();
         clearSolutionList();
 
         rightTrimMarker.setInUse(false);
         leftTrimMarker.setInUse(false);
+    }
+    
+    private void eraseSolutionAndRelatedSeries() {
+        chartSeries.put(DataType.SOLUTION, null);
+        chartSeries.put(DataType.SUBFRAME_BAND, null);
+        chartSeries.put(DataType.UPPER_ENVELOPE, null);
+        chartSeries.put(DataType.LOWER_ENVELOPE, null);
     }
 
     private XYChart.Series<Number, Number> getObservationSeries(Observation observation) {
