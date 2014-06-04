@@ -56,7 +56,6 @@ public class JocularMain extends Application {
     public Stage primaryStage;
 
     public SolverService solverService = new SolverService();
-    //public ErrBarService errBarService = new ErrBarService();
 
     private List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
 
@@ -96,7 +95,7 @@ public class JocularMain extends Application {
 
         scene.getStylesheets().add(this.getClass().getResource("JocularStyleSheet.css").toExternalForm());
 
-        primaryStage.titleProperty().set("Jocular 0.6");
+        primaryStage.titleProperty().set("Jocular 0.7");
         primaryStage.setScene(scene);
         primaryStage.show();
 

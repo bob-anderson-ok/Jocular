@@ -127,10 +127,10 @@
 <font>
 <Font size="10.0" />
 </font></Button>
-<HBox layoutX="185.0" layoutY="541.0" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="50.0">
-<children><Button layoutX="185.0" layoutY="540.0" mnemonicParsing="false" onAction="#clearSolutionList" text="Clear Solution List" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="185.0" /><Button layoutX="349.0" layoutY="505.0" mnemonicParsing="false" onAction="#estimateNoiseValues" text="Estimate Noise Values" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="330.0" /><Button layoutX="379.0" layoutY="540.0" mnemonicParsing="false" onAction="#computeCandidates" text="Find New Solution" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="496.0" /><Button mnemonicParsing="false" onAction="#calcErrorBars" prefWidth="132.0" text="Calc Error Bars" />
+<HBox layoutX="185.0" layoutY="541.0" spacing="96.0" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="50.0">
+<children><Button layoutX="349.0" layoutY="505.0" mnemonicParsing="false" onAction="#estimateNoiseValues" text="Estimate Noise Values" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="330.0" /><Button layoutX="379.0" layoutY="540.0" mnemonicParsing="false" onAction="#computeCandidates" text="Find Solution(s)" AnchorPane.bottomAnchor="333.0" AnchorPane.leftAnchor="496.0" />
 </children>
-</HBox><CheckBox fx:id="allowManualNoiseEntryCheckbox" layoutX="52.0" layoutY="635.0" mnemonicParsing="false" onAction="#manualNoiseClicked" prefHeight="18.0" prefWidth="243.0" text="Allow manual noise entry" AnchorPane.bottomAnchor="247.0" AnchorPane.leftAnchor="52.0" /><Label layoutX="435.353271484375" layoutY="604.0" text="Max Event Dur" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="408.0" />
+</HBox><CheckBox fx:id="allowManualNoiseEntryCheckbox" layoutX="52.0" layoutY="620.0" mnemonicParsing="false" onAction="#manualNoiseClicked" prefHeight="18.0" prefWidth="243.0" text="Enable manual noise entry" AnchorPane.bottomAnchor="255.0" AnchorPane.leftAnchor="52.0" /><Label layoutX="435.353271484375" layoutY="604.0" text="Max Event Dur" AnchorPane.bottomAnchor="280.0" AnchorPane.leftAnchor="408.0" />
 <VBox layoutX="620.0" layoutY="476.0" AnchorPane.bottomAnchor="336.0" AnchorPane.leftAnchor="620.0">
 <children><Label text="CI   %" /><RadioButton fx:id="conInt68RadioButton" layoutX="871.676025390625" layoutY="496.8999996185303" mnemonicParsing="false" onAction="#confidenceIntervalButtonClicked" text="68">
 <toggleGroup>
@@ -148,6 +148,10 @@
 <image>
 <Image url="jocularmain/questionMark.png" />
 </image>
-</ImageView><ProgressBar fx:id="generalPurposeProgressBar" layoutX="378.33837890625" layoutY="643.1999998092651" prefWidth="200.0" progress="0.27" visible="false" /><Button layoutX="591.0" layoutY="640.0" mnemonicParsing="false" onAction="#cancelSolution" text="Cancel" />
+</ImageView>
+<VBox layoutX="378.0" layoutY="632.0" AnchorPane.bottomAnchor="232.0" AnchorPane.leftAnchor="378.0">
+<children><Label fx:id="progressLabel" layoutX="378.0" layoutY="627.0" /><ProgressBar fx:id="generalPurposeProgressBar" layoutX="378.0" layoutY="646.0" prefWidth="200.0" progress="0.02" />
+</children>
+</VBox><Button layoutX="591.0" layoutY="640.0" mnemonicParsing="false" onAction="#cancelSolution" text="Cancel" AnchorPane.bottomAnchor="234.0" AnchorPane.leftAnchor="591.0" />
     </children>
 </AnchorPane>

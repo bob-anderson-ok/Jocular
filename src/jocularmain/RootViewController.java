@@ -12,6 +12,7 @@ import java.util.Set;
 import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -27,7 +28,6 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
@@ -130,6 +130,8 @@ public class RootViewController implements Initializable {
 
     @FXML
     ProgressBar generalPurposeProgressBar;
+    @FXML
+    Label progressLabel;
     
     @FXML
     public void manualNoiseClicked() {
@@ -164,7 +166,9 @@ public class RootViewController implements Initializable {
             return;
         }
 
-        if (jocularMain.errBarServiceRunning() || jocularMain.solverService.isRunning()) {
+        boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
+        boolean solverServiceRunning = jocularMain.solverService.getState() == Worker.State.RUNNING;
+        if (errBarServiceRunning || solverServiceRunning) {
             jocularMain.showInformationDialog(
                 "There is already an error bar calculation or solution in progress",
                 jocularMain.primaryStage
@@ -226,7 +230,7 @@ public class RootViewController implements Initializable {
         trialParams.sigmaB = sqSol.sigmaB;
         trialParams.sigmaA = sqSol.sigmaA;
 
-        generalPurposeProgressBar.setVisible(true);
+        progressLabel.setText("error bar calculation...");
 
         jocularMain.errBarServiceStart(
             trialParams,
@@ -444,7 +448,7 @@ public class RootViewController implements Initializable {
     }
 
     private void handleNonSuccessfulErrBarService(WorkerStateEvent event) {
-        generalPurposeProgressBar.setVisible(false);
+        resetProgressIndicator();
     }
 
     private void handleSuccessfulErrBarService(WorkerStateEvent event) {
@@ -453,7 +457,7 @@ public class RootViewController implements Initializable {
             return;
         }
 
-        generalPurposeProgressBar.setVisible(false);
+        resetProgressIndicator();
 
         MonteCarloResult monteCarloResult;
 
@@ -514,6 +518,7 @@ public class RootViewController implements Initializable {
             repaintChart();
             jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
             reportListView.setItems(null);
+            calcErrorBars();
         }
     }
 
@@ -889,7 +894,7 @@ public class RootViewController implements Initializable {
         jocularMain.solverService.setOnCancelled(this::handleSolverCancelled);
         jocularMain.solverService.setOnFailed(this::handleSolverFailed);
 
-        generalPurposeProgressBar.visibleProperty().set(true);
+        progressLabel.setText(("'solution' in progress..."));
         generalPurposeProgressBar.progressProperty().bind(jocularMain.solverService.progressProperty());
         clearSolutionList();
 
@@ -912,18 +917,22 @@ public class RootViewController implements Initializable {
         }
     }
 
+    private void resetProgressIndicator() {
+        generalPurposeProgressBar.progressProperty().unbind();
+        generalPurposeProgressBar.setProgress(0.0);
+        progressLabel.setText("");
+    }
     private void handleSolverCancelled(WorkerStateEvent event) {
-        System.out.println("Solver was cancelled.");
-        generalPurposeProgressBar.visibleProperty().set(false);
+       resetProgressIndicator();
     }
 
     private void handleSolverFailed(WorkerStateEvent event) {
         System.out.println("Solver failed.");
-        generalPurposeProgressBar.visibleProperty().set(false);
+        resetProgressIndicator();
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
-        generalPurposeProgressBar.visibleProperty().set(false);
+        resetProgressIndicator();
         solutions = jocularMain.solverService.getValue();
         ObservableList<String> items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
@@ -982,6 +991,7 @@ public class RootViewController implements Initializable {
         }
 
         solutionList.setItems(items);
+        calcErrorBars();
     }
 
     private double validateSigmaBtext() {
@@ -1080,7 +1090,6 @@ public class RootViewController implements Initializable {
         }
     }
 
-    @FXML
     public void clearSolutionList() {
         solutionList.setItems(null);
         reportListView.setItems(null);
@@ -1288,6 +1297,7 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.UPPER_ENVELOPE, series);
+            repaintChart();
 
             // Prepare points for lower envelope.
             series = new XYChart.Series<Number, Number>();
@@ -1307,6 +1317,7 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.LOWER_ENVELOPE, series);
+            repaintChart();
         } else if (Double.isNaN(D)) {
             // Process solution with only an R edge
             // Prepare points for upper envelope
@@ -1327,6 +1338,7 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.UPPER_ENVELOPE, series);
+            repaintChart();
 
             // Prepare points for lower envelope
             series = new XYChart.Series<Number, Number>();
@@ -1346,6 +1358,7 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.LOWER_ENVELOPE, series);
+            repaintChart();
         } else {
             // Process solution with both a D and an R
             // Prepare points for upper envelope.
@@ -1371,6 +1384,7 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.UPPER_ENVELOPE, series);
+            repaintChart();
 
             // Prepare points for lower envelope.
             series = new XYChart.Series<Number, Number>();
@@ -1409,6 +1423,7 @@ public class RootViewController implements Initializable {
                 }
             }
             chartSeries.put(DataType.LOWER_ENVELOPE, series);
+            repaintChart();
         }
     }
 
@@ -1690,7 +1705,9 @@ public class RootViewController implements Initializable {
     }
 
     private void handleSuccess(WorkerStateEvent e) {
-        generalPurposeProgressBar.visibleProperty().set(false);
+        generalPurposeProgressBar.setProgress(0.0);
+        //generalPurposeProgressBar.visibleProperty().set(false);
+        progressLabel.setText("");
         System.out.println("taskResponse = " + e.getSource().getValue());
         jocularMain.mainScene.setCursor(Cursor.DEFAULT);
     }
