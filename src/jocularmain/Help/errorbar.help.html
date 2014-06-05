@@ -313,6 +313,62 @@ sup {
 
 <h2>Error Bar Study Panel</h2>
 
-<p>coming soon to a screen near you  :)</p>
+<p>This panel provides a tool for experimenting with the monte carlo technique of error bar estimation that is used by Jocular when the observation noise exceeds the sub-frame timing regime --- that is, when there is no 'sub-frame band'<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
+
+<h2></h2>
+
+<p>When an observation has a sub-frame band, then D and R timing errors have a gaussian distribution (<code>N[0,sigma]</code>) and the error bars can be calculated at any desired confidence level by the standard method of multiplying <code>sigma</code> by a factor. The factors used in Jocular are:</p>
+
+<ul>
+<li>1.000000 for 68% confidence level</li>
+<li>1.644854 for 90% confidence level</li>
+<li>1.959964 for 95% confidence level</li>
+<li>2.575829 for 99% confidence level</li>
+</ul>
+
+
+<p>The factors above are shown to 6 decimal places simply so that their origin can be easily traced to standard tables. In the program, error bars are only reported to 2 decimal places, which is one more than needed usually.</p>
+
+<h2></h2>
+
+<p>Once the noise environment pushes the observation outside the sub-frame timing regime, the error distributions become dramatically non-gaussian.  For example, at an SNR of 0.5, the error distribution looks like ...</p>
+
+<p><img src="errBarFig01.png"></p>
+
+<p>Besides the sharp central peak, note that the distribution is 'discrete'.  Outside the sub-frame timing band, all solutions must be integer reading numbers (because there is no valid intermediate level from which a fractional reading number could be obtained). As a result, there is no continuous distribution function and error bars have to be determined by finding the smallest span of 'buckets' (commonly referred to as the Maximum Density Interval = MDI) that contains at least the desired percentage of trials. Additionally, this means that error bars themselves will be discrete: they will always be an integer number of readings wide. Finally, the MDI may end up containing more than the target percentage. This effect is small for low SNR observations, but will be quite noticeable for observations that are close to the sub-frame timing regime.</p>
+
+<p>The above plot was obtained by 'solving' 1,000,000 sample observations containing only an R edge positioned randomly between the center of the sample and the previous reading. In this case, that means R randomly took on values between 249 and 250 during the 'trials'. (Note: it is also possible to run 'trials' where the R edge is fixed, but the random positioning fits 'reality' better and is the mode used when error bars are calculated in the main program.)</p>
+
+<h2>The Dramatic Effect of Asymmetric Noise</h2>
+
+<p>When baseline and event noise are not equal, the distributions become rather skewed.  For example:</p>
+
+<p><img src="errBarFig02.png"></p>
+
+<p>In this image, the previously mentioned effect where the MDI contains more than the target percentage is more evident, particularly at the 68% level.</p>
+
+<h2>Asymmetric Noise --- A Small Mind Bender</h2>
+
+<p>The following plot was produced from the previous plot by <strong>reducing</strong> the baseline noise, keeping all other things the same. Note that the error bars <strong>increased</strong>.  This surprising result means that by adding noise to the baseline, the edge becomes more 'detectable'. But if one steps back (literally and figuratively), the effect is not so surprising. Stepping back and 'squinting' at an observation that has a noticeable difference in noise during the event simply makes event region stand out. The solution math produces the same effect by weighting points during the event more heavily than points in the baseline --- the same thing that your 'eye' does.</p>
+
+<p><img src="errBarFig03.png"></p>
+
+<h2>Sample Rejection, Detectability, and the <code>num points</code> parameter</h2>
+
+<p>The <em>detectability</em> of an edge event depends on how many observation points surround that edge. Any edge at any <em>drop</em> can be detected if enough observation points are included that bracket the edge.</p>
+
+<p>Jocular's monte carlo algorithm includes a rejection criteria that is applied to each trial solution. The criteria for a good edge solution is that it's likelihood relative to a straight line solution (that is, no edge found) be at least 50. The exact value of this likelihood threshold is not important because increasing the number of samples in an observation can be always be done to meet any reasonable rejection criteria.</p>
+
+<p>An alert message will be generated whenever the rejection rate is over 2% during a 'run'.  When this happens, increase the <code>num samples</code> parameter until the warnings go away.</p>
+
+<p>The likelihood threshold criteria may also be viewed as an 'outlier' suppression procedure. By requiring an acceptance rate of at least 98%, it is reasonable to expect that the distribution curve has not been distorted by what is otherwise an ad hoc procedure.</p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>See <strong>Help | About</strong><a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
 </body>
 </html>

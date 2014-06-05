@@ -11,11 +11,11 @@
  
  3. Place **R markers** around the expected **R** transition zone (if present).  (See note below)
  
- 4. Click the **Estimate Noise Values** button.
+ 4. Click the `Estimate Noise Values` button.
  
  5. Set any desired search limitations (min/max event size; min/max magDrop)
  
- 6. Click the **Find New Solution** button.
+ 6. Click the `Find Solution(s)` button.
  
 #### Note
 

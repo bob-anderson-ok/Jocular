@@ -17,7 +17,7 @@
 
 ##### To zoom using the scrollwheel ---
 
-    Put the cursor in either the plot area or in an axis.
+    Put the cursor in either the plot area or in an axis tick mark region.
     
     Rolling the scrollwheel will zoom (or shrink) around
     the cursor position.
@@ -26,7 +26,7 @@
 
     Note: all drag movements must be down and/or to the right.
     
-    Place the cursor in either the plot area or in an axis.
+    Place the cursor in either the plot area or in an axis tick mark region.
     
     Hold the left mouse button down and drag to create a
     visible selection window.  Release the mouse button

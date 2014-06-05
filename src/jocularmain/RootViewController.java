@@ -132,12 +132,12 @@ public class RootViewController implements Initializable {
     ProgressBar generalPurposeProgressBar;
     @FXML
     Label progressLabel;
-    
+
     @FXML
     public void manualNoiseClicked() {
         sigmaAtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
         sigmaBtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
-        
+
     }
 
     @FXML
@@ -743,26 +743,25 @@ public class RootViewController implements Initializable {
             }
         }
 
+        double sigma;
         if (baselinePoints.size() < 2) {
             jocularMain.showErrorDialog("Cannot calculate baseline noise because less than 2 points available", jocularMain.primaryStage);
             sigmaBtext.setText("NaN");
-            return;
+        } else {
+            sigma = JocularUtils.calcSigma(baselinePoints);
+            sigmaBtext.setText(String.format("%.4f", sigma));
         }
 
-        double sigma = JocularUtils.calcSigma(baselinePoints);
-        //jocularMain.getCurrentSolution().sigmaB = sigma;
-        sigmaBtext.setText(String.format("%.4f", sigma));
+        if (eventPoints.size() < 2) {
+             jocularMain.showErrorDialog("Cannot calculate event noise because less than 2 points available", jocularMain.primaryStage);
+            sigmaAtext.setText("NaN");
+        } else {
+            sigma = JocularUtils.calcSigma(eventPoints);
+            sigmaAtext.setText(String.format("%.4f", sigma));
+        }
 
-//        if (useBaselineNoiseAsEventNoiseCheckbox.isSelected() || eventPoints.size() < 2) {
-//            sigmaAtext.setText(sigmaBtext.getText());
-//            return;
-//        }
-
-        sigma = JocularUtils.calcSigma(eventPoints);
-        //jocularMain.getCurrentSolution().sigmaA = sigma;
-        sigmaAtext.setText(String.format("%.4f", sigma));
-
-        if (eventPoints.size() < 10) {
+        if (eventPoints.size()
+            < 10) {
             jocularMain.showInformationDialog(
                 "There are only " + eventPoints.size() + " points in the 'event'."
                 + "  This will give an unreliable estimate of the event noise.",
@@ -770,10 +769,11 @@ public class RootViewController implements Initializable {
             );
         }
 
-        if (baselinePoints.size() < 10) {
+        if (baselinePoints.size()
+            < 10) {
             jocularMain.showInformationDialog(
                 "There are only " + baselinePoints.size() + " points in the 'baseline'."
-                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain.", 
+                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain.",
                 jocularMain.primaryStage
             );
         }
@@ -906,6 +906,7 @@ public class RootViewController implements Initializable {
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         return;
+
     }
 
     class LogLcomparator implements Comparator<SqSolution> {
@@ -922,8 +923,9 @@ public class RootViewController implements Initializable {
         generalPurposeProgressBar.setProgress(0.0);
         progressLabel.setText("");
     }
+
     private void handleSolverCancelled(WorkerStateEvent event) {
-       resetProgressIndicator();
+        resetProgressIndicator();
     }
 
     private void handleSolverFailed(WorkerStateEvent event) {

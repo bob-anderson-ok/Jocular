@@ -166,7 +166,7 @@ public class ErrorBarFXMLController implements Initializable {
                 + " Number of rejects: " + monteCarloResult.numRejections,
                                         jocularMain.errorBarPanelStage);
             clearListViewsAndPlot();
-            return;
+            //return;
         }
 
         // Display the histogram array in the mainListView.

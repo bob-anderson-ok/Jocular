@@ -313,6 +313,20 @@ sup {
 
 <h2>Report</h2>
 
-<p>coming soon to a screen near you  :)</p>
+<p>The report is self-explanatory except for two things:</p>
+
+<ul>
+<li><p>Error bars are determined in one of two ways, depending on the noise environment of the observation and the particular 'solution' chosen. The first line of the report tells which method was used in the preparation of the report.  It will say:</p>
+
+<ul>
+<li><code>Error bars: sub-frame timing</code> to indicate that the 'solution' qualified for sub-frame timing (see <strong>Help | About</strong> for details on this concept)
+
+<h3></h3></li>
+<li>or <code>`Error bars: monte carlo trials</code> if error bars had to be estimated by monte carlo simulations.</li>
+</ul>
+</li>
+<li><p>The report uses error bars for one of four selectable confidence intervals with the selection controlled by the column of radio-buttons headed by the label <code>CI %</code>. Only the currently 'selected' confidence interval is used, but changing the selection will cause a new report to be immediately generated using the new confidence interval.</p></li>
+</ul>
+
 </body>
 </html>

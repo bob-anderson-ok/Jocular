@@ -6,10 +6,10 @@
 
 ### Overview --- trim markers
 
-**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution (and noise estimation) process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the  **Apply** button is 
+**<font color=blue>Trim markers</font>** (color coded blue) are used to tell Jocular which observation points can be excluded from the solution (and noise estimation) process. None, one, or both of these markers can be specified. Points to the left of the left trim marker are excluded while points to the right of the right trim are excluded when the  `Apply` button is 
 clicked.
 
-When the **Apply** button is clicked, the trim markers are automatically cleared so that a subsequent click on the button will easily 'undo' the trim action.
+When `Apply` is clicked, the trim markers are automatically cleared so that a subsequent click on `Apply` will 'undo' the trim action.
 
 ### Overview --- D and R markers 
 
@@ -50,12 +50,12 @@ Click the radio button that corresponds to the marker that is to be adjusted, th
 
 #### Deleting a marker ---
 
-Click the radio button that corresponds to the marker that is to be removed completely, then click the **Erase Marker** button.
+Click the radio button that corresponds to the marker that is to be removed completely, then click the `Erase Marker` button.
 
 #### Temporarily hiding marker ---
 
-To reduce visual clutter, the markers may be hidden by clicking the **Hide/Unhide** button. The markers remain effective whether or not they are hidden from sight.
+To reduce visual clutter, the markers may be hidden by clicking the `Hide/Unhide` button. The markers remain effective whether or not they are hidden from sight.
 
 #### Erase all markers ---
 
-Click the **Erase All** button is a time saver if more than one previously placed marker is to be deleted.
+Click the `Erase All` button is a time saver if more than one previously placed marker is to be deleted.

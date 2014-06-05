@@ -65,7 +65,7 @@ public class JocularMain extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
+        
         for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
             ErrBarService ebs = new ErrBarService();
             multiCoreErrBarServices.add(ebs);
