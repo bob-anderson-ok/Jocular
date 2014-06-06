@@ -16,7 +16,7 @@
     <children>
         <LineChart fx:id="mainChart" alternativeRowFillVisible="false" animated="false" horizontalZeroLineVisible="false" layoutX="40.0" layoutY="14.0" legendVisible="false" onContextMenuRequested="#respondToRightButtonClick" title="Probability Mass Distribution" verticalGridLinesVisible="false" verticalZeroLineVisible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <xAxis>
-                <StableTicksAxis animated="false" minorTickCount="1" side="BOTTOM" />
+                <StableTicksAxis animated="false" side="BOTTOM" />
             </xAxis>
             <yAxis>
                 <StableTicksAxis animated="false" minorTickCount="1" side="LEFT" />

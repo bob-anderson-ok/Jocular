@@ -45,7 +45,7 @@ public class JocularMain extends Application {
     private Observation obsInMainPlot = null;
     private SqSolution currentSqSolution = null;
     private HashMap<String, ErrorBarItem> errBarData;
-    
+
     private RootViewController rootViewController;
     private Stage sampleDataDialogStage;
     private ArrayList<Stage> openHelpScreenList = new ArrayList<>();
@@ -65,12 +65,12 @@ public class JocularMain extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        
+
         for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
             ErrBarService ebs = new ErrBarService();
             multiCoreErrBarServices.add(ebs);
         }
-        
+
         // We save this reference because some other dialogs that we will be
         // creating need to be able to provide it as a 'parent'
         this.primaryStage = primaryStage;
@@ -326,11 +326,11 @@ public class JocularMain extends Application {
     public void setCurrentErrBarValues(HashMap<String, ErrorBarItem> errBarData) {
         this.errBarData = errBarData;
     }
-    
+
     public HashMap<String, ErrorBarItem> getCurrentErrBarValues() {
         return errBarData;
     }
-    
+
     public void addSampleCurveToMainPlot(SqSolution solution) {
         rootViewController.addSampleCurveToMainPlot(solution);
     }
@@ -426,15 +426,20 @@ public class JocularMain extends Application {
                             newSolution.dTransitionIndex = dTranCandidates[i];
                             newSolution.rTransitionIndex = rTranCandidates[j];
 
-                            newSolution.logL = sqmodel
+                            sqmodel
                                 .setDtransition(newSolution.dTransitionIndex)
-                                .setRtransition(newSolution.rTransitionIndex)
+                                .setRtransition(newSolution.rTransitionIndex);
+                                
+                            
+                            // We let sqmodel determine when a dTran:rTran
+                            // combination is valid.
+                            if (!sqmodel.validTransitionPair()) {
+                                continue;
+                            }
+                            
+                            newSolution.logL = sqmodel
                                 .calcLogL(sigmaB, sigmaA);
 
-                            // We let sqmodel determine when a dTran:rTran
-                            // combination is valid.  It lets us know the combo
-                            // is invalid (too few event or baseline points) by
-                            // returning NaN for logL.
                             if (Double.isNaN(newSolution.logL)) {
                                 continue;
                             }
@@ -467,17 +472,17 @@ public class JocularMain extends Application {
             };
         }
     }
-    
-    public void errBarServiceStart (TrialParams trialParams,
-                                    EventHandler<WorkerStateEvent> successHandler,
-                                    EventHandler<WorkerStateEvent> cancelledHandler,
-                                    EventHandler<WorkerStateEvent> failedHandler,
-                                    DoubleProperty progressProperty) {
-        
+
+    public void errBarServiceStart(TrialParams trialParams,
+                                   EventHandler<WorkerStateEvent> successHandler,
+                                   EventHandler<WorkerStateEvent> cancelledHandler,
+                                   EventHandler<WorkerStateEvent> failedHandler,
+                                   DoubleProperty progressProperty) {
+
         int totalTrials = trialParams.numTrials;
         int numCores = Runtime.getRuntime().availableProcessors();
         int numTrialsPerCore = totalTrials / numCores;
-        
+
         for (ErrBarService ebs : multiCoreErrBarServices) {
             progressProperty.bind(ebs.progressProperty());
             ebs.settrialParams(trialParams);
@@ -486,18 +491,18 @@ public class JocularMain extends Application {
             ebs.setOnCancelled(cancelledHandler);
             ebs.setOnFailed(failedHandler);
         }
-        
+
         // If the numTrials was not an even multiple of the number of cores,
         // we need to add the remainder to one of the threads.
         multiCoreErrBarServices.get(0).setExtraTrials(totalTrials % numCores);
-        
+
         for (ErrBarService ebs : multiCoreErrBarServices) {
             ebs.reset();
             ebs.restart();
         }
-        
+
     }
-    
+
     public boolean errBarServiceFinished() {
         for (ErrBarService ebs : multiCoreErrBarServices) {
             if (ebs.getState() != Worker.State.SUCCEEDED) {
@@ -506,7 +511,7 @@ public class JocularMain extends Application {
         }
         return true;
     }
-    
+
     public boolean errBarServiceRunning() {
         for (ErrBarService ebs : multiCoreErrBarServices) {
             if (ebs.getState() == Worker.State.RUNNING || ebs.getState() == Worker.State.SCHEDULED) {
@@ -515,7 +520,7 @@ public class JocularMain extends Application {
         }
         return false;
     }
-    
+
     public MonteCarloResult getErrBarServiceCumResults() {
         MonteCarloResult monteCarloResult = new MonteCarloResult();
         MonteCarloResult partialResult = new MonteCarloResult();
@@ -532,7 +537,7 @@ public class JocularMain extends Application {
         }
         return monteCarloResult;
     }
-    
+
     public void cancelErrBarService() {
         for (ErrBarService ebs : multiCoreErrBarServices) {
             ebs.cancel();
@@ -543,17 +548,17 @@ public class JocularMain extends Application {
 
         private TrialParams trialParams;
         private MonteCarloResult ans;
-        private int extraTrials=0;
-        private int trialsPerCore=0;
+        private int extraTrials = 0;
+        private int trialsPerCore = 0;
 
         public void settrialParams(TrialParams trialParams) {
             this.trialParams = trialParams;
         }
-        
+
         public void setExtraTrials(int extraTrials) {
             this.extraTrials = extraTrials;
         }
-        
+
         public void settrialsPerCore(int trialsPerCore) {
             this.trialsPerCore = trialsPerCore;
         }

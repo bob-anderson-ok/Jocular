@@ -47,7 +47,7 @@ public class SqModel {
         return this;
     }
 
-    public double calcLogL(double sigmaB, double sigmaA) {
+    public boolean validTransitionPair() {
         resetCalculation();
 
         trimOffset = obs.readingNumbers[0];
@@ -58,22 +58,30 @@ public class SqModel {
         // computation of A and B.  We return NaN and let
         // the caller test for this.
         if (numBaselinePoints < 1 || numEventPoints < 1) {
-            return Double.NaN;
+            return false;
         }
         
         if ( numEventPoints < minEventSize ) {
-            return Double.NaN;
+            return false;
         }
         
         if ( minEventSize > 0 && numEventPoints < minEventSize) {
-            return Double.NaN;
+            return false;
         }
         
         if ( maxEventSize > 0 && numEventPoints > maxEventSize) {
-            return Double.NaN;
+            return false;
         }
 
         if (dTranIndex > rTranIndex) {
+            return false;
+        }
+        return true;
+    }
+    
+    public double calcLogL(double sigmaB, double sigmaA) {
+
+        if ( ! validTransitionPair() ) {
             return Double.NaN;
         }
 
