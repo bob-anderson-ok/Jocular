@@ -414,6 +414,31 @@ public class JocularMain extends Application {
                     numValidTranPairs = 0;
                     int loopCount = 0;
                     int maxLoopCount = dTranCandidates.length * rTranCandidates.length;
+                    
+                    // Build a one dimensional array of acceptable transition pairs. Two
+                    // parallel arrays will hold the validated pairs. The arrays are longer than needed,
+                    // but we'll keep a count of how much is valid for later use in chopping up
+                    // the work into equal amounts for each core.
+                    int[] dTran = new int[dTranCandidates.length * rTranCandidates.length];
+                    int[] rTran = new int[dTranCandidates.length * rTranCandidates.length];
+                    int emptyLocationIndex = 0;
+                    
+                    for (int i = 0; i < dTranCandidates.length; i++) {
+                        for (int j = 0; j < rTranCandidates.length; j++) {
+                            sqmodel
+                                .setDtransition(dTranCandidates[i])
+                                .setRtransition(rTranCandidates[j]);
+                            if (!sqmodel.validTransitionPair()) {
+                                continue;
+                            } else {
+                                dTran[emptyLocationIndex] = dTranCandidates[i];
+                                rTran[emptyLocationIndex] = rTranCandidates[j];
+                                emptyLocationIndex++;
+                            }
+                        }
+                    }
+                    System.out.println("length of dTran/rTran arrays: " + emptyLocationIndex);
+                    
                     search:
                     for (int i = 0; i < dTranCandidates.length; i++) {
                         for (int j = 0; j < rTranCandidates.length; j++) {
@@ -429,7 +454,6 @@ public class JocularMain extends Application {
                             sqmodel
                                 .setDtransition(newSolution.dTransitionIndex)
                                 .setRtransition(newSolution.rTransitionIndex);
-                                
                             
                             // We let sqmodel determine when a dTran:rTran
                             // combination is valid.

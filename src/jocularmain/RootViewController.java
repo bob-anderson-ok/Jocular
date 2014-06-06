@@ -928,7 +928,7 @@ public class RootViewController implements Initializable {
     }
 
     private void handleSolverFailed(WorkerStateEvent event) {
-        System.out.println("Solver failed.");
+        jocularMain.showErrorDialog("Solver failed. " + jocularMain.solverService.exceptionProperty().toString(), jocularMain.primaryStage);
         resetProgressIndicator();
     }
 
