@@ -58,6 +58,7 @@ public class JocularMain extends Application {
     public SolverService solverService = new SolverService();
 
     private List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
+    private List<SolverService> multiCoreSolverService = new ArrayList<>();
 
     public static void main(String[] args) {
         launch(args);
@@ -69,6 +70,11 @@ public class JocularMain extends Application {
         for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
             ErrBarService ebs = new ErrBarService();
             multiCoreErrBarServices.add(ebs);
+        }
+
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+            SolverService solService = new SolverService();
+            multiCoreSolverService.add(solService);
         }
 
         // We save this reference because some other dialogs that we will be
@@ -383,7 +389,7 @@ public class JocularMain extends Application {
         solverService.setTranPairs(dTran, rTran, tranPairArraySize);
     }
 
-    public class SolverService extends Service<List<SqSolution>> {
+    public class SolverService extends Service<Void> {
 
         // private variables requiring initialization
         int[] dTran;
@@ -399,10 +405,10 @@ public class JocularMain extends Application {
         // return variables
         int numValidTranPairs;
         SolutionStats solutionStats;
-
+        List<SqSolution> sqsolutions;
+        
         // local variables
         double solMagDrop;
-        
 
         // setters of private variables go here
         public final void setsolutionStats(SolutionStats solutionStats) {
@@ -448,12 +454,16 @@ public class JocularMain extends Application {
             return solutionStats;
         }
 
+        public final List<SqSolution> getSolutionList() {
+            return sqsolutions;
+        }
+
         @Override
-        protected Task<List<SqSolution>> createTask() {
-            return new Task<List<SqSolution>>() {
+        protected Task<Void> createTask() {
+            return new Task<Void>() {
                 @Override
-                protected List<SqSolution> call() {
-                    List<SqSolution> sqsolutions = new ArrayList<>();
+                protected Void call() {
+                    sqsolutions = new ArrayList<>();
                     // work goes in here
                     numValidTranPairs = 0;
 
@@ -509,7 +519,7 @@ public class JocularMain extends Application {
 
                         sqsolutions.add(newSolution);
                     }
-                    return sqsolutions;
+                    return null;
                 }
             };
         }

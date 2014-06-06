@@ -934,7 +934,7 @@ public class RootViewController implements Initializable {
 
     private void handleSolverDone(WorkerStateEvent event) {
         resetProgressIndicator();
-        solutions = jocularMain.solverService.getValue();
+        solutions = jocularMain.solverService.getSolutionList();
         ObservableList<String> items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
             items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");

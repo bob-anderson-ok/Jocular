@@ -169,16 +169,6 @@ public class SqSolver {
             minMagDrop,
             maxMagDrop);
 
-//        jocularMain.solverService.setsolutionStats(solutionStats);
-//        jocularMain.solverService.setdTranCandidates(dTranCandidates);
-//        jocularMain.solverService.setrTranCandidates(rTranCandidates);
-//        jocularMain.solverService.setsqmodel(sqmodel);
-//        jocularMain.solverService.setsigmaB(sigmaB);
-//        jocularMain.solverService.setsigmaA(sigmaA);
-//        jocularMain.solverService.setn(n);
-//        jocularMain.solverService.setminMagDrop(minMagDrop);
-//        jocularMain.solverService.setmaxMagDrop(maxMagDrop);
-
         jocularMain.solverService.reset();
         jocularMain.solverService.restart();
 
