@@ -20,7 +20,8 @@ public class SqSolver {
     /**
      * is the left limit (inclusive) of candidate d transition indices.
      * <p>
-     * It can be negative to indicate that the leftmost d transition is outside of the observation data range.
+     * It can be negative to indicate that the leftmost d transition is outside
+     * of the observation data range.
      */
     public static int dLeft;
 
@@ -29,7 +30,8 @@ public class SqSolver {
      * <p>
      * It must be less than rLeft and >= dLeft
      * <p>
-     * It can be negative to indicate that there is no candidate d transition in the observation data range.
+     * It can be negative to indicate that there is no candidate d transition in
+     * the observation data range.
      */
     public static int dRight;
 
@@ -38,7 +40,8 @@ public class SqSolver {
      * <p>
      * It must be greater than dRight.
      * <p>
-     * It can be outside the observation data range (> data length) to indicate that there is no candidate r transition in the observation.
+     * It can be outside the observation data range (> data length) to indicate
+     * that there is no candidate r transition in the observation.
      */
     public static int rLeft;
 
@@ -47,7 +50,8 @@ public class SqSolver {
      * <p>
      * It must be greater than rLeft.
      * <p>
-     * It can be outside the observation data range (> data length) to indicate that there is no righthand r transition in the observation.
+     * It can be outside the observation data range (> data length) to indicate
+     * that there is no righthand r transition in the observation.
      *
      */
     public static int rRight;
@@ -153,25 +157,30 @@ public class SqSolver {
         solutionStats.numValidTransitionPairs = numValidTranPairs;
         solutionStats.straightLineLogL = straightLineLogL;
         solutionStats.straightLineAICc = JocularUtils.aicc(straightLineLogL, 1, n);
-        
-        jocularMain.solverService.setsolutionStats(solutionStats);
-        jocularMain.solverService.setdTranCandidates(dTranCandidates);
-        jocularMain.solverService.setrTranCandidates(rTranCandidates);
-        jocularMain.solverService.setsqmodel(sqmodel);
-        jocularMain.solverService.setsigmaB(sigmaB);
-        jocularMain.solverService.setsigmaA(sigmaA);
-        jocularMain.solverService.setn(n);
-        jocularMain.solverService.setminMagDrop(minMagDrop);
-        jocularMain.solverService.setmaxMagDrop(maxMagDrop);
-     
 
-        //System.out.println("solverService: " + jocularMain.solverService.getState());
+        jocularMain.setupSolverService(
+            solutionStats,
+            dTranCandidates,
+            rTranCandidates,
+            sqmodel,
+            sigmaB,
+            sigmaA,
+            n,
+            minMagDrop,
+            maxMagDrop);
+
+//        jocularMain.solverService.setsolutionStats(solutionStats);
+//        jocularMain.solverService.setdTranCandidates(dTranCandidates);
+//        jocularMain.solverService.setrTranCandidates(rTranCandidates);
+//        jocularMain.solverService.setsqmodel(sqmodel);
+//        jocularMain.solverService.setsigmaB(sigmaB);
+//        jocularMain.solverService.setsigmaA(sigmaA);
+//        jocularMain.solverService.setn(n);
+//        jocularMain.solverService.setminMagDrop(minMagDrop);
+//        jocularMain.solverService.setmaxMagDrop(maxMagDrop);
+
         jocularMain.solverService.reset();
-        //System.out.println("solverService: " + jocularMain.solverService.getState());
         jocularMain.solverService.restart();
-        //System.out.println("solverService: " + jocularMain.solverService.getState());
 
     }
 }
-
-

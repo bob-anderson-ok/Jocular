@@ -343,24 +343,55 @@ public class JocularMain extends Application {
         rootViewController.clearSolutionList();
     }
 
+    public void setupSolverService(
+        SolutionStats solutionStats,
+        int[] dTranCandidates, int[] rTranCandidates,
+        SqModel sqmodel,
+        double sigmaB, double sigmaA,
+        int n,
+        double minMagDrop, double maxMagDrop
+    ) {
+        solverService.setsolutionStats(solutionStats);
+        solverService.setdTranCandidates(dTranCandidates);
+        solverService.setrTranCandidates(rTranCandidates);
+        solverService.setsqmodel(sqmodel);
+        solverService.setsigmaB(sigmaB);
+        solverService.setsigmaA(sigmaA);
+        solverService.setn(n);
+        solverService.setminMagDrop(minMagDrop);
+        solverService.setmaxMagDrop(maxMagDrop);
+    }
+
     public class SolverService extends Service<List<SqSolution>> {
 
-        // private variables go here
+        // private variables requiring initialization
         int[] dTranCandidates;
         int[] rTranCandidates;
         int n;
         SqModel sqmodel;
         double sigmaB;
         double sigmaA;
-        double solMagDrop;
         double minMagDrop;
         double maxMagDrop;
+
+        // return variables
         int numValidTranPairs;
         SolutionStats solutionStats;
 
-        // setters of private variable go here
+        // local variables
+        double solMagDrop;
+        int[] dTran;
+        int[] rTran;
+
+        // setters of private variables go here
         public final void setsolutionStats(SolutionStats solutionStats) {
             this.solutionStats = solutionStats;
+        }
+
+        public final void setTranPairs(int[] dTran, int[] rTran) {
+            this.dTran = dTran;
+            this.rTran = rTran;
+
         }
 
         public final void setdTranCandidates(int[] dTran) {
@@ -412,7 +443,7 @@ public class JocularMain extends Application {
                     List<SqSolution> sqsolutions = new ArrayList<>();
                     // work goes in here
                     numValidTranPairs = 0;
-                    
+
                     // Build a one dimensional array of acceptable transition pairs. Two
                     // parallel arrays will hold the validated pairs. The arrays are longer than needed,
                     // but we'll keep a count of how much is valid for later use in chopping up
@@ -420,7 +451,7 @@ public class JocularMain extends Application {
                     int[] dTran = new int[dTranCandidates.length * rTranCandidates.length];
                     int[] rTran = new int[dTranCandidates.length * rTranCandidates.length];
                     int tranPairArraySize = 0;
-                    
+
                     for (int i = 0; i < dTranCandidates.length; i++) {
                         for (int j = 0; j < rTranCandidates.length; j++) {
                             sqmodel
@@ -436,62 +467,60 @@ public class JocularMain extends Application {
                         }
                     }
                     System.out.println("length of dTran/rTran arrays: " + tranPairArraySize);
-                    
+
                     int loopCount = 0;
                     //int maxLoopCount = dTranCandidates.length * rTranCandidates.length;
                     int maxLoopCount = tranPairArraySize;
-                    
+
                     search:
                     for (int i = 0; i < tranPairArraySize; i++) {
-                        //for (int j = 0; j < rTranCandidates.length; j++) {
-                            if (isCancelled()) {
-                                break search;
-                            }
-                            loopCount++;
-                            updateProgress(loopCount, maxLoopCount);
-                            SqSolution newSolution = new SqSolution();
-                            newSolution.dTransitionIndex = dTran[i];
-                            newSolution.rTransitionIndex = rTran[i];
+                        if (isCancelled()) {
+                            break search;
+                        }
+                        loopCount++;
+                        updateProgress(loopCount, maxLoopCount);
+                        SqSolution newSolution = new SqSolution();
+                        newSolution.dTransitionIndex = dTran[i];
+                        newSolution.rTransitionIndex = rTran[i];
 
-                            sqmodel
-                                .setDtransition(newSolution.dTransitionIndex)
-                                .setRtransition(newSolution.rTransitionIndex);
-                            
-                            // We let sqmodel determine when a dTran:rTran
-                            // combination is valid.
-                            if (!sqmodel.validTransitionPair()) {
-                                continue;
-                            }
-                            
-                            newSolution.logL = sqmodel
-                                .calcLogL(sigmaB, sigmaA);
+                        sqmodel
+                            .setDtransition(newSolution.dTransitionIndex)
+                            .setRtransition(newSolution.rTransitionIndex);
 
-                            if (Double.isNaN(newSolution.logL)) {
-                                continue;
-                            }
+                        // We let sqmodel determine when a dTran:rTran
+                        // combination is valid.
+                        if (!sqmodel.validTransitionPair()) {
+                            continue;
+                        }
 
-                            solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
+                        newSolution.logL = sqmodel
+                            .calcLogL(sigmaB, sigmaA);
 
-                            if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
-                                continue;
-                            }
+                        if (Double.isNaN(newSolution.logL)) {
+                            continue;
+                        }
 
-                            numValidTranPairs++;
+                        solMagDrop = JocularUtils.calcMagDrop(sqmodel.getB(), sqmodel.getA());
 
-                            newSolution.D = sqmodel.getDsolution();
-                            newSolution.R = sqmodel.getRsolution();
-                            newSolution.B = sqmodel.getB();
-                            newSolution.A = sqmodel.getA();
-                            newSolution.numBaselinePoints = sqmodel.getNumBaselinePoints();
-                            newSolution.numEventPoints = sqmodel.getNumEventPoints();
-                            newSolution.magDrop = solMagDrop;
-                            newSolution.sigmaB = sigmaB;
-                            newSolution.sigmaA = sigmaA;
-                            newSolution.kFactor = sqmodel.getkFactor();
-                            newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
+                        if (Double.isNaN(solMagDrop) || solMagDrop < minMagDrop || solMagDrop > maxMagDrop) {
+                            continue;
+                        }
 
-                            sqsolutions.add(newSolution);
-                        //}
+                        numValidTranPairs++;
+
+                        newSolution.D = sqmodel.getDsolution();
+                        newSolution.R = sqmodel.getRsolution();
+                        newSolution.B = sqmodel.getB();
+                        newSolution.A = sqmodel.getA();
+                        newSolution.numBaselinePoints = sqmodel.getNumBaselinePoints();
+                        newSolution.numEventPoints = sqmodel.getNumEventPoints();
+                        newSolution.magDrop = solMagDrop;
+                        newSolution.sigmaB = sigmaB;
+                        newSolution.sigmaA = sigmaA;
+                        newSolution.kFactor = sqmodel.getkFactor();
+                        newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
+
+                        sqsolutions.add(newSolution);
                     }
                     return sqsolutions;
                 }
