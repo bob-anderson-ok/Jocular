@@ -18,6 +18,8 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import org.gillius.jfxutils.chart.ManagedChart;
+import org.gillius.jfxutils.chart.StableTicksAxis;
 import utils.ErrBarUtils;
 import utils.ErrorBarItem;
 import utils.HistStatItem;
@@ -25,6 +27,8 @@ import utils.MonteCarloResult;
 
 public class ErrorBarFXMLController implements Initializable {
 
+    private static ManagedChart smartChart;
+    
     private static final int EMPTY_FIELD = -1;
     private static final int FIELD_ENTRY_ERROR = -2;
 
@@ -68,19 +72,6 @@ public class ErrorBarFXMLController implements Initializable {
     RadioButton leftEdgeRadioButton;
     @FXML
     RadioButton midPointRadioButton;
-
-    @FXML
-    RadioButton onexRadioButton;
-    @FXML
-    RadioButton twoxRadioButton;
-    @FXML
-    RadioButton fivexRadioButton;
-    @FXML
-    RadioButton tenxRadioButton;
-    @FXML
-    RadioButton twentyxRadioButton;
-    @FXML
-    RadioButton scaleToPeakRadioButton;
 
     @FXML
     ListView mainListView;
@@ -313,33 +304,6 @@ public class ErrorBarFXMLController implements Initializable {
         if (!overplotCheckbox.isSelected()) {
             mainChart.getData().clear();
         }
-
-        int yMax;
-
-        if (twoxRadioButton.isSelected()) {
-            yMax = numTrials / 2;
-        } else if (fivexRadioButton.isSelected()) {
-            yMax = numTrials / 5;
-        } else if (tenxRadioButton.isSelected()) {
-            yMax = numTrials / 10;
-        } else if (twentyxRadioButton.isSelected()) {
-            yMax = numTrials / 20;
-        } else if (scaleToPeakRadioButton.isSelected()) {
-            yMax = maxValue(values);
-        } else {
-            yMax = numTrials;
-        }
-
-        NumberAxis yaxis = (NumberAxis) mainChart.getYAxis();
-        yaxis.setLowerBound(-yMax / 10);
-        yaxis.setUpperBound(yMax + yMax / 10);
-        yaxis.setTickUnit(yMax / 10);
-
-        NumberAxis xaxis = (NumberAxis) mainChart.getXAxis();
-        xaxis.setLowerBound(-numPoints / 10);
-        xaxis.setUpperBound(numPoints + numPoints / 10);
-        xaxis.setTickUnit(numPoints / 10);
-
         mainChart.getData().add(getMassDistributionSeries(values));
     }
 
@@ -403,9 +367,22 @@ public class ErrorBarFXMLController implements Initializable {
         }
     }
 
+    @FXML
+    void respondToRightButtonClick() {
+        revertToOriginalAxisScaling();
+    }
+    
+    private void revertToOriginalAxisScaling() {
+        mainChart.getXAxis().setAutoRanging(true);
+        mainChart.getYAxis().setAutoRanging(true);
+    }
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Don't need to intialize anything here.
+        // Add zoom, pan, and marker managers to 'chart'.  Note that this will
+        // also turn off animation in the chart and axes and turn off auto-ranging
+        // on the axes.
+        smartChart = new ManagedChart(mainChart);
     }
 
 }

@@ -906,7 +906,6 @@ public class RootViewController implements Initializable {
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         return;
-
     }
 
     class LogLcomparator implements Comparator<SqSolution> {

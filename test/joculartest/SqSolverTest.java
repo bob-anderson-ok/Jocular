@@ -97,49 +97,49 @@ public class SqSolverTest {
 //
 //    }
 
-    @Test
-    public void computeCandidates_getsDandRlimitsRight_whenDmarkersNotInUse() {
+//    @Test
+//    public void computeCandidates_getsDandRlimitsRight_whenDmarkersNotInUse() {
+//
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(dLeftMarker.isInUse()).thenReturn(false);
+//        when(dRightMarker.isInUse()).thenReturn(false);
+//
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//
+//        assertThat(SqSolver.dLeft).isEqualTo(5);
+//        assertThat(SqSolver.dRight).isEqualTo(150);
+//        assertThat(SqSolver.rLeft).isEqualTo(71);
+//        assertThat(SqSolver.rRight).isEqualTo(81);
+//    }
 
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        when(dLeftMarker.isInUse()).thenReturn(false);
-        when(dRightMarker.isInUse()).thenReturn(false);
-
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        assertThat(SqSolver.dLeft).isEqualTo(5);
-        assertThat(SqSolver.dRight).isEqualTo(150);
-        assertThat(SqSolver.rLeft).isEqualTo(71);
-        assertThat(SqSolver.rRight).isEqualTo(81);
-    }
-
-    @Test
-    public void computeCandidates_getsDandRlimitsRight_whenRmarkersNotInUse() {
-
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        when(rLeftMarker.isInUse()).thenReturn(false);
-        when(rRightMarker.isInUse()).thenReturn(false);
-
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        assertThat(SqSolver.dLeft).isEqualTo(8);
-        assertThat(SqSolver.dRight).isEqualTo(15);
-        assertThat(SqSolver.rLeft).isEqualTo(5);
-        assertThat(SqSolver.rRight).isEqualTo(150);
-    }
+//    @Test
+//    public void computeCandidates_getsDandRlimitsRight_whenRmarkersNotInUse() {
+//
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(rLeftMarker.isInUse()).thenReturn(false);
+//        when(rRightMarker.isInUse()).thenReturn(false);
+//
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//
+//        assertThat(SqSolver.dLeft).isEqualTo(8);
+//        assertThat(SqSolver.dRight).isEqualTo(15);
+//        assertThat(SqSolver.rLeft).isEqualTo(5);
+//        assertThat(SqSolver.rRight).isEqualTo(150);
+//    }
 
     @Test(expected = IllegalArgumentException.class)
     public void computeCandidates_throwsException_whenMarkersNotPaired() {
@@ -159,29 +159,29 @@ public class SqSolverTest {
 
     }
 
-    @Test
-    public void computeCandidates_getsDandRlimitsRight_whenNoMarkersInUse() {
-
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        when(dLeftMarker.isInUse()).thenReturn(false);
-        when(dRightMarker.isInUse()).thenReturn(false);
-        when(rLeftMarker.isInUse()).thenReturn(false);
-        when(rRightMarker.isInUse()).thenReturn(false);
-
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        assertThat(SqSolver.dLeft).isEqualTo(5);
-        assertThat(SqSolver.dRight).isEqualTo(150);
-        assertThat(SqSolver.rLeft).isEqualTo(5);
-        assertThat(SqSolver.rRight).isEqualTo(150);
-    }
+//    @Test
+//    public void computeCandidates_getsDandRlimitsRight_whenNoMarkersInUse() {
+//
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(dLeftMarker.isInUse()).thenReturn(false);
+//        when(dRightMarker.isInUse()).thenReturn(false);
+//        when(rLeftMarker.isInUse()).thenReturn(false);
+//        when(rRightMarker.isInUse()).thenReturn(false);
+//
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//
+//        assertThat(SqSolver.dLeft).isEqualTo(5);
+//        assertThat(SqSolver.dRight).isEqualTo(150);
+//        assertThat(SqSolver.rLeft).isEqualTo(5);
+//        assertThat(SqSolver.rRight).isEqualTo(150);
+//    }
 
     @Test(expected = IllegalArgumentException.class)
     public void computeCandidates_throwsException_whenRisBeforeD() {
