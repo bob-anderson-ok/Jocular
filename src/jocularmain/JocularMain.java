@@ -412,8 +412,6 @@ public class JocularMain extends Application {
                     List<SqSolution> sqsolutions = new ArrayList<>();
                     // work goes in here
                     numValidTranPairs = 0;
-                    int loopCount = 0;
-                    int maxLoopCount = dTranCandidates.length * rTranCandidates.length;
                     
                     // Build a one dimensional array of acceptable transition pairs. Two
                     // parallel arrays will hold the validated pairs. The arrays are longer than needed,
@@ -421,7 +419,7 @@ public class JocularMain extends Application {
                     // the work into equal amounts for each core.
                     int[] dTran = new int[dTranCandidates.length * rTranCandidates.length];
                     int[] rTran = new int[dTranCandidates.length * rTranCandidates.length];
-                    int emptyLocationIndex = 0;
+                    int tranPairArraySize = 0;
                     
                     for (int i = 0; i < dTranCandidates.length; i++) {
                         for (int j = 0; j < rTranCandidates.length; j++) {
@@ -431,25 +429,29 @@ public class JocularMain extends Application {
                             if (!sqmodel.validTransitionPair()) {
                                 continue;
                             } else {
-                                dTran[emptyLocationIndex] = dTranCandidates[i];
-                                rTran[emptyLocationIndex] = rTranCandidates[j];
-                                emptyLocationIndex++;
+                                dTran[tranPairArraySize] = dTranCandidates[i];
+                                rTran[tranPairArraySize] = rTranCandidates[j];
+                                tranPairArraySize++;
                             }
                         }
                     }
-                    System.out.println("length of dTran/rTran arrays: " + emptyLocationIndex);
+                    System.out.println("length of dTran/rTran arrays: " + tranPairArraySize);
+                    
+                    int loopCount = 0;
+                    //int maxLoopCount = dTranCandidates.length * rTranCandidates.length;
+                    int maxLoopCount = tranPairArraySize;
                     
                     search:
-                    for (int i = 0; i < dTranCandidates.length; i++) {
-                        for (int j = 0; j < rTranCandidates.length; j++) {
+                    for (int i = 0; i < tranPairArraySize; i++) {
+                        //for (int j = 0; j < rTranCandidates.length; j++) {
                             if (isCancelled()) {
                                 break search;
                             }
                             loopCount++;
                             updateProgress(loopCount, maxLoopCount);
                             SqSolution newSolution = new SqSolution();
-                            newSolution.dTransitionIndex = dTranCandidates[i];
-                            newSolution.rTransitionIndex = rTranCandidates[j];
+                            newSolution.dTransitionIndex = dTran[i];
+                            newSolution.rTransitionIndex = rTran[i];
 
                             sqmodel
                                 .setDtransition(newSolution.dTransitionIndex)
@@ -489,7 +491,7 @@ public class JocularMain extends Application {
                             newSolution.aicc = JocularUtils.aicc(newSolution.logL, newSolution.kFactor, n);
 
                             sqsolutions.add(newSolution);
-                        }
+                        //}
                     }
                     return sqsolutions;
                 }
