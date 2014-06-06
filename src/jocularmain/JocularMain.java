@@ -352,21 +352,43 @@ public class JocularMain extends Application {
         double minMagDrop, double maxMagDrop
     ) {
         solverService.setsolutionStats(solutionStats);
-        solverService.setdTranCandidates(dTranCandidates);
-        solverService.setrTranCandidates(rTranCandidates);
         solverService.setsqmodel(sqmodel);
         solverService.setsigmaB(sigmaB);
         solverService.setsigmaA(sigmaA);
         solverService.setn(n);
         solverService.setminMagDrop(minMagDrop);
         solverService.setmaxMagDrop(maxMagDrop);
+
+        // Build a one dimensional array of acceptable transition pairs. Two
+        // parallel arrays will hold the validated pairs. The arrays are longer than needed,
+        // but we'll keep a count of how much is valid for later use in chopping up
+        // the work into equal amounts for each core.
+        int[] dTran = new int[dTranCandidates.length * rTranCandidates.length];
+        int[] rTran = new int[dTranCandidates.length * rTranCandidates.length];
+        int tranPairArraySize = 0;
+        for (int i = 0; i < dTranCandidates.length; i++) {
+            for (int j = 0; j < rTranCandidates.length; j++) {
+                sqmodel
+                    .setDtransition(dTranCandidates[i])
+                    .setRtransition(rTranCandidates[j]);
+                if (!sqmodel.validTransitionPair()) {
+                    continue;
+                } else {
+                    dTran[tranPairArraySize] = dTranCandidates[i];
+                    rTran[tranPairArraySize] = rTranCandidates[j];
+                    tranPairArraySize++;
+                }
+            }
+        }
+        solverService.setTranPairs(dTran, rTran, tranPairArraySize);
     }
 
     public class SolverService extends Service<List<SqSolution>> {
 
         // private variables requiring initialization
-        int[] dTranCandidates;
-        int[] rTranCandidates;
+        int[] dTran;
+        int[] rTran;
+        int numPairs;
         int n;
         SqModel sqmodel;
         double sigmaB;
@@ -380,26 +402,17 @@ public class JocularMain extends Application {
 
         // local variables
         double solMagDrop;
-        int[] dTran;
-        int[] rTran;
+        
 
         // setters of private variables go here
         public final void setsolutionStats(SolutionStats solutionStats) {
             this.solutionStats = solutionStats;
         }
 
-        public final void setTranPairs(int[] dTran, int[] rTran) {
+        public final void setTranPairs(int[] dTran, int[] rTran, int numPairs) {
             this.dTran = dTran;
             this.rTran = rTran;
-
-        }
-
-        public final void setdTranCandidates(int[] dTran) {
-            dTranCandidates = dTran;
-        }
-
-        public final void setrTranCandidates(int[] rTran) {
-            rTranCandidates = rTran;
+            this.numPairs = numPairs;
         }
 
         public final void setsqmodel(SqModel sqmodel) {
@@ -444,38 +457,12 @@ public class JocularMain extends Application {
                     // work goes in here
                     numValidTranPairs = 0;
 
-                    // Build a one dimensional array of acceptable transition pairs. Two
-                    // parallel arrays will hold the validated pairs. The arrays are longer than needed,
-                    // but we'll keep a count of how much is valid for later use in chopping up
-                    // the work into equal amounts for each core.
-                    int[] dTran = new int[dTranCandidates.length * rTranCandidates.length];
-                    int[] rTran = new int[dTranCandidates.length * rTranCandidates.length];
-                    int tranPairArraySize = 0;
-
-                    for (int i = 0; i < dTranCandidates.length; i++) {
-                        for (int j = 0; j < rTranCandidates.length; j++) {
-                            sqmodel
-                                .setDtransition(dTranCandidates[i])
-                                .setRtransition(rTranCandidates[j]);
-                            if (!sqmodel.validTransitionPair()) {
-                                continue;
-                            } else {
-                                dTran[tranPairArraySize] = dTranCandidates[i];
-                                rTran[tranPairArraySize] = rTranCandidates[j];
-                                tranPairArraySize++;
-                            }
-                        }
-                    }
-                    System.out.println("length of dTran/rTran arrays: " + tranPairArraySize);
-
                     int loopCount = 0;
-                    //int maxLoopCount = dTranCandidates.length * rTranCandidates.length;
-                    int maxLoopCount = tranPairArraySize;
+                    int maxLoopCount = numPairs;
 
-                    search:
-                    for (int i = 0; i < tranPairArraySize; i++) {
+                    for (int i = 0; i < numPairs; i++) {
                         if (isCancelled()) {
-                            break search;
+                            break;
                         }
                         loopCount++;
                         updateProgress(loopCount, maxLoopCount);
