@@ -141,23 +141,23 @@ public class SqSolverTest {
 //        assertThat(SqSolver.rRight).isEqualTo(150);
 //    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void computeCandidates_throwsException_whenMarkersNotPaired() {
-
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        when(rRightMarker.isInUse()).thenReturn(false);
-        when(dLeftMarker.isInUse()).thenReturn(false);
-
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-    }
+//    @Test(expected = IllegalArgumentException.class)
+//    public void computeCandidates_throwsException_whenMarkersNotPaired() {
+//
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(rRightMarker.isInUse()).thenReturn(false);
+//        when(dLeftMarker.isInUse()).thenReturn(false);
+//
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//
+//    }
 
 //    @Test
 //    public void computeCandidates_getsDandRlimitsRight_whenNoMarkersInUse() {
@@ -183,48 +183,48 @@ public class SqSolverTest {
 //        assertThat(SqSolver.rRight).isEqualTo(150);
 //    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void computeCandidates_throwsException_whenRisBeforeD() {
-        int minEventSize = -1;
-        int maxEventSize = -1;
+//    @Test(expected = IllegalArgumentException.class)
+//    public void computeCandidates_throwsException_whenRisBeforeD() {
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(rLeftMarker.getXValue()).thenReturn(1.5);
+//        when(rRightMarker.getXValue()).thenReturn(1.5);
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//    }
 
-        when(rLeftMarker.getXValue()).thenReturn(1.5);
-        when(rRightMarker.getXValue()).thenReturn(1.5);
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-    }
+//    @Test(expected = IllegalArgumentException.class)
+//    public void computeCandidates_throwsException_whenDlimitsFlipped() {
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(dLeftMarker.getXValue()).thenReturn(15.5);
+//        when(dRightMarker.getXValue()).thenReturn(7.5);
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void computeCandidates_throwsException_whenDlimitsFlipped() {
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        when(dLeftMarker.getXValue()).thenReturn(15.5);
-        when(dRightMarker.getXValue()).thenReturn(7.5);
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void computeCandidates_throwsException_whenRlimitsFlipped() {
-        int minEventSize = -1;
-        int maxEventSize = -1;
-
-        when(rLeftMarker.getXValue()).thenReturn(81.5);
-        when(rRightMarker.getXValue()).thenReturn(70.5);
-        SqSolver.computeCandidates(
-            jocularMain, solStat,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-    }
+//    @Test(expected = IllegalArgumentException.class)
+//    public void computeCandidates_throwsException_whenRlimitsFlipped() {
+//        int minEventSize = -1;
+//        int maxEventSize = -1;
+//
+//        when(rLeftMarker.getXValue()).thenReturn(81.5);
+//        when(rRightMarker.getXValue()).thenReturn(70.5);
+//        SqSolver.computeCandidates(
+//            jocularMain, solStat,
+//            sigmaB, sigmaA,
+//            minMagDrop, maxMagDrop,
+//            minEventSize, maxEventSize,
+//            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+//    }
 }

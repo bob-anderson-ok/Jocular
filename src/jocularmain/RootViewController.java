@@ -34,6 +34,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import jocularmain.JocularMain.SolverService;
 import org.gillius.jfxutils.chart.ManagedChart;
 import org.gillius.jfxutils.chart.StableTicksAxis;
 import utils.ErrBarUtils;
@@ -167,7 +168,7 @@ public class RootViewController implements Initializable {
         }
 
         boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
-        boolean solverServiceRunning = jocularMain.solverService.getState() == Worker.State.RUNNING;
+        boolean solverServiceRunning = jocularMain.solverServiceRunning();
         if (errBarServiceRunning || solverServiceRunning) {
             jocularMain.showInformationDialog(
                 "There is already an error bar calculation or solution in progress",
@@ -563,7 +564,7 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doReadLimovieFile() {
-        if (jocularMain.solverService.isRunning()) {
+        if (jocularMain.solverServiceRunning()) {
             jocularMain.showInformationDialog("This operation is blocked: solution process on current"
                 + " observation is in progress.", jocularMain.primaryStage);
             return;
@@ -573,7 +574,7 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void doReadTangraFile() {
-        if (jocularMain.solverService.isRunning()) {
+        if (jocularMain.solverServiceRunning()) {
             jocularMain.showInformationDialog("This operation is blocked: solution process on current"
                 + " observation is in progress.", jocularMain.primaryStage);
             return;
@@ -813,7 +814,7 @@ public class RootViewController implements Initializable {
 
     @FXML
     public void cancelSolution() {
-        jocularMain.solverService.cancel();
+        jocularMain.cancelSolverService();
         jocularMain.cancelErrBarService();
     }
 
@@ -825,7 +826,7 @@ public class RootViewController implements Initializable {
             return;
         }
 
-        if (jocularMain.solverService.isRunning()) {
+        if (jocularMain.solverServiceRunning()) {
             jocularMain.showInformationDialog("There is a solution already in progress.", jocularMain.primaryStage);
             return;
         }
@@ -890,15 +891,16 @@ public class RootViewController implements Initializable {
 
         SolutionStats solutionStats = new SolutionStats();
 
-        jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
-        jocularMain.solverService.setOnCancelled(this::handleSolverCancelled);
-        jocularMain.solverService.setOnFailed(this::handleSolverFailed);
+//        jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
+//        jocularMain.solverService.setOnCancelled(this::handleSolverCancelled);
+//        jocularMain.solverService.setOnFailed(this::handleSolverFailed);
 
         progressLabel.setText(("'solution' in progress..."));
-        generalPurposeProgressBar.progressProperty().bind(jocularMain.solverService.progressProperty());
+        //generalPurposeProgressBar.progressProperty().bind(jocularMain.solverService.progressProperty());
         clearSolutionList();
 
         SqSolver.computeCandidates(
+            this::handleSolverDone, this::handleSolverCancelled, this::handleSolverFailed,
             jocularMain, solutionStats,
             sigmaB, sigmaA,
             minMagDrop, maxMagDrop,
@@ -928,13 +930,19 @@ public class RootViewController implements Initializable {
     }
 
     private void handleSolverFailed(WorkerStateEvent event) {
-        jocularMain.showErrorDialog("Solver failed. " + jocularMain.solverService.exceptionProperty().toString(), jocularMain.primaryStage);
+        for ( SolverService solService: jocularMain.multiCoreSolverService) {
+            System.out.println("solService state: " + solService.getState());
+        }
         resetProgressIndicator();
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
+        if ( ! jocularMain.solverServiceFinished()) {
+            return;
+        }
+        
         resetProgressIndicator();
-        solutions = jocularMain.solverService.getSolutionList();
+        solutions = jocularMain.getCumSolverSolutions();
         ObservableList<String> items = FXCollections.observableArrayList();
         if (solutions.isEmpty()) {
             items.add("No significant feature meeting the supplied limits on magDrop and event size was found.");
@@ -957,9 +965,9 @@ public class RootViewController implements Initializable {
             }
         }
 
-        SolutionStats solutionStats = jocularMain.solverService.getsolutionStats();
+        SolutionStats solutionStats = jocularMain.getCumSolutionStats();
 
-        solutionStats.numValidTransitionPairs = jocularMain.solverService.getNumValidTranPairs();
+        solutionStats.numValidTransitionPairs = jocularMain.getCumSolutionStats().numValidTransitionPairs;
         // !!!!! These are extra header lines in the solution list.
         // !!!!! The number MUST always equal SOLUTION_LIST_HEADER SIZE
         // !!!!! in order for clicking on a solution list entry to display the correct solution

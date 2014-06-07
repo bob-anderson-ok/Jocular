@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import utils.JocularUtils;
 import utils.SqSolution;
 
@@ -56,7 +58,10 @@ public class SqSolver {
      */
     public static int rRight;
 
-    static public void computeCandidates(JocularMain jocularMain,
+    static public void computeCandidates(EventHandler<WorkerStateEvent> successHandler,
+                                         EventHandler<WorkerStateEvent> cancelledHandler,
+                                         EventHandler<WorkerStateEvent> failedHandler,
+                                         JocularMain jocularMain,
                                          SolutionStats solutionStats,
                                          double sigmaB, double sigmaA,
                                          double minMagDrop, double maxMagDrop,
@@ -159,6 +164,9 @@ public class SqSolver {
         solutionStats.straightLineAICc = JocularUtils.aicc(straightLineLogL, 1, n);
 
         jocularMain.setupSolverService(
+            successHandler,
+            cancelledHandler,
+            failedHandler,
             solutionStats,
             dTranCandidates,
             rTranCandidates,
@@ -168,9 +176,6 @@ public class SqSolver {
             n,
             minMagDrop,
             maxMagDrop);
-
-        jocularMain.solverService.reset();
-        jocularMain.solverService.restart();
 
     }
 }

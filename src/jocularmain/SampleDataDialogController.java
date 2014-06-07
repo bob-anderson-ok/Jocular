@@ -49,7 +49,7 @@ public class SampleDataDialogController {
 
     @FXML
     void handleMouseClick() {
-        if (jocularMain.solverService.isRunning()) {
+        if (jocularMain.solverServiceRunning()) {
             jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
                 " observation is in progress.", jocularMain.errorBarPanelStage);
             return;
