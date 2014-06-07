@@ -48,7 +48,6 @@ import utils.SqSolution;
 
 public class RootViewController implements Initializable {
 
-//<editor-fold defaultstate="collapsed" desc="Just a test of custom code folding">
     private static final int EMPTY_FIELD = -1;
     private static final int FIELD_ENTRY_ERROR = -2;
     private static final int SOLUTION_LIST_HEADER_SIZE = 2;
@@ -61,87 +60,187 @@ public class RootViewController implements Initializable {
     List<SqSolution> solutions;
     
     private static HashMap<DataType, XYChart.Series<Number, Number>> chartSeries = new HashMap<>();
-//</editor-fold>
+
     public static void setMainApp(JocularMain main) {
         jocularMain = main;
     }
 
+    //<editor-fold defaultstate="collapsed" desc="FXML GUI fx:ids">
+    
     @FXML
-    LineChart<Number, Number> chart;
-
+        LineChart<Number, Number> chart;
+    
     @FXML
-    Label outputLabel;
-
+        Label outputLabel;
+    
     @FXML
-    RadioButton markerRBnone;
+        RadioButton markerRBnone;
     @FXML
-    RadioButton markerRBtrimLeft;
+        RadioButton markerRBtrimLeft;
     @FXML
-    RadioButton markerRBdLeft;
+        RadioButton markerRBdLeft;
     @FXML
-    RadioButton markerRBdRight;
+        RadioButton markerRBdRight;
     @FXML
-    RadioButton markerRBrLeft;
+        RadioButton markerRBrLeft;
     @FXML
-    RadioButton markerRBrRight;
+        RadioButton markerRBrRight;
     @FXML
-    RadioButton markerRBtrimRight;
-
+        RadioButton markerRBtrimRight;
+    
     @FXML
-    ToggleButton hideToggleButton;
-
+        ToggleButton hideToggleButton;
+    
     @FXML
-    ListView solutionList;
+        ListView solutionList;
     @FXML
-    ListView reportListView;
-
+        ListView reportListView;
+    
     @FXML
-    CheckBox obsLightFontCheckbox;
+        CheckBox obsLightFontCheckbox;
     @FXML
-    CheckBox obsPointsOnlyCheckbox;
+        CheckBox obsPointsOnlyCheckbox;
     @FXML
-    CheckBox solutionEnvelopeCheckbox;
-
+        CheckBox solutionEnvelopeCheckbox;
+    
     // Confidence Interval selection buttons
     @FXML
-    RadioButton conInt68RadioButton;
+        RadioButton conInt68RadioButton;
     @FXML
-    RadioButton conInt90RadioButton;
+        RadioButton conInt90RadioButton;
     @FXML
-    RadioButton conInt95RadioButton;
+        RadioButton conInt95RadioButton;
     @FXML
-    RadioButton conInt99RadioButton;
+        RadioButton conInt99RadioButton;
+    
+    @FXML
+        CheckBox allowManualNoiseEntryCheckbox;
+    
+    @FXML
+        TextField sigmaBtext;
+    @FXML
+        TextField sigmaAtext;
+    
+    @FXML
+        TextField minEventText;
+    @FXML
+        TextField maxEventText;
+    
+    @FXML
+        TextField minMagDropText;
+    @FXML
+        TextField maxMagDropText;
+    
+    @FXML
+        ProgressBar generalPurposeProgressBar;
+    @FXML
+        Label progressLabel;
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="FXML referenced methods">
+    
+    @FXML
+    public void cancelSolution() {
+        jocularMain.cancelSolverService();
+        jocularMain.cancelErrBarService();
+    }
 
     @FXML
-    CheckBox allowManualNoiseEntryCheckbox;
+    public void computeCandidates() {
 
-    @FXML
-    TextField sigmaBtext;
-    @FXML
-    TextField sigmaAtext;
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation data to process.", jocularMain.primaryStage);
+            return;
+        }
 
-    @FXML
-    TextField minEventText;
-    @FXML
-    TextField maxEventText;
+        if (jocularMain.solverServiceRunning()) {
+            jocularMain.showInformationDialog("There is a solution already in progress.", jocularMain.primaryStage);
+            return;
+        }
 
-    @FXML
-    TextField minMagDropText;
-    @FXML
-    TextField maxMagDropText;
+        // Provide an empty Solution List
+        ObservableList<String> items = FXCollections.observableArrayList();
+        items.add("");
+        solutionList.setItems(items);
 
-    @FXML
-    ProgressBar generalPurposeProgressBar;
-    @FXML
-    Label progressLabel;
+        eraseSolutionAndRelatedSeries();
+        repaintChart();
+
+        double sigmaB = validateSigmaBtext();
+        if (sigmaB == FIELD_ENTRY_ERROR || sigmaB == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Baseline noise estimate missing or invalid.", jocularMain.primaryStage);
+            solutionList.setItems(items);
+            return;
+        }
+
+        double sigmaA = validateSigmaAtext();
+        if (sigmaA == FIELD_ENTRY_ERROR) {
+            jocularMain.showErrorDialog("Event noise entry is invalid.", jocularMain.primaryStage);
+            solutionList.setItems(items);
+            return;
+        } else if (sigmaA == EMPTY_FIELD) {
+            sigmaA = sigmaB;
+            sigmaAtext.setText(sigmaBtext.getText());
+        }
+
+        int minEventSize = validateMinEventText();
+        if (minEventSize == FIELD_ENTRY_ERROR) {
+            jocularMain.showErrorDialog("Invalid minEventSize entry.", jocularMain.primaryStage);
+            solutionList.setItems(items);
+            return;
+        }
+
+        int maxEventSize = validateMaxEventText();
+        if (minEventSize == FIELD_ENTRY_ERROR) {
+            jocularMain.showErrorDialog("Invalid maxEventSize entry.", jocularMain.primaryStage);
+            solutionList.setItems(items);
+            return;
+        }
+
+        if (minEventSize > maxEventSize && maxEventSize != EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Invalid: minEventSize is > maxEventSize", jocularMain.primaryStage);
+            solutionList.setItems(items);
+            return;
+        }
+
+        double minMagDrop = validateMinMagDrop();
+        double maxMagDrop = validateMaxMagDrop();
+
+        if (Double.isNaN(minMagDrop) || Double.isNaN(maxMagDrop)) {
+            return;
+        }
+
+        if (minMagDrop >= maxMagDrop) {
+            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop",
+                                        jocularMain.primaryStage);
+            return;
+        }
+
+        SolutionStats solutionStats = new SolutionStats();
+
+        progressLabel.setText(("'solution' in progress..."));
+        clearSolutionList();
+
+        SqSolver.computeCandidates(
+            generalPurposeProgressBar.progressProperty(),
+            this::handleSolverDone, this::handleSolverCancelled, this::handleSolverFailed,
+            jocularMain, solutionStats,
+            sigmaB, sigmaA,
+            minMagDrop, maxMagDrop,
+            minEventSize, maxEventSize,
+            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
+
+        return;
+    }
 
     @FXML
     public void manualNoiseClicked() {
         sigmaAtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
         sigmaBtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
-
+        
     }
-
+    
     @FXML
     public void solEnvelopeClicked() {
         if (solutionEnvelopeCheckbox.isSelected()) {
@@ -152,12 +251,12 @@ public class RootViewController implements Initializable {
         }
         repaintChart();
     }
-
+    
     @FXML
     public void confidenceIntervalButtonClicked() {
         prepareAndShowReport();
     }
-
+    
     @FXML
     public void calcErrorBars() {
         if (jocularMain.getCurrentSolution() == null) {
@@ -167,7 +266,7 @@ public class RootViewController implements Initializable {
             );
             return;
         }
-
+        
         boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
         boolean solverServiceRunning = jocularMain.solverServiceRunning();
         if (errBarServiceRunning || solverServiceRunning) {
@@ -177,26 +276,26 @@ public class RootViewController implements Initializable {
             );
             return;
         }
-
+        
         SqSolution sqSol = jocularMain.getCurrentSolution();
-
+        
         if (Double.isNaN(sqSol.sigmaA) || Double.isNaN(sqSol.sigmaB)) {
             jocularMain.showErrorDialog("Noise levels missing.", jocularMain.primaryStage);
             return;
         }
-
+        
         if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
                                         sqSol.sigmaB, sqSol.sigmaA,
                                         sqSol.B, sqSol.A)) {
             jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
             prepareAndShowReport();
-
+            
             return;
         }
-
+        
         double snrA = (sqSol.B - sqSol.A) / sqSol.sigmaA;
         double sym = sqSol.sigmaA / sqSol.sigmaB;
-
+        
         double snrEff;
         if (sym > 0.5) {
             snrEff = snrA;
@@ -205,7 +304,7 @@ public class RootViewController implements Initializable {
         } else {
             snrEff = 2.0 * snrA;
         }
-
+        
         int numPointsInTrialSample;
         if (snrEff >= 2.0) {
             numPointsInTrialSample = 100;
@@ -220,7 +319,7 @@ public class RootViewController implements Initializable {
             //return;
             numPointsInTrialSample = 2000;
         }
-
+        
         // Set up the parameters for a monte carlo estimation of confidence intervals.
         TrialParams trialParams = new TrialParams();
         trialParams.baselineLevel = sqSol.B;
@@ -230,9 +329,9 @@ public class RootViewController implements Initializable {
         trialParams.mode = MonteCarloMode.RANDOM;
         trialParams.sigmaB = sqSol.sigmaB;
         trialParams.sigmaA = sqSol.sigmaA;
-
+        
         progressLabel.setText("error bar calculation...");
-
+        
         jocularMain.errBarServiceStart(
             trialParams,
             this::handleSuccessfulErrBarService,
@@ -241,7 +340,408 @@ public class RootViewController implements Initializable {
             generalPurposeProgressBar.progressProperty()
         );
     }
+    
+    @FXML
+    public void displayReportHelp() {
+        jocularMain.showHelpDialog("Help/report.help.html");
+    }
 
+    @FXML
+    public void snapshotTheChart() {
+        WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
+        chart.snapshot(null, wim);
+        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void snapshotTheWholeWindow() {
+        WritableImage wim = jocularMain.mainScene.snapshot(null);
+        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void getSelectedSolution(MouseEvent arg) {
+        int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
+        if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
+            eraseSolutionAndRelatedSeries();
+            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            repaintChart();
+            jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            reportListView.setItems(null);
+            calcErrorBars();
+        }
+    }
+
+    @FXML
+    public void replotObservation() {
+        // This forces a 'relook' at the state of the checkboxes that give the user options
+        // on the look of the observation data display (points, points and lines, light or dark)
+        // and gets called whenver one of those checkboxes is clicked.
+        repaintChart();
+    }
+
+    @FXML
+    void respondToRightButtonClick() {
+        revertToOriginalAxisScaling();
+    }
+
+    @FXML
+    void showSampleDataDialog() {
+        jocularMain.showSampleDataDialog();
+    }
+
+    @FXML
+    public void doOpenRecentFiles() {
+        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.", jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void doReadLimovieFile() {
+        if (jocularMain.solverServiceRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.primaryStage);
+            return;
+        }
+        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void doReadTangraFile() {
+        if (jocularMain.solverServiceRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.primaryStage);
+            return;
+        }
+        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void doEstimateErrorBars() {
+        jocularMain.showErrorBarTool();
+    }
+
+    @FXML
+    public void doShowSubframeTimingBand() {
+        if (jocularMain.getCurrentSolution() == null) {
+            jocularMain.showErrorDialog("There is no solution to process.", jocularMain.primaryStage);
+            return;
+        }
+
+        double solutionB = jocularMain.getCurrentSolution().B;
+        double solutionA = jocularMain.getCurrentSolution().A;
+
+        double sigB = validateSigmaBtext();
+        if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.", jocularMain.primaryStage);
+            return;
+        }
+
+        double sigA = validateSigmaAtext();
+        if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.", jocularMain.primaryStage);
+            return;
+        }
+
+        int n = jocularMain.getCurrentObservation().readingNumbers.length;
+
+        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+
+        if (bSFL <= eSFL) {
+            jocularMain.showInformationDialog("Subframe timing is not applicable for this solution.", jocularMain.primaryStage);
+            return;
+        }
+
+        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];
+        int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
+        int xn = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
+
+        // Now we create the series to display as a rectangle.
+        XYChart.Series<Number, Number> series;
+        series = new XYChart.Series<Number, Number>();
+        XYChart.Data<Number, Number> data;
+
+        data = new XYChart.Data(x0, eSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(xn, eSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(xn, bSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(x0, bSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(x0, eSFL);
+        series.getData().add(data);
+
+        chartSeries.put(DataType.SUBFRAME_BAND, series);
+        repaintChart();
+    }
+
+    @FXML
+    public void estimateNoiseValues() {
+
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation from which to estimate noise values.", jocularMain.primaryStage);
+            return;
+        }
+
+        if (!(dLeftMarker.isInUse() || dRightMarker.isInUse() || rLeftMarker.isInUse() || rRightMarker.isInUse())) {
+            useLowSnrNoiseEstimation();
+            return;
+        }
+
+        ArrayList<Double> baselinePoints = new ArrayList<>();
+        ArrayList<Double> eventPoints = new ArrayList<>();
+
+        for (int i = 0; i < jocularMain.getCurrentObservation().readingNumbers.length; i++) {
+            if (dLeftMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] < dLeftMarker.getXValue()) {
+
+                baselinePoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (rRightMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] > rRightMarker.getXValue()) {
+
+                baselinePoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (dRightMarker.isInUse() && rLeftMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] > dRightMarker.getXValue()
+                && jocularMain.getCurrentObservation().readingNumbers[i] < rLeftMarker.getXValue()) {
+
+                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (dRightMarker.isInUse() && !rLeftMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] > dRightMarker.getXValue()) {
+
+                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+                continue;
+            }
+
+            if (rLeftMarker.isInUse() && !dRightMarker.isInUse()
+                && jocularMain.getCurrentObservation().readingNumbers[i] < rLeftMarker.getXValue()) {
+
+                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
+            }
+        }
+
+        double sigma;
+        if (baselinePoints.size() < 2) {
+            jocularMain.showErrorDialog("Cannot calculate baseline noise because less than 2 points available", jocularMain.primaryStage);
+            sigmaBtext.setText("NaN");
+        } else {
+            sigma = JocularUtils.calcSigma(baselinePoints);
+            sigmaBtext.setText(String.format("%.4f", sigma));
+        }
+
+        if (eventPoints.size() < 2) {
+            jocularMain.showErrorDialog("Cannot calculate event noise because less than 2 points available", jocularMain.primaryStage);
+            sigmaAtext.setText("NaN");
+        } else {
+            sigma = JocularUtils.calcSigma(eventPoints);
+            sigmaAtext.setText(String.format("%.4f", sigma));
+        }
+
+        if (eventPoints.size()
+            < 10) {
+            jocularMain.showInformationDialog(
+                "There are only " + eventPoints.size() + " points in the 'event'."
+                + "  This will give an unreliable estimate of the event noise.",
+                jocularMain.primaryStage
+            );
+        }
+
+        if (baselinePoints.size()
+            < 10) {
+            jocularMain.showInformationDialog(
+                "There are only " + baselinePoints.size() + " points in the 'baseline'."
+                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain.",
+                jocularMain.primaryStage
+            );
+        }
+    }
+
+    @FXML
+    public void showIntroHelp() {
+        jocularMain.showHelpDialog("Help/gettingstarted.help.html");
+    }
+
+    @FXML
+    public void showAbout() {
+        jocularMain.showHelpDialog("Help/about.help.html");
+    }
+
+    @FXML
+    public void displayNoiseHelp() {
+        jocularMain.showHelpDialog("Help/noisevalues.help.html");
+    }
+
+    @FXML
+    public void displayMinMaxEventHelp() {
+        jocularMain.showHelpDialog("Help/eventlimits.help.html");
+
+    }
+    
+    @FXML
+    public void applyTrims() {
+
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showErrorDialog("There is no observation to apply trims to.", jocularMain.primaryStage);
+            return;
+        }
+
+        int maxRightTrim = jocularMain.getCurrentObservation().lengthOfDataColumns - 1;
+        int minLeftTrim = 0;
+
+        int leftTrim;
+        XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
+        if (leftTrimMarker.isInUse()) {
+            leftTrim = (int) Math.ceil(leftTrimMarker.getXValue());
+        } else {
+            leftTrim = minLeftTrim;
+        }
+
+        if (!jocularMain.inRange(leftTrim)) {
+            leftTrim = minLeftTrim;
+        }
+
+        int rightTrim;
+        XYChartMarker rightTrimMarker = smartChart.getMarker("trimRight");
+        if (rightTrimMarker.isInUse()) {
+            rightTrim = (int) Math.floor(rightTrimMarker.getXValue());
+        } else {
+            rightTrim = maxRightTrim;
+        }
+
+        if (!jocularMain.inRange(rightTrim)) {
+            rightTrim = maxRightTrim;
+        }
+
+        // Here we deal with the user setting the left trim to the right of
+        // the right trim.  We'll make it work rather than throwing an exception.
+        if (rightTrim < leftTrim) {
+            int temp;
+            temp = leftTrim;
+            leftTrim = rightTrim;
+            rightTrim = temp;
+        }
+
+        jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
+        jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
+
+        chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
+
+        // Since we've (probably) changed the data set, erase previous solution
+        // and everything related to it.
+        eraseSolutionAndRelatedSeries();
+        repaintChart();
+        clearSolutionList();
+
+        rightTrimMarker.setInUse(false);
+        leftTrimMarker.setInUse(false);
+    }
+
+    @FXML
+    void displayChartZoomPanMarkHelp() {
+        jocularMain.showHelpDialog("Help/chart.help.html");
+    }
+
+    @FXML
+    void displayMarkerSelectionHelp() {
+        jocularMain.showHelpDialog("Help/marker.help.html");
+    }
+
+    @FXML
+    void displaySolutionListHelp() {
+        jocularMain.showHelpDialog("Help/solutionlist.help.html");
+    }
+
+    @FXML
+    void displayMinMaxMagDropHelp() {
+        jocularMain.showHelpDialog("Help/magdrop.help.html");
+    }
+
+    private String markerSelectedName = "none";
+
+    @FXML
+    void noneRBaction() {
+        markerSelectedName = "none";
+    }
+
+    @FXML
+    void trimLeftRBaction() {
+        markerSelectedName = "trimLeft";
+        makeMarkersVisible();
+    }
+
+    @FXML
+    void dLeftRBaction() {
+        markerSelectedName = "dLeft";
+        makeMarkersVisible();
+    }
+
+    @FXML
+    void dRightRBaction() {
+        markerSelectedName = "dRight";
+        makeMarkersVisible();
+    }
+
+    @FXML
+    void rLeftRBaction() {
+        markerSelectedName = "rLeft";
+        makeMarkersVisible();
+    }
+
+    @FXML
+    void rRightRBaction() {
+        markerSelectedName = "rRight";
+        makeMarkersVisible();
+    }
+
+    @FXML
+    void trimRightRBaction() {
+        markerSelectedName = "trimRight";
+        makeMarkersVisible();
+    }
+
+    @FXML
+    private void hideUnhideMarkers() {
+        boolean v = !hideToggleButton.isSelected();
+        smartChart.getMarker("trimLeft").setVisible(v);
+        smartChart.getMarker("dLeft").setVisible(v);
+        smartChart.getMarker("dRight").setVisible(v);
+        smartChart.getMarker("rLeft").setVisible(v);
+        smartChart.getMarker("rRight").setVisible(v);
+        smartChart.getMarker("trimRight").setVisible(v);
+    }
+
+    @FXML
+    private void eraseSelection() {
+        if (!"none".equals(markerSelectedName)) {
+            smartChart.getMarker(markerSelectedName).setInUse(false);
+
+            markerRBnone.setSelected(true);
+            markerRBnone.requestFocus();
+            markerSelectedName = "none";
+        }
+    }
+
+    @FXML
+    public void eraseAllMarkers() {
+        smartChart.getMarker("trimLeft").setInUse(false);
+        smartChart.getMarker("dLeft").setInUse(false);
+        smartChart.getMarker("dRight").setInUse(false);
+        smartChart.getMarker("rLeft").setInUse(false);
+        smartChart.getMarker("rRight").setInUse(false);
+        smartChart.getMarker("trimRight").setInUse(false);
+    }
+
+    //</editor-fold>
+    
     private void prepareAndShowReport() {
         if (!reportIsPossible()) {
             return;
@@ -498,45 +998,6 @@ public class RootViewController implements Initializable {
         );
     }
 
-    @FXML
-    public void displayReportHelp() {
-        jocularMain.showHelpDialog("Help/report.help.html");
-    }
-
-    @FXML
-    public void snapshotTheChart() {
-        WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
-        chart.snapshot(null, wim);
-        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void snapshotTheWholeWindow() {
-        WritableImage wim = jocularMain.mainScene.snapshot(null);
-        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void getSelectedSolution(MouseEvent arg) {
-        int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
-        if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
-            eraseSolutionAndRelatedSeries();
-            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
-            repaintChart();
-            jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
-            reportListView.setItems(null);
-            calcErrorBars();
-        }
-    }
-
-    @FXML
-    public void replotObservation() {
-        // This forces a 'relook' at the state of the checkboxes that give the user options
-        // on the look of the observation data display (points, points and lines, light or dark)
-        // and gets called whenver one of those checkboxes is clicked.
-        repaintChart();
-    }
-
     private String getUserPreferredObsStyle() {
         if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
             return "obsPoints";
@@ -551,105 +1012,6 @@ public class RootViewController implements Initializable {
         } else {
             return "ObsData";
         }
-    }
-
-    @FXML
-    void respondToRightButtonClick() {
-        revertToOriginalAxisScaling();
-    }
-
-    @FXML
-    void showSampleDataDialog() {
-        jocularMain.showSampleDataDialog();
-    }
-
-    @FXML
-    public void doOpenRecentFiles() {
-        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.", jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void doReadLimovieFile() {
-        if (jocularMain.solverServiceRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
-                + " observation is in progress.", jocularMain.primaryStage);
-            return;
-        }
-        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void doReadTangraFile() {
-        if (jocularMain.solverServiceRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
-                + " observation is in progress.", jocularMain.primaryStage);
-            return;
-        }
-        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void doEstimateErrorBars() {
-        jocularMain.showErrorBarTool();
-    }
-
-    @FXML
-    public void doShowSubframeTimingBand() {
-
-        System.out.println("In subframe band code");
-
-        if (jocularMain.getCurrentSolution() == null) {
-            jocularMain.showErrorDialog("There is no solution to process.", jocularMain.primaryStage);
-            return;
-        }
-
-        double solutionB = jocularMain.getCurrentSolution().B;
-        double solutionA = jocularMain.getCurrentSolution().A;
-
-        double sigB = validateSigmaBtext();
-        if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.", jocularMain.primaryStage);
-            return;
-        }
-
-        double sigA = validateSigmaAtext();
-        if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.", jocularMain.primaryStage);
-            return;
-        }
-
-        int n = jocularMain.getCurrentObservation().readingNumbers.length;
-
-        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-
-        if (bSFL <= eSFL) {
-            jocularMain.showInformationDialog("Subframe timing is not applicable for this solution.", jocularMain.primaryStage);
-            return;
-        }
-
-        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];
-        int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
-        int xn = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
-
-        // Now we create the series to display as a rectangle.
-        XYChart.Series<Number, Number> series;
-        series = new XYChart.Series<Number, Number>();
-        XYChart.Data<Number, Number> data;
-
-        data = new XYChart.Data(x0, eSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(xn, eSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(xn, bSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(x0, bSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(x0, eSFL);
-        series.getData().add(data);
-
-        chartSeries.put(DataType.SUBFRAME_BAND, series);
-        repaintChart();
     }
 
     private boolean includedWithinMarkers(int index,
@@ -697,116 +1059,6 @@ public class RootViewController implements Initializable {
         return;
     }
 
-    @FXML
-    public void estimateNoiseValues() {
-
-        if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation from which to estimate noise values.", jocularMain.primaryStage);
-            return;
-        }
-
-        if (!(dLeftMarker.isInUse() || dRightMarker.isInUse() || rLeftMarker.isInUse() || rRightMarker.isInUse())) {
-            useLowSnrNoiseEstimation();
-            return;
-        }
-
-        ArrayList<Double> baselinePoints = new ArrayList<>();
-        ArrayList<Double> eventPoints = new ArrayList<>();
-
-        for (int i = 0; i < jocularMain.getCurrentObservation().readingNumbers.length; i++) {
-            if (dLeftMarker.isInUse()
-                && jocularMain.getCurrentObservation().readingNumbers[i] < dLeftMarker.getXValue()) {
-
-                baselinePoints.add(jocularMain.getCurrentObservation().obsData[i]);
-                continue;
-            }
-
-            if (rRightMarker.isInUse()
-                && jocularMain.getCurrentObservation().readingNumbers[i] > rRightMarker.getXValue()) {
-
-                baselinePoints.add(jocularMain.getCurrentObservation().obsData[i]);
-                continue;
-            }
-
-            if (dRightMarker.isInUse() && rLeftMarker.isInUse()
-                && jocularMain.getCurrentObservation().readingNumbers[i] > dRightMarker.getXValue()
-                && jocularMain.getCurrentObservation().readingNumbers[i] < rLeftMarker.getXValue()) {
-
-                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
-                continue;
-            }
-
-            if (dRightMarker.isInUse() && !rLeftMarker.isInUse()
-                && jocularMain.getCurrentObservation().readingNumbers[i] > dRightMarker.getXValue()) {
-
-                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
-                continue;
-            }
-
-            if (rLeftMarker.isInUse() && !dRightMarker.isInUse()
-                && jocularMain.getCurrentObservation().readingNumbers[i] < rLeftMarker.getXValue()) {
-
-                eventPoints.add(jocularMain.getCurrentObservation().obsData[i]);
-            }
-        }
-
-        double sigma;
-        if (baselinePoints.size() < 2) {
-            jocularMain.showErrorDialog("Cannot calculate baseline noise because less than 2 points available", jocularMain.primaryStage);
-            sigmaBtext.setText("NaN");
-        } else {
-            sigma = JocularUtils.calcSigma(baselinePoints);
-            sigmaBtext.setText(String.format("%.4f", sigma));
-        }
-
-        if (eventPoints.size() < 2) {
-            jocularMain.showErrorDialog("Cannot calculate event noise because less than 2 points available", jocularMain.primaryStage);
-            sigmaAtext.setText("NaN");
-        } else {
-            sigma = JocularUtils.calcSigma(eventPoints);
-            sigmaAtext.setText(String.format("%.4f", sigma));
-        }
-
-        if (eventPoints.size()
-            < 10) {
-            jocularMain.showInformationDialog(
-                "There are only " + eventPoints.size() + " points in the 'event'."
-                + "  This will give an unreliable estimate of the event noise.",
-                jocularMain.primaryStage
-            );
-        }
-
-        if (baselinePoints.size()
-            < 10) {
-            jocularMain.showInformationDialog(
-                "There are only " + baselinePoints.size() + " points in the 'baseline'."
-                + "  This observation cannot be reliably processed because the baseline noise value is too uncertain.",
-                jocularMain.primaryStage
-            );
-        }
-    }
-
-    @FXML
-    public void showIntroHelp() {
-        jocularMain.showHelpDialog("Help/gettingstarted.help.html");
-    }
-
-    @FXML
-    public void showAbout() {
-        jocularMain.showHelpDialog("Help/about.help.html");
-    }
-
-    @FXML
-    public void displayNoiseHelp() {
-        jocularMain.showHelpDialog("Help/noisevalues.help.html");
-    }
-
-    @FXML
-    public void displayMinMaxEventHelp() {
-        jocularMain.showHelpDialog("Help/eventlimits.help.html");
-
-    }
-
     /**
      * a node which displays a value on hover, but is otherwise empty
      */
@@ -816,100 +1068,6 @@ public class RootViewController implements Initializable {
             setOnMouseEntered(e -> outputLabel.setText(String.format("RdgNbr %d Intensity %.2f", readingNumber, intensity)));
             setOnMouseExited(e -> outputLabel.setText(""));
         }
-    }
-
-    @FXML
-    public void cancelSolution() {
-        jocularMain.cancelSolverService();
-        jocularMain.cancelErrBarService();
-    }
-
-    @FXML
-    public void computeCandidates() {
-
-        if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation data to process.", jocularMain.primaryStage);
-            return;
-        }
-
-        if (jocularMain.solverServiceRunning()) {
-            jocularMain.showInformationDialog("There is a solution already in progress.", jocularMain.primaryStage);
-            return;
-        }
-
-        // Provide an empty Solution List
-        ObservableList<String> items = FXCollections.observableArrayList();
-        items.add("");
-        solutionList.setItems(items);
-
-        eraseSolutionAndRelatedSeries();
-        repaintChart();
-
-        double sigmaB = validateSigmaBtext();
-        if (sigmaB == FIELD_ENTRY_ERROR || sigmaB == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Baseline noise estimate missing or invalid.", jocularMain.primaryStage);
-            solutionList.setItems(items);
-            return;
-        }
-
-        double sigmaA = validateSigmaAtext();
-        if (sigmaA == FIELD_ENTRY_ERROR) {
-            jocularMain.showErrorDialog("Event noise entry is invalid.", jocularMain.primaryStage);
-            solutionList.setItems(items);
-            return;
-        } else if (sigmaA == EMPTY_FIELD) {
-            sigmaA = sigmaB;
-            sigmaAtext.setText(sigmaBtext.getText());
-        }
-
-        int minEventSize = validateMinEventText();
-        if (minEventSize == FIELD_ENTRY_ERROR) {
-            jocularMain.showErrorDialog("Invalid minEventSize entry.", jocularMain.primaryStage);
-            solutionList.setItems(items);
-            return;
-        }
-
-        int maxEventSize = validateMaxEventText();
-        if (minEventSize == FIELD_ENTRY_ERROR) {
-            jocularMain.showErrorDialog("Invalid maxEventSize entry.", jocularMain.primaryStage);
-            solutionList.setItems(items);
-            return;
-        }
-
-        if (minEventSize > maxEventSize && maxEventSize != EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Invalid: minEventSize is > maxEventSize", jocularMain.primaryStage);
-            solutionList.setItems(items);
-            return;
-        }
-
-        double minMagDrop = validateMinMagDrop();
-        double maxMagDrop = validateMaxMagDrop();
-
-        if (Double.isNaN(minMagDrop) || Double.isNaN(maxMagDrop)) {
-            return;
-        }
-
-        if (minMagDrop >= maxMagDrop) {
-            jocularMain.showErrorDialog("Invalid settings of Min and Max Mag Drop: Min Mag Drop must be less than Max Mag Drop",
-                                        jocularMain.primaryStage);
-            return;
-        }
-
-        SolutionStats solutionStats = new SolutionStats();
-
-        progressLabel.setText(("'solution' in progress..."));
-        clearSolutionList();
-
-        SqSolver.computeCandidates(
-            generalPurposeProgressBar.progressProperty(),
-            this::handleSolverDone, this::handleSolverCancelled, this::handleSolverFailed,
-            jocularMain, solutionStats,
-            sigmaB, sigmaA,
-            minMagDrop, maxMagDrop,
-            minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        return;
     }
 
     class LogLcomparator implements Comparator<SqSolution> {
@@ -1113,65 +1271,6 @@ public class RootViewController implements Initializable {
         jocularMain.setCurrentSolution(null);
         eraseSolutionAndRelatedSeries();
         repaintChart();
-    }
-
-    @FXML
-    public void applyTrims() {
-
-        if (jocularMain.getCurrentObservation() == null) {
-            jocularMain.showErrorDialog("There is no observation to apply trims to.", jocularMain.primaryStage);
-            return;
-        }
-
-        int maxRightTrim = jocularMain.getCurrentObservation().lengthOfDataColumns - 1;
-        int minLeftTrim = 0;
-
-        int leftTrim;
-        XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
-        if (leftTrimMarker.isInUse()) {
-            leftTrim = (int) Math.ceil(leftTrimMarker.getXValue());
-        } else {
-            leftTrim = minLeftTrim;
-        }
-
-        if (!jocularMain.inRange(leftTrim)) {
-            leftTrim = minLeftTrim;
-        }
-
-        int rightTrim;
-        XYChartMarker rightTrimMarker = smartChart.getMarker("trimRight");
-        if (rightTrimMarker.isInUse()) {
-            rightTrim = (int) Math.floor(rightTrimMarker.getXValue());
-        } else {
-            rightTrim = maxRightTrim;
-        }
-
-        if (!jocularMain.inRange(rightTrim)) {
-            rightTrim = maxRightTrim;
-        }
-
-        // Here we deal with the user setting the left trim to the right of
-        // the right trim.  We'll make it work rather than throwing an exception.
-        if (rightTrim < leftTrim) {
-            int temp;
-            temp = leftTrim;
-            leftTrim = rightTrim;
-            rightTrim = temp;
-        }
-
-        jocularMain.getCurrentObservation().setLeftTrimPoint(leftTrim);
-        jocularMain.getCurrentObservation().setRightTrimPoint(rightTrim);
-
-        chartSeries.put(DataType.OBSDATA, getObservationSeries(jocularMain.getCurrentObservation()));
-
-        // Since we've (probably) changed the data set, erase previous solution
-        // and everything related to it.
-        eraseSolutionAndRelatedSeries();
-        repaintChart();
-        clearSolutionList();
-
-        rightTrimMarker.setInUse(false);
-        leftTrimMarker.setInUse(false);
     }
 
     private void eraseSolutionAndRelatedSeries() {
@@ -1536,69 +1635,6 @@ public class RootViewController implements Initializable {
         return series;
     }
 
-    @FXML
-    void displayChartZoomPanMarkHelp() {
-        jocularMain.showHelpDialog("Help/chart.help.html");
-    }
-
-    @FXML
-    void displayMarkerSelectionHelp() {
-        jocularMain.showHelpDialog("Help/marker.help.html");
-    }
-
-    @FXML
-    void displaySolutionListHelp() {
-        jocularMain.showHelpDialog("Help/solutionlist.help.html");
-    }
-
-    @FXML
-    void displayMinMaxMagDropHelp() {
-        jocularMain.showHelpDialog("Help/magdrop.help.html");
-    }
-
-    private String markerSelectedName = "none";
-
-    @FXML
-    void noneRBaction() {
-        markerSelectedName = "none";
-    }
-
-    @FXML
-    void trimLeftRBaction() {
-        markerSelectedName = "trimLeft";
-        makeMarkersVisible();
-    }
-
-    @FXML
-    void dLeftRBaction() {
-        markerSelectedName = "dLeft";
-        makeMarkersVisible();
-    }
-
-    @FXML
-    void dRightRBaction() {
-        markerSelectedName = "dRight";
-        makeMarkersVisible();
-    }
-
-    @FXML
-    void rLeftRBaction() {
-        markerSelectedName = "rLeft";
-        makeMarkersVisible();
-    }
-
-    @FXML
-    void rRightRBaction() {
-        markerSelectedName = "rRight";
-        makeMarkersVisible();
-    }
-
-    @FXML
-    void trimRightRBaction() {
-        markerSelectedName = "trimRight";
-        makeMarkersVisible();
-    }
-
     private void makeChartDataMouseTransparent() {
         Node chartBackground = chart.lookup(".chart-plot-background");
         StableTicksAxis xAxis = (StableTicksAxis) chart.getXAxis();
@@ -1618,38 +1654,6 @@ public class RootViewController implements Initializable {
     private void makeMarkersVisible() {
         hideToggleButton.setSelected(false);
         hideUnhideMarkers();
-    }
-
-    @FXML
-    private void hideUnhideMarkers() {
-        boolean v = !hideToggleButton.isSelected();
-        smartChart.getMarker("trimLeft").setVisible(v);
-        smartChart.getMarker("dLeft").setVisible(v);
-        smartChart.getMarker("dRight").setVisible(v);
-        smartChart.getMarker("rLeft").setVisible(v);
-        smartChart.getMarker("rRight").setVisible(v);
-        smartChart.getMarker("trimRight").setVisible(v);
-    }
-
-    @FXML
-    private void eraseSelection() {
-        if (!"none".equals(markerSelectedName)) {
-            smartChart.getMarker(markerSelectedName).setInUse(false);
-
-            markerRBnone.setSelected(true);
-            markerRBnone.requestFocus();
-            markerSelectedName = "none";
-        }
-    }
-
-    @FXML
-    public void eraseAllMarkers() {
-        smartChart.getMarker("trimLeft").setInUse(false);
-        smartChart.getMarker("dLeft").setInUse(false);
-        smartChart.getMarker("dRight").setInUse(false);
-        smartChart.getMarker("rLeft").setInUse(false);
-        smartChart.getMarker("rRight").setInUse(false);
-        smartChart.getMarker("trimRight").setInUse(false);
     }
 
     private void setupDisplayOfCoordinates() {
