@@ -48,19 +48,20 @@ import utils.SqSolution;
 
 public class RootViewController implements Initializable {
 
+//<editor-fold defaultstate="collapsed" desc="Just a test of custom code folding">
     private static final int EMPTY_FIELD = -1;
     private static final int FIELD_ENTRY_ERROR = -2;
     private static final int SOLUTION_LIST_HEADER_SIZE = 2;
     private static double RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED = 0.01;
     private static final int NUM_TRIALS_FOR_ERR_BAR_DETERMINATION = 100000;
-
+    
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
-
+    
     List<SqSolution> solutions;
-
+    
     private static HashMap<DataType, XYChart.Series<Number, Number>> chartSeries = new HashMap<>();
-
+//</editor-fold>
     public static void setMainApp(JocularMain main) {
         jocularMain = main;
     }

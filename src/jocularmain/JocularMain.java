@@ -55,7 +55,6 @@ public class JocularMain extends Application {
     public Scene errorBarPanelScene;
     public Stage primaryStage;
 
-    //public SolverService solverService = new SolverService();
     private List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
     public List<SolverService> multiCoreSolverService = new ArrayList<>();
 
@@ -150,114 +149,6 @@ public class JocularMain extends Application {
         }
     }
 
-    public void showHelpDialog(String helpFile) {
-        try {
-            URL fxmlLocation = getClass().getResource("HelpDialog.fxml");
-            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
-            AnchorPane page = fxmlLoader.load();
-            Scene scene = new Scene(page);
-
-            // Help dialogs are special in that we are not going to
-            // give them an 'owner'.  That lets us move them around
-            // the screen independently of RootView.  In particular, you
-            // can move RootView without the Help dialogs moving too.
-            // However, that means that when RootView is closed, these
-            // dialogs will not be automatically closed too.  For that
-            // reason, we record this new stage in a list that will
-            // be maintained and used by an on-close method attached to
-            // RootView that will take care of closing any open help dialogs.
-            Stage helpStage = new Stage();
-            openHelpScreenList.add(helpStage);
-            helpStage.setOnCloseRequest(e -> openHelpScreenList.remove((Stage) e.getSource()));
-
-            helpStage.setTitle("Jocular documentation");
-            helpStage.initModality(Modality.NONE);
-            helpStage.setResizable(true);
-
-            WebView browser = (WebView) scene.lookup("#browser");
-            WebEngine webEngine = browser.getEngine();
-
-            URL helpFileURL = getClass().getResource(helpFile);
-            webEngine.load(helpFileURL.toExternalForm());
-
-            helpStage.setScene(scene);
-            helpStage.show();
-        } catch (Exception e) {
-            System.out.println("in showHelpDialog(): " + e.toString());
-        }
-    }
-
-    public void showErrorDialog(String msg, Stage owner) {
-        try {
-            URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
-            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
-            AnchorPane page = fxmlLoader.load();
-            Scene scene = new Scene(page);
-
-            ErrorDialogController controller = fxmlLoader.getController();
-            controller.showError(msg);
-
-            Stage stage = new Stage(StageStyle.UTILITY);
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setResizable(false);
-
-            stage.initOwner(owner);
-            stage.setScene(scene);
-
-            stage.show();
-        } catch (IOException e) {
-            System.out.println("in showErrorDialog(): " + e.toString());
-        }
-    }
-
-    public void showInformationDialog(String msg, Stage owner) {
-        try {
-            URL fxmlLocation = getClass().getResource("InformationDialog.fxml");
-            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
-            AnchorPane page = fxmlLoader.load();
-            Scene scene = new Scene(page);
-
-            InformationDialogController controller = fxmlLoader.getController();
-            controller.showInformation(msg);
-
-            Stage stage = new Stage(StageStyle.UTILITY);
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setResizable(false);
-
-            stage.initOwner(owner);
-            stage.setScene(scene);
-
-            stage.show();
-        } catch (IOException e) {
-            System.out.println("in showInformationDialog(): " + e.toString());
-        }
-    }
-
-    private void buildSampleDataDialog() {
-        try {
-            URL fxmlLocation = getClass().getResource("SampleDataDialog.fxml");
-            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
-            AnchorPane page = fxmlLoader.load();
-            Scene scene = new Scene(page);
-
-            Stage stage = new Stage(StageStyle.UTILITY);
-            stage.initModality(Modality.NONE);
-            stage.setResizable(false);
-
-            stage.initOwner(primaryStage);
-            stage.setScene(scene);
-
-            // We do not 'show' the dialog on the initial build.
-            // That is left to a call to showSampleDataDialog()
-            // Instead, we save a private refence to the 'stage' so
-            // that we can 'show' it when later asked by a call tp
-            // showSampleDataDialog()
-            sampleDataDialogStage = stage;
-        } catch (Exception e) {
-            System.out.println("in buildSampleDataDialog(): " + e.toString());
-        }
-    }
-
     public void saveSnapshotToFile(WritableImage wim, Stage owner) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Image as png file");
@@ -279,22 +170,132 @@ public class JocularMain extends Application {
         }
     }
 
-    public void showSampleDataDialog() {
-        sampleDataDialogStage.show();
-    }
-
     public void repaintObservationAndSolution() {
         rootViewController.showObservationDataWithTheoreticalLightCurve(obsInMainPlot, currentSqSolution);
     }
 
-    public void repaintObservation() {
-        rootViewController.showObservationDataAlone(obsInMainPlot);
+    public void addSampleCurveToMainPlot(SqSolution solution) {
+        rootViewController.addSampleCurveToMainPlot(solution);
     }
-
-    public boolean inRange(int index) {
-        return (index >= 0) && (index < obsInMainPlot.lengthOfDataColumns);
+    
+    //<editor-fold defaultstate="collapsed" desc="Dialogs">
+    
+    public void showHelpDialog(String helpFile) {
+        try {
+            URL fxmlLocation = getClass().getResource("HelpDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+            
+            // Help dialogs are special in that we are not going to
+            // give them an 'owner'.  That lets us move them around
+            // the screen independently of RootView.  In particular, you
+            // can move RootView without the Help dialogs moving too.
+            // However, that means that when RootView is closed, these
+            // dialogs will not be automatically closed too.  For that
+            // reason, we record this new stage in a list that will
+            // be maintained and used by an on-close method attached to
+            // RootView that will take care of closing any open help dialogs.
+            Stage helpStage = new Stage();
+            openHelpScreenList.add(helpStage);
+            helpStage.setOnCloseRequest(e -> openHelpScreenList.remove((Stage) e.getSource()));
+            
+            helpStage.setTitle("Jocular documentation");
+            helpStage.initModality(Modality.NONE);
+            helpStage.setResizable(true);
+            
+            WebView browser = (WebView) scene.lookup("#browser");
+            WebEngine webEngine = browser.getEngine();
+            
+            URL helpFileURL = getClass().getResource(helpFile);
+            webEngine.load(helpFileURL.toExternalForm());
+            
+            helpStage.setScene(scene);
+            helpStage.show();
+        } catch (Exception e) {
+            System.out.println("in showHelpDialog(): " + e.toString());
+        }
     }
-
+    
+    public void showErrorDialog(String msg, Stage owner) {
+        try {
+            URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+            
+            ErrorDialogController controller = fxmlLoader.getController();
+            controller.showError(msg);
+            
+            Stage stage = new Stage(StageStyle.UTILITY);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+            
+            stage.initOwner(owner);
+            stage.setScene(scene);
+            
+            stage.show();
+        } catch (IOException e) {
+            System.out.println("in showErrorDialog(): " + e.toString());
+        }
+    }
+    
+    public void showInformationDialog(String msg, Stage owner) {
+        try {
+            URL fxmlLocation = getClass().getResource("InformationDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+            
+            InformationDialogController controller = fxmlLoader.getController();
+            controller.showInformation(msg);
+            
+            Stage stage = new Stage(StageStyle.UTILITY);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+            
+            stage.initOwner(owner);
+            stage.setScene(scene);
+            
+            stage.show();
+        } catch (IOException e) {
+            System.out.println("in showInformationDialog(): " + e.toString());
+        }
+    }
+    
+    private void buildSampleDataDialog() {
+        try {
+            URL fxmlLocation = getClass().getResource("SampleDataDialog.fxml");
+            FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
+            AnchorPane page = fxmlLoader.load();
+            Scene scene = new Scene(page);
+            
+            Stage stage = new Stage(StageStyle.UTILITY);
+            stage.initModality(Modality.NONE);
+            stage.setResizable(false);
+            
+            stage.initOwner(primaryStage);
+            stage.setScene(scene);
+            
+            // We do not 'show' the dialog on the initial build.
+            // That is left to a call to showSampleDataDialog()
+            // Instead, we save a private refence to the 'stage' so
+            // that we can 'show' it when later asked by a call tp
+            // showSampleDataDialog()
+            sampleDataDialogStage = stage;
+        } catch (Exception e) {
+            System.out.println("in buildSampleDataDialog(): " + e.toString());
+        }
+    }
+    
+    public void showSampleDataDialog() {
+        sampleDataDialogStage.show();
+    }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Public methods involving current Observation">
+    
     /**
      *
      * @return the first readingNumber to the right of the trimmed observation.
@@ -321,6 +322,18 @@ public class JocularMain extends Application {
         errBarData = null;
     }
 
+    public void repaintObservation() {
+        rootViewController.showObservationDataAlone(obsInMainPlot);
+    }
+
+    public boolean inRange(int index) {
+        return (index >= 0) && (index < obsInMainPlot.lengthOfDataColumns);
+    }
+
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Public methods involving current Solution">
+    
     public SqSolution getCurrentSolution() {
         return currentSqSolution;
     }
@@ -330,26 +343,30 @@ public class JocularMain extends Application {
         errBarData = null;
     }
 
-    public void setCurrentErrBarValues(HashMap<String, ErrorBarItem> errBarData) {
-        this.errBarData = errBarData;
-    }
-
-    public HashMap<String, ErrorBarItem> getCurrentErrBarValues() {
-        return errBarData;
-    }
-
-    public void addSampleCurveToMainPlot(SqSolution solution) {
-        rootViewController.addSampleCurveToMainPlot(solution);
-    }
-
     public void addSolutionCurveToMainPlot(SqSolution solution) {
         rootViewController.addSolutionCurveToMainPlot(solution);
     }
-
+    
     public void clearSolutionList() {
         rootViewController.clearSolutionList();
     }
 
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Current Error Bar Table setter and getter">
+    
+    public void setCurrentErrBarValues(HashMap<String, ErrorBarItem> errBarData) {
+        this.errBarData = errBarData;
+    }
+    
+    public HashMap<String, ErrorBarItem> getCurrentErrBarValues() {
+        return errBarData;
+    }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Solver Service Utility Routines">
+    
     public void setupSolverService(
         EventHandler<WorkerStateEvent> successHandler,
         EventHandler<WorkerStateEvent> cancelledHandler,
@@ -475,7 +492,11 @@ public class JocularMain extends Application {
         }
         return solutionStats;
     }
+    
+    //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Solver Service">
+    
     public class SolverService extends Service<Void> {
 
         // private variables requiring external initialization
@@ -613,7 +634,11 @@ public class JocularMain extends Application {
             };
         }
     }
+    
+    //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Error Bar Service Utility Routines">
+    
     public void errBarServiceStart(TrialParams trialParams,
                                    EventHandler<WorkerStateEvent> successHandler,
                                    EventHandler<WorkerStateEvent> cancelledHandler,
@@ -684,7 +709,11 @@ public class JocularMain extends Application {
             ebs.cancel();
         }
     }
+    
+    //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Error Bar Service">
+    
     private class ErrBarService extends Service<Void> {
 
         private TrialParams trialParams;
@@ -843,5 +872,7 @@ public class JocularMain extends Application {
             return index;
         }
     }
+    
+    //</editor-fold>
 
 }
