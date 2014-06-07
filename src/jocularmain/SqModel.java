@@ -36,6 +36,10 @@ public class SqModel {
     public SqModel(Observation obs) {
         this.obs = obs;
     }
+    
+    public Observation getObs() {
+        return obs;
+    }
 
     public SqModel setDtransition(int dTranIndex) {
         this.dTranIndex = dTranIndex;

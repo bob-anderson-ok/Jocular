@@ -67,12 +67,15 @@ public class JocularMain extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+        int numCores = Runtime.getRuntime().availableProcessors();
+        
+        for (int i = 0; i < numCores; i++) {
             ErrBarService ebs = new ErrBarService();
             multiCoreErrBarServices.add(ebs);
         }
 
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+        //numCores=1;
+        for (int i = 0; i < numCores; i++) {
             SolverService solService = new SolverService();
             multiCoreSolverService.add(solService);
         }
@@ -360,14 +363,6 @@ public class JocularMain extends Application {
         int n,
         double minMagDrop, double maxMagDrop
     ) {
-//        solverService.setsolutionStats(solutionStats);
-//        solverService.setsqmodel(sqmodel);
-//        solverService.setsigmaB(sigmaB);
-//        solverService.setsigmaA(sigmaA);
-//        solverService.setn(n);
-//        solverService.setminMagDrop(minMagDrop);
-//        solverService.setmaxMagDrop(maxMagDrop);
-
         // Build a one dimensional array of acceptable transition pairs. Two
         // parallel arrays will hold the validated pairs. The arrays are longer than needed,
         // but we'll keep a count of how much is valid for later use in chopping up
@@ -395,6 +390,7 @@ public class JocularMain extends Application {
         // pad with tran pairs that will be rejected without being processed
         // because R happens before D
         int nCores = Runtime.getRuntime().availableProcessors();
+        //nCores=1;
         int numPaddingPairsNeeded = nCores - tranPairArraySize % nCores;
         for (int i = 0; i < numPaddingPairsNeeded; i++) {
             dTran[tranPairArraySize] = 2;
@@ -414,7 +410,7 @@ public class JocularMain extends Application {
             startIndex += chunkSize;
             
             solService.setsolutionStats(new SolutionStats());
-            solService.setsqmodel(sqmodel);
+            solService.setsqmodel(new SqModel(sqmodel.getObs()));
             solService.setsigmaB(sigmaB);
             solService.setsigmaA(sigmaA);
             solService.setn(n);
@@ -477,7 +473,7 @@ public class JocularMain extends Application {
 
     public class SolverService extends Service<Void> {
 
-        // private variables requiring initialization
+        // private variables requiring external initialization
         int[] dTran;
         int[] rTran;
         int numPairs;
@@ -490,7 +486,7 @@ public class JocularMain extends Application {
 
         // return variables
         int numValidTranPairs;
-        SolutionStats solutionStats;
+        SolutionStats solutionStats; // Provided as a parameter.
         List<SqSolution> sqsolutions;
 
         // local variables

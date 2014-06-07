@@ -929,14 +929,20 @@ public class RootViewController implements Initializable {
         resetProgressIndicator();
     }
 
-    private void handleSolverFailed(WorkerStateEvent event) {
+    private void printCurrentStateOfSolverServices() {
+        System.out.println("");
         for ( SolverService solService: jocularMain.multiCoreSolverService) {
             System.out.println("solService state: " + solService.getState());
         }
+    }
+    
+    private void handleSolverFailed(WorkerStateEvent event) {
+        printCurrentStateOfSolverServices();
         resetProgressIndicator();
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
+        printCurrentStateOfSolverServices();
         if ( ! jocularMain.solverServiceFinished()) {
             return;
         }
