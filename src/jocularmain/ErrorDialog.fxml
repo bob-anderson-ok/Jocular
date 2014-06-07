@@ -9,7 +9,7 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jocularmain.ErrorDialogController">
     <children>
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ff1f3c" height="40.0" layoutX="142.0" layoutY="-40.0" stroke="BLACK" strokeType="INSIDE" width="500.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#c3162d" height="40.0" layoutX="142.0" layoutY="-40.0" stroke="BLACK" strokeType="INSIDE" width="500.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <effect>
                 <DropShadow />
             </effect>

@@ -1,9 +1,8 @@
 package jocularmain;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import javafx.beans.property.DoubleProperty;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import utils.JocularUtils;
@@ -58,7 +57,8 @@ public class SqSolver {
      */
     public static int rRight;
 
-    static public void computeCandidates(EventHandler<WorkerStateEvent> successHandler,
+    static public void computeCandidates(DoubleProperty progressProperty,
+                                         EventHandler<WorkerStateEvent> successHandler,
                                          EventHandler<WorkerStateEvent> cancelledHandler,
                                          EventHandler<WorkerStateEvent> failedHandler,
                                          JocularMain jocularMain,
@@ -175,7 +175,8 @@ public class SqSolver {
             sigmaA,
             n,
             minMagDrop,
-            maxMagDrop);
+            maxMagDrop,
+            progressProperty);
 
     }
 }

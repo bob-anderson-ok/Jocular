@@ -56,7 +56,6 @@ public class JocularMain extends Application {
     public Stage primaryStage;
 
     //public SolverService solverService = new SolverService();
-
     private List<ErrBarService> multiCoreErrBarServices = new ArrayList<>();
     public List<SolverService> multiCoreSolverService = new ArrayList<>();
 
@@ -68,13 +67,12 @@ public class JocularMain extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         int numCores = Runtime.getRuntime().availableProcessors();
-        
+
         for (int i = 0; i < numCores; i++) {
             ErrBarService ebs = new ErrBarService();
             multiCoreErrBarServices.add(ebs);
         }
 
-        //numCores=1;
         for (int i = 0; i < numCores; i++) {
             SolverService solService = new SolverService();
             multiCoreSolverService.add(solService);
@@ -361,14 +359,16 @@ public class JocularMain extends Application {
         SqModel sqmodel,
         double sigmaB, double sigmaA,
         int n,
-        double minMagDrop, double maxMagDrop
+        double minMagDrop, double maxMagDrop,
+        DoubleProperty progressProperty
     ) {
         // Build a one dimensional array of acceptable transition pairs. Two
         // parallel arrays will hold the validated pairs. The arrays are longer than needed,
         // but we'll keep a count of how much is valid for later use in chopping up
         // the work into equal amounts for each core.
-        int[] dTran = new int[dTranCandidates.length * rTranCandidates.length];
-        int[] rTran = new int[dTranCandidates.length * rTranCandidates.length];
+        int nCores = Runtime.getRuntime().availableProcessors();
+        int[] dTran = new int[dTranCandidates.length * rTranCandidates.length + nCores];
+        int[] rTran = new int[dTranCandidates.length * rTranCandidates.length + nCores];
         int tranPairArraySize = 0;
         for (int i = 0; i < dTranCandidates.length; i++) {
             for (int j = 0; j < rTranCandidates.length; j++) {
@@ -389,8 +389,6 @@ public class JocularMain extends Application {
         // chunkSize will be an even multiple of the number of cores. We
         // pad with tran pairs that will be rejected without being processed
         // because R happens before D
-        int nCores = Runtime.getRuntime().availableProcessors();
-        //nCores=1;
         int numPaddingPairsNeeded = nCores - tranPairArraySize % nCores;
         for (int i = 0; i < numPaddingPairsNeeded; i++) {
             dTran[tranPairArraySize] = 2;
@@ -408,19 +406,24 @@ public class JocularMain extends Application {
             int[] rTranChunk = new int[chunkSize];
             System.arraycopy(rTran, startIndex, rTranChunk, 0, chunkSize);
             startIndex += chunkSize;
-            
-            solService.setsolutionStats(new SolutionStats());
+
+            SolutionStats solStatForThread = new SolutionStats();
+            solStatForThread.straightLineAICc = solutionStats.straightLineAICc;
+            solStatForThread.straightLineLogL = solutionStats.straightLineLogL;
+
+            solService.setsolutionStats(solStatForThread);
             solService.setsqmodel(new SqModel(sqmodel.getObs()));
             solService.setsigmaB(sigmaB);
             solService.setsigmaA(sigmaA);
             solService.setn(n);
             solService.setminMagDrop(minMagDrop);
             solService.setmaxMagDrop(maxMagDrop);
-            
+
             solService.setTranPairs(dTranChunk, rTranChunk, chunkSize);
             solService.setOnSucceeded(successHandler);
             solService.setOnCancelled(cancelledHandler);
             solService.setOnFailed(failedHandler);
+            progressProperty.bind(solService.progressProperty());
             solService.reset();
             solService.restart();
         }
@@ -467,6 +470,8 @@ public class JocularMain extends Application {
         for (SolverService solService : multiCoreSolverService) {
             solutionStats.numTransitionPairsConsidered += solService.getSolutionStats().numTransitionPairsConsidered;
             solutionStats.numValidTransitionPairs += solService.getSolutionStats().numValidTransitionPairs;
+            solutionStats.straightLineAICc = solService.getSolutionStats().straightLineAICc;
+            solutionStats.straightLineLogL = solService.getSolutionStats().straightLineLogL;
         }
         return solutionStats;
     }
@@ -545,7 +550,6 @@ public class JocularMain extends Application {
             return new Task<Void>() {
                 @Override
                 protected Void call() {
-                    System.out.println("In solverServer");
                     sqsolutions = new ArrayList<>();
                     // work goes in here
                     numValidTranPairs = 0;

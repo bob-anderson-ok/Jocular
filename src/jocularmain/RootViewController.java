@@ -187,7 +187,6 @@ public class RootViewController implements Initializable {
         if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
                                         sqSol.sigmaB, sqSol.sigmaA,
                                         sqSol.B, sqSol.A)) {
-            //System.out.println("In subframe-timing noise regime");
             jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
             prepareAndShowReport();
 
@@ -467,10 +466,16 @@ public class RootViewController implements Initializable {
         // The following message should never be triggered. The numPointsInTrialSample was experimentally
         // determined to result in < 2% reject rate.
         if (monteCarloResult.numRejections > NUM_TRIALS_FOR_ERR_BAR_DETERMINATION / 10) {
-            jocularMain.showErrorDialog("Program error: More than 10% of the trials were rejected. This indicates an"
-                + " algorithm failure in determining the appropriate number of points in a trial sample.",
-                                        jocularMain.errorBarPanelStage);
-            return;
+            double rejectRate = (monteCarloResult.numRejections / NUM_TRIALS_FOR_ERR_BAR_DETERMINATION) * 100.0;
+            jocularMain.showErrorDialog(
+                String.format(
+                    "This event has a SNR below 0.25 and experienced a %.0f reject rate during "
+                    + "error bar estimation.  The error bar estimates are therefore suspect. "
+                    + "Use the Error Bar Study Panel to hand-craft an error bar estimation for SNR below 0.25.",
+                    rejectRate
+                ),
+                jocularMain.errorBarPanelStage
+            );
         }
 
         ArrayList<HistStatItem> statsArray = ErrBarUtils.getInstance().buildHistStatArray(monteCarloResult.histogram);
@@ -754,7 +759,7 @@ public class RootViewController implements Initializable {
         }
 
         if (eventPoints.size() < 2) {
-             jocularMain.showErrorDialog("Cannot calculate event noise because less than 2 points available", jocularMain.primaryStage);
+            jocularMain.showErrorDialog("Cannot calculate event noise because less than 2 points available", jocularMain.primaryStage);
             sigmaAtext.setText("NaN");
         } else {
             sigma = JocularUtils.calcSigma(eventPoints);
@@ -891,15 +896,11 @@ public class RootViewController implements Initializable {
 
         SolutionStats solutionStats = new SolutionStats();
 
-//        jocularMain.solverService.setOnSucceeded(this::handleSolverDone);
-//        jocularMain.solverService.setOnCancelled(this::handleSolverCancelled);
-//        jocularMain.solverService.setOnFailed(this::handleSolverFailed);
-
         progressLabel.setText(("'solution' in progress..."));
-        //generalPurposeProgressBar.progressProperty().bind(jocularMain.solverService.progressProperty());
         clearSolutionList();
 
         SqSolver.computeCandidates(
+            generalPurposeProgressBar.progressProperty(),
             this::handleSolverDone, this::handleSolverCancelled, this::handleSolverFailed,
             jocularMain, solutionStats,
             sigmaB, sigmaA,
@@ -931,22 +932,22 @@ public class RootViewController implements Initializable {
 
     private void printCurrentStateOfSolverServices() {
         System.out.println("");
-        for ( SolverService solService: jocularMain.multiCoreSolverService) {
+        for (SolverService solService : jocularMain.multiCoreSolverService) {
             System.out.println("solService state: " + solService.getState());
         }
     }
-    
+
     private void handleSolverFailed(WorkerStateEvent event) {
         printCurrentStateOfSolverServices();
         resetProgressIndicator();
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
-        printCurrentStateOfSolverServices();
-        if ( ! jocularMain.solverServiceFinished()) {
+        //printCurrentStateOfSolverServices();
+        if (!jocularMain.solverServiceFinished()) {
             return;
         }
-        
+
         resetProgressIndicator();
         solutions = jocularMain.getCumSolverSolutions();
         ObservableList<String> items = FXCollections.observableArrayList();
@@ -1721,10 +1722,8 @@ public class RootViewController implements Initializable {
 
     private void handleSuccess(WorkerStateEvent e) {
         generalPurposeProgressBar.setProgress(0.0);
-        //generalPurposeProgressBar.visibleProperty().set(false);
         progressLabel.setText("");
         System.out.println("taskResponse = " + e.getSource().getValue());
-        jocularMain.mainScene.setCursor(Cursor.DEFAULT);
     }
 
     private void handleCancelled(WorkerStateEvent e) {
