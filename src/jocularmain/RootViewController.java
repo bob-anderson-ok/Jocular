@@ -53,12 +53,12 @@ public class RootViewController implements Initializable {
     private static final int SOLUTION_LIST_HEADER_SIZE = 2;
     private static double RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED = 0.01;
     private static final int NUM_TRIALS_FOR_ERR_BAR_DETERMINATION = 100000;
-    
+
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
-    
+
     List<SqSolution> solutions;
-    
+
     private static HashMap<DataType, XYChart.Series<Number, Number>> chartSeries = new HashMap<>();
 
     public static void setMainApp(JocularMain main) {
@@ -66,86 +66,80 @@ public class RootViewController implements Initializable {
     }
 
     //<editor-fold defaultstate="collapsed" desc="FXML GUI fx:ids">
-    
     @FXML
-        LineChart<Number, Number> chart;
-    
+    LineChart<Number, Number> chart;
+
     @FXML
-        Label outputLabel;
-    
+    Label outputLabel;
+
     @FXML
-        RadioButton markerRBnone;
+    RadioButton markerRBnone;
     @FXML
-        RadioButton markerRBtrimLeft;
+    RadioButton markerRBtrimLeft;
     @FXML
-        RadioButton markerRBdLeft;
+    RadioButton markerRBdLeft;
     @FXML
-        RadioButton markerRBdRight;
+    RadioButton markerRBdRight;
     @FXML
-        RadioButton markerRBrLeft;
+    RadioButton markerRBrLeft;
     @FXML
-        RadioButton markerRBrRight;
+    RadioButton markerRBrRight;
     @FXML
-        RadioButton markerRBtrimRight;
-    
+    RadioButton markerRBtrimRight;
+
     @FXML
-        ToggleButton hideToggleButton;
-    
+    ToggleButton hideToggleButton;
+
     @FXML
-        ListView solutionList;
+    ListView solutionList;
     @FXML
-        ListView reportListView;
-    
+    ListView reportListView;
+
     @FXML
-        CheckBox obsLightFontCheckbox;
+    CheckBox obsLightFontCheckbox;
     @FXML
-        CheckBox obsPointsOnlyCheckbox;
+    CheckBox obsPointsOnlyCheckbox;
     @FXML
-        CheckBox solutionEnvelopeCheckbox;
-    
+    CheckBox solutionEnvelopeCheckbox;
+
     // Confidence Interval selection buttons
     @FXML
-        RadioButton conInt68RadioButton;
+    RadioButton conInt68RadioButton;
     @FXML
-        RadioButton conInt90RadioButton;
+    RadioButton conInt90RadioButton;
     @FXML
-        RadioButton conInt95RadioButton;
+    RadioButton conInt95RadioButton;
     @FXML
-        RadioButton conInt99RadioButton;
-    
-    @FXML
-        CheckBox allowManualNoiseEntryCheckbox;
-    
-    @FXML
-        TextField sigmaBtext;
-    @FXML
-        TextField sigmaAtext;
-    
-    @FXML
-        TextField minEventText;
-    @FXML
-        TextField maxEventText;
-    
-    @FXML
-        TextField minMagDropText;
-    @FXML
-        TextField maxMagDropText;
-    
-    @FXML
-        ProgressBar generalPurposeProgressBar;
-    @FXML
-        Label progressLabel;
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="FXML referenced methods">
-    
-    @FXML
-    public void cancelSolution() {
-        jocularMain.cancelSolverService();
-        jocularMain.cancelErrBarService();
-    }
+    RadioButton conInt99RadioButton;
 
+    @FXML
+    CheckBox allowManualNoiseEntryCheckbox;
+
+    @FXML
+    TextField sigmaBtext;
+    @FXML
+    TextField sigmaAtext;
+
+    @FXML
+    TextField minEventText;
+    @FXML
+    TextField maxEventText;
+
+    @FXML
+    TextField minMagDropText;
+    @FXML
+    TextField maxMagDropText;
+
+    @FXML
+    ProgressBar generalPurposeProgressBar;
+    @FXML
+    Label progressLabel;
+
+    //</editor-fold>
+    //
+    //<editor-fold defaultstate="collapsed" desc="FXML referenced methods">
+    //
+    //<editor-fold defaultstate="collapsed" desc="Action Buttons">
     @FXML
     public void computeCandidates() {
 
@@ -232,248 +226,6 @@ public class RootViewController implements Initializable {
             dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
 
         return;
-    }
-
-    @FXML
-    public void manualNoiseClicked() {
-        sigmaAtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
-        sigmaBtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
-        
-    }
-    
-    @FXML
-    public void solEnvelopeClicked() {
-        if (solutionEnvelopeCheckbox.isSelected()) {
-            showSolutionEnvelope();
-        } else {
-            chartSeries.put(DataType.UPPER_ENVELOPE, null);
-            chartSeries.put(DataType.LOWER_ENVELOPE, null);
-        }
-        repaintChart();
-    }
-    
-    @FXML
-    public void confidenceIntervalButtonClicked() {
-        prepareAndShowReport();
-    }
-    
-    @FXML
-    public void calcErrorBars() {
-        if (jocularMain.getCurrentSolution() == null) {
-            jocularMain.showErrorDialog(
-                "There is no solution to determine confidence intervals for.",
-                jocularMain.primaryStage
-            );
-            return;
-        }
-        
-        boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
-        boolean solverServiceRunning = jocularMain.solverServiceRunning();
-        if (errBarServiceRunning || solverServiceRunning) {
-            jocularMain.showInformationDialog(
-                "There is already an error bar calculation or solution in progress",
-                jocularMain.primaryStage
-            );
-            return;
-        }
-        
-        SqSolution sqSol = jocularMain.getCurrentSolution();
-        
-        if (Double.isNaN(sqSol.sigmaA) || Double.isNaN(sqSol.sigmaB)) {
-            jocularMain.showErrorDialog("Noise levels missing.", jocularMain.primaryStage);
-            return;
-        }
-        
-        if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
-                                        sqSol.sigmaB, sqSol.sigmaA,
-                                        sqSol.B, sqSol.A)) {
-            jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
-            prepareAndShowReport();
-            
-            return;
-        }
-        
-        double snrA = (sqSol.B - sqSol.A) / sqSol.sigmaA;
-        double sym = sqSol.sigmaA / sqSol.sigmaB;
-        
-        double snrEff;
-        if (sym > 0.5) {
-            snrEff = snrA;
-        } else if (sym < 0.12) {
-            snrEff = 3.0 * snrA;
-        } else {
-            snrEff = 2.0 * snrA;
-        }
-        
-        int numPointsInTrialSample;
-        if (snrEff >= 2.0) {
-            numPointsInTrialSample = 100;
-        } else if (snrEff >= 1.0) {
-            numPointsInTrialSample = 200;
-        } else if (snrEff >= 0.5) {
-            numPointsInTrialSample = 600;
-        } else if (snrEff >= 0.25) {
-            numPointsInTrialSample = 1800;
-        } else {
-            //jocularMain.showInformationDialog(String.format("SNR must be >= 0.25 but is %.2f", snrEff), jocularMain.primaryStage);
-            //return;
-            numPointsInTrialSample = 2000;
-        }
-        
-        // Set up the parameters for a monte carlo estimation of confidence intervals.
-        TrialParams trialParams = new TrialParams();
-        trialParams.baselineLevel = sqSol.B;
-        trialParams.eventLevel = sqSol.A;
-        trialParams.numTrials = NUM_TRIALS_FOR_ERR_BAR_DETERMINATION;
-        trialParams.sampleWidth = numPointsInTrialSample;
-        trialParams.mode = MonteCarloMode.RANDOM;
-        trialParams.sigmaB = sqSol.sigmaB;
-        trialParams.sigmaA = sqSol.sigmaA;
-        
-        progressLabel.setText("error bar calculation...");
-        
-        jocularMain.errBarServiceStart(
-            trialParams,
-            this::handleSuccessfulErrBarService,
-            this::handleNonSuccessfulErrBarService,
-            this::handleNonSuccessfulErrBarService,
-            generalPurposeProgressBar.progressProperty()
-        );
-    }
-    
-    @FXML
-    public void displayReportHelp() {
-        jocularMain.showHelpDialog("Help/report.help.html");
-    }
-
-    @FXML
-    public void snapshotTheChart() {
-        WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
-        chart.snapshot(null, wim);
-        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void snapshotTheWholeWindow() {
-        WritableImage wim = jocularMain.mainScene.snapshot(null);
-        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void getSelectedSolution(MouseEvent arg) {
-        int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
-        if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
-            eraseSolutionAndRelatedSeries();
-            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
-            repaintChart();
-            jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
-            reportListView.setItems(null);
-            calcErrorBars();
-        }
-    }
-
-    @FXML
-    public void replotObservation() {
-        // This forces a 'relook' at the state of the checkboxes that give the user options
-        // on the look of the observation data display (points, points and lines, light or dark)
-        // and gets called whenver one of those checkboxes is clicked.
-        repaintChart();
-    }
-
-    @FXML
-    void respondToRightButtonClick() {
-        revertToOriginalAxisScaling();
-    }
-
-    @FXML
-    void showSampleDataDialog() {
-        jocularMain.showSampleDataDialog();
-    }
-
-    @FXML
-    public void doOpenRecentFiles() {
-        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.", jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void doReadLimovieFile() {
-        if (jocularMain.solverServiceRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
-                + " observation is in progress.", jocularMain.primaryStage);
-            return;
-        }
-        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void doReadTangraFile() {
-        if (jocularMain.solverServiceRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
-                + " observation is in progress.", jocularMain.primaryStage);
-            return;
-        }
-        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
-    }
-
-    @FXML
-    public void doEstimateErrorBars() {
-        jocularMain.showErrorBarTool();
-    }
-
-    @FXML
-    public void doShowSubframeTimingBand() {
-        if (jocularMain.getCurrentSolution() == null) {
-            jocularMain.showErrorDialog("There is no solution to process.", jocularMain.primaryStage);
-            return;
-        }
-
-        double solutionB = jocularMain.getCurrentSolution().B;
-        double solutionA = jocularMain.getCurrentSolution().A;
-
-        double sigB = validateSigmaBtext();
-        if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.", jocularMain.primaryStage);
-            return;
-        }
-
-        double sigA = validateSigmaAtext();
-        if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
-            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.", jocularMain.primaryStage);
-            return;
-        }
-
-        int n = jocularMain.getCurrentObservation().readingNumbers.length;
-
-        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-
-        if (bSFL <= eSFL) {
-            jocularMain.showInformationDialog("Subframe timing is not applicable for this solution.", jocularMain.primaryStage);
-            return;
-        }
-
-        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];
-        int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
-        int xn = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
-
-        // Now we create the series to display as a rectangle.
-        XYChart.Series<Number, Number> series;
-        series = new XYChart.Series<Number, Number>();
-        XYChart.Data<Number, Number> data;
-
-        data = new XYChart.Data(x0, eSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(xn, eSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(xn, bSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(x0, bSFL);
-        series.getData().add(data);
-        data = new XYChart.Data(x0, eSFL);
-        series.getData().add(data);
-
-        chartSeries.put(DataType.SUBFRAME_BAND, series);
-        repaintChart();
     }
 
     @FXML
@@ -566,27 +318,6 @@ public class RootViewController implements Initializable {
     }
 
     @FXML
-    public void showIntroHelp() {
-        jocularMain.showHelpDialog("Help/gettingstarted.help.html");
-    }
-
-    @FXML
-    public void showAbout() {
-        jocularMain.showHelpDialog("Help/about.help.html");
-    }
-
-    @FXML
-    public void displayNoiseHelp() {
-        jocularMain.showHelpDialog("Help/noisevalues.help.html");
-    }
-
-    @FXML
-    public void displayMinMaxEventHelp() {
-        jocularMain.showHelpDialog("Help/eventlimits.help.html");
-
-    }
-    
-    @FXML
     public void applyTrims() {
 
         if (jocularMain.getCurrentObservation() == null) {
@@ -646,27 +377,196 @@ public class RootViewController implements Initializable {
     }
 
     @FXML
-    void displayChartZoomPanMarkHelp() {
-        jocularMain.showHelpDialog("Help/chart.help.html");
+    public void cancelSolution() {
+        jocularMain.cancelSolverService();
+        jocularMain.cancelErrBarService();
     }
 
     @FXML
-    void displayMarkerSelectionHelp() {
-        jocularMain.showHelpDialog("Help/marker.help.html");
+    private void hideUnhideMarkers() {
+        boolean v = !hideToggleButton.isSelected();
+        smartChart.getMarker("trimLeft").setVisible(v);
+        smartChart.getMarker("dLeft").setVisible(v);
+        smartChart.getMarker("dRight").setVisible(v);
+        smartChart.getMarker("rLeft").setVisible(v);
+        smartChart.getMarker("rRight").setVisible(v);
+        smartChart.getMarker("trimRight").setVisible(v);
     }
 
     @FXML
-    void displaySolutionListHelp() {
-        jocularMain.showHelpDialog("Help/solutionlist.help.html");
+    private void eraseSelection() {
+        if (!"none".equals(markerSelectedName)) {
+            smartChart.getMarker(markerSelectedName).setInUse(false);
+
+            markerRBnone.setSelected(true);
+            markerRBnone.requestFocus();
+            markerSelectedName = "none";
+        }
     }
 
     @FXML
-    void displayMinMaxMagDropHelp() {
-        jocularMain.showHelpDialog("Help/magdrop.help.html");
+    public void eraseAllMarkers() {
+        smartChart.getMarker("trimLeft").setInUse(false);
+        smartChart.getMarker("dLeft").setInUse(false);
+        smartChart.getMarker("dRight").setInUse(false);
+        smartChart.getMarker("rLeft").setInUse(false);
+        smartChart.getMarker("rRight").setInUse(false);
+        smartChart.getMarker("trimRight").setInUse(false);
     }
 
-    private String markerSelectedName = "none";
+    //</editor-fold>
+    //
+    //<editor-fold defaultstate="collapsed" desc="Checkbox Actions">
+    //
+    @FXML
+    public void manualNoiseClicked() {
+        sigmaAtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
+        sigmaBtext.setEditable(allowManualNoiseEntryCheckbox.isSelected());
 
+    }
+
+    @FXML
+    public void solEnvelopeClicked() {
+        if (solutionEnvelopeCheckbox.isSelected()) {
+            showSolutionEnvelope();
+        } else {
+            chartSeries.put(DataType.UPPER_ENVELOPE, null);
+            chartSeries.put(DataType.LOWER_ENVELOPE, null);
+        }
+        repaintChart();
+    }
+
+    @FXML
+    public void confidenceIntervalButtonClicked() {
+        prepareAndShowReport();
+    }
+
+    //</editor-fold>
+    //
+    //<editor-fold defaultstate="collapsed" desc="Menu Item Actions">
+    @FXML
+    public void doEstimateErrorBars() {
+        jocularMain.showErrorBarTool();
+    }
+
+    @FXML
+    public void displayReportHelp() {
+        jocularMain.showHelpDialog("Help/report.help.html");
+    }
+
+    @FXML
+    public void snapshotTheChart() {
+        WritableImage wim = new WritableImage((int) chart.getWidth(), (int) chart.getHeight());
+        chart.snapshot(null, wim);
+        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void snapshotTheWholeWindow() {
+        WritableImage wim = jocularMain.mainScene.snapshot(null);
+        jocularMain.saveSnapshotToFile(wim, jocularMain.primaryStage);
+    }
+
+    @FXML
+    void showSampleDataDialog() {
+        jocularMain.showSampleDataDialog();
+    }
+
+    @FXML
+    public void doOpenRecentFiles() {
+        jocularMain.showInformationDialog("Open Recent Files:  not yet implemented.", jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void doReadLimovieFile() {
+        if (jocularMain.solverServiceRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.primaryStage);
+            return;
+        }
+        jocularMain.showInformationDialog("Read Limovie File:  not yet implemented.", jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void doReadTangraFile() {
+        if (jocularMain.solverServiceRunning()) {
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.primaryStage);
+            return;
+        }
+        jocularMain.showInformationDialog("Read Tangra File:  not yet implemented.", jocularMain.primaryStage);
+    }
+
+    @FXML
+    public void doShowSubframeTimingBand() {
+        if (jocularMain.getCurrentSolution() == null) {
+            jocularMain.showErrorDialog("There is no solution to process.", jocularMain.primaryStage);
+            return;
+        }
+
+        double solutionB = jocularMain.getCurrentSolution().B;
+        double solutionA = jocularMain.getCurrentSolution().A;
+
+        double sigB = validateSigmaBtext();
+        if (sigB == FIELD_ENTRY_ERROR || sigB == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Baseline Noise text field is empty or erroneous.", jocularMain.primaryStage);
+            return;
+        }
+
+        double sigA = validateSigmaAtext();
+        if (sigA == FIELD_ENTRY_ERROR || sigA == EMPTY_FIELD) {
+            jocularMain.showErrorDialog("Event Noise text field is empty or erroneous.", jocularMain.primaryStage);
+            return;
+        }
+
+        int n = jocularMain.getCurrentObservation().readingNumbers.length;
+
+        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+
+        if (bSFL <= eSFL) {
+            jocularMain.showInformationDialog("Subframe timing is not applicable for this solution.", jocularMain.primaryStage);
+            return;
+        }
+
+        int x0 = jocularMain.getCurrentObservation().readingNumbers[0];
+        int lastReadingIndex = jocularMain.getCurrentObservation().readingNumbers.length - 1;
+        int xn = jocularMain.getCurrentObservation().readingNumbers[lastReadingIndex];
+
+        // Now we create the series to display as a rectangle.
+        XYChart.Series<Number, Number> series;
+        series = new XYChart.Series<Number, Number>();
+        XYChart.Data<Number, Number> data;
+
+        data = new XYChart.Data(x0, eSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(xn, eSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(xn, bSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(x0, bSFL);
+        series.getData().add(data);
+        data = new XYChart.Data(x0, eSFL);
+        series.getData().add(data);
+
+        chartSeries.put(DataType.SUBFRAME_BAND, series);
+        repaintChart();
+    }
+
+    @FXML
+    public void showIntroHelp() {
+        jocularMain.showHelpDialog("Help/gettingstarted.help.html");
+    }
+
+    @FXML
+    public void showAbout() {
+        jocularMain.showHelpDialog("Help/about.help.html");
+    }
+
+    //</editor-fold>
+    //
+    //<editor-fold defaultstate="collapsed" desc="Radiobutton Actions">
+    //
     @FXML
     void noneRBaction() {
         markerSelectedName = "none";
@@ -708,40 +608,156 @@ public class RootViewController implements Initializable {
         makeMarkersVisible();
     }
 
+    //</editor-fold>
+    //
     @FXML
-    private void hideUnhideMarkers() {
-        boolean v = !hideToggleButton.isSelected();
-        smartChart.getMarker("trimLeft").setVisible(v);
-        smartChart.getMarker("dLeft").setVisible(v);
-        smartChart.getMarker("dRight").setVisible(v);
-        smartChart.getMarker("rLeft").setVisible(v);
-        smartChart.getMarker("rRight").setVisible(v);
-        smartChart.getMarker("trimRight").setVisible(v);
-    }
-
-    @FXML
-    private void eraseSelection() {
-        if (!"none".equals(markerSelectedName)) {
-            smartChart.getMarker(markerSelectedName).setInUse(false);
-
-            markerRBnone.setSelected(true);
-            markerRBnone.requestFocus();
-            markerSelectedName = "none";
+    public void getSelectedSolution(MouseEvent arg) {
+        int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
+        if (indexClickedOn >= SOLUTION_LIST_HEADER_SIZE) {
+            eraseSolutionAndRelatedSeries();
+            addSolutionCurveToMainPlot(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            repaintChart();
+            jocularMain.setCurrentSolution(solutions.get(indexClickedOn - SOLUTION_LIST_HEADER_SIZE));
+            reportListView.setItems(null);
+            calcErrorBars();
         }
     }
 
     @FXML
-    public void eraseAllMarkers() {
-        smartChart.getMarker("trimLeft").setInUse(false);
-        smartChart.getMarker("dLeft").setInUse(false);
-        smartChart.getMarker("dRight").setInUse(false);
-        smartChart.getMarker("rLeft").setInUse(false);
-        smartChart.getMarker("rRight").setInUse(false);
-        smartChart.getMarker("trimRight").setInUse(false);
+    public void replotObservation() {
+        // This forces a 'relook' at the state of the checkboxes that give the user options
+        // on the look of the observation data display (points, points and lines, light or dark)
+        // and gets called whenver one of those checkboxes is clicked.
+        repaintChart();
+    }
+
+    @FXML
+    void respondToRightButtonClick() {
+        revertToOriginalAxisScaling();
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Help Displays">
+    //
+    @FXML
+    public void displayNoiseHelp() {
+        jocularMain.showHelpDialog("Help/noisevalues.help.html");
+    }
+
+    @FXML
+    public void displayMinMaxEventHelp() {
+        jocularMain.showHelpDialog("Help/eventlimits.help.html");
+
+    }
+
+    @FXML
+    void displayChartZoomPanMarkHelp() {
+        jocularMain.showHelpDialog("Help/chart.help.html");
+    }
+
+    @FXML
+    void displayMarkerSelectionHelp() {
+        jocularMain.showHelpDialog("Help/marker.help.html");
+    }
+
+    @FXML
+    void displaySolutionListHelp() {
+        jocularMain.showHelpDialog("Help/solutionlist.help.html");
+    }
+
+    @FXML
+    void displayMinMaxMagDropHelp() {
+        jocularMain.showHelpDialog("Help/magdrop.help.html");
     }
 
     //</editor-fold>
+    //
+    private String markerSelectedName = "none";
+
+    //</editor-fold>
     
+    public void calcErrorBars() {
+        if (jocularMain.getCurrentSolution() == null) {
+            jocularMain.showErrorDialog(
+                "There is no solution to determine confidence intervals for.",
+                jocularMain.primaryStage
+            );
+            return;
+        }
+
+        boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
+        boolean solverServiceRunning = jocularMain.solverServiceRunning();
+        if (errBarServiceRunning || solverServiceRunning) {
+            jocularMain.showInformationDialog(
+                "There is already an error bar calculation or solution in progress",
+                jocularMain.primaryStage
+            );
+            return;
+        }
+
+        SqSolution sqSol = jocularMain.getCurrentSolution();
+
+        if (Double.isNaN(sqSol.sigmaA) || Double.isNaN(sqSol.sigmaB)) {
+            jocularMain.showErrorDialog("Noise levels missing.", jocularMain.primaryStage);
+            return;
+        }
+
+        if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
+                                        sqSol.sigmaB, sqSol.sigmaA,
+                                        sqSol.B, sqSol.A)) {
+            jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
+            prepareAndShowReport();
+
+            return;
+        }
+
+        double snrA = (sqSol.B - sqSol.A) / sqSol.sigmaA;
+        double sym = sqSol.sigmaA / sqSol.sigmaB;
+
+        double snrEff;
+        if (sym > 0.5) {
+            snrEff = snrA;
+        } else if (sym < 0.12) {
+            snrEff = 3.0 * snrA;
+        } else {
+            snrEff = 2.0 * snrA;
+        }
+
+        int numPointsInTrialSample;
+        if (snrEff >= 2.0) {
+            numPointsInTrialSample = 100;
+        } else if (snrEff >= 1.0) {
+            numPointsInTrialSample = 200;
+        } else if (snrEff >= 0.5) {
+            numPointsInTrialSample = 600;
+        } else if (snrEff >= 0.25) {
+            numPointsInTrialSample = 1800;
+        } else {
+            //jocularMain.showInformationDialog(String.format("SNR must be >= 0.25 but is %.2f", snrEff), jocularMain.primaryStage);
+            //return;
+            numPointsInTrialSample = 2000;
+        }
+
+        // Set up the parameters for a monte carlo estimation of confidence intervals.
+        TrialParams trialParams = new TrialParams();
+        trialParams.baselineLevel = sqSol.B;
+        trialParams.eventLevel = sqSol.A;
+        trialParams.numTrials = NUM_TRIALS_FOR_ERR_BAR_DETERMINATION;
+        trialParams.sampleWidth = numPointsInTrialSample;
+        trialParams.mode = MonteCarloMode.RANDOM;
+        trialParams.sigmaB = sqSol.sigmaB;
+        trialParams.sigmaA = sqSol.sigmaA;
+
+        progressLabel.setText("error bar calculation...");
+
+        jocularMain.errBarServiceStart(
+            trialParams,
+            this::handleSuccessfulErrBarService,
+            this::handleNonSuccessfulErrBarService,
+            this::handleNonSuccessfulErrBarService,
+            generalPurposeProgressBar.progressProperty()
+        );
+    }
+
     private void prepareAndShowReport() {
         if (!reportIsPossible()) {
             return;
