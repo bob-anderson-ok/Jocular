@@ -56,14 +56,16 @@ public class RootViewController implements Initializable {
 
     private static ManagedChart smartChart;
     private static JocularMain jocularMain;
+    private String markerSelectedName = "none";
+
+    private XYChartMarker dLeftMarker;
+    private XYChartMarker dRightMarker;
+    private XYChartMarker rLeftMarker;
+    private XYChartMarker rRightMarker;
 
     List<SqSolution> solutions;
 
     private static HashMap<DataType, XYChart.Series<Number, Number>> chartSeries = new HashMap<>();
-
-    public static void setMainApp(JocularMain main) {
-        jocularMain = main;
-    }
 
     //<editor-fold defaultstate="collapsed" desc="FXML GUI fx:ids">
     @FXML
@@ -136,7 +138,6 @@ public class RootViewController implements Initializable {
     Label progressLabel;
 
     //</editor-fold>
-    //
     //<editor-fold defaultstate="collapsed" desc="FXML referenced methods">
     //
     //<editor-fold defaultstate="collapsed" desc="Action Buttons">
@@ -441,6 +442,14 @@ public class RootViewController implements Initializable {
         prepareAndShowReport();
     }
 
+    @FXML
+    public void replotObservation() {
+        // This forces a 'relook' at the state of the checkboxes that give the user options
+        // on the look of the observation data display (points, points and lines, light or dark)
+        // and gets called whenver one of those checkboxes is clicked.
+        repaintChart();
+    }
+
     //</editor-fold>
     //
     //<editor-fold defaultstate="collapsed" desc="Menu Item Actions">
@@ -610,6 +619,8 @@ public class RootViewController implements Initializable {
 
     //</editor-fold>
     //
+    //<editor-fold defaultstate="collapsed" desc="Solution List clicked">
+    //
     @FXML
     public void getSelectedSolution(MouseEvent arg) {
         int indexClickedOn = solutionList.getSelectionModel().getSelectedIndex();
@@ -623,19 +634,17 @@ public class RootViewController implements Initializable {
         }
     }
 
-    @FXML
-    public void replotObservation() {
-        // This forces a 'relook' at the state of the checkboxes that give the user options
-        // on the look of the observation data display (points, points and lines, light or dark)
-        // and gets called whenver one of those checkboxes is clicked.
-        repaintChart();
-    }
-
+    //</editor-fold>
+    //
+    //<editor-fold defaultstate="collapsed" desc="Chart actions">
+    //
     @FXML
     void respondToRightButtonClick() {
         revertToOriginalAxisScaling();
     }
 
+    //</editor-fold> Chart related methods
+    //
     //<editor-fold defaultstate="collapsed" desc="Help Displays">
     //
     @FXML
@@ -669,95 +678,15 @@ public class RootViewController implements Initializable {
         jocularMain.showHelpDialog("Help/magdrop.help.html");
     }
 
-    //</editor-fold>
+    //</editor-fold> Help display methods
     //
-    private String markerSelectedName = "none";
-
-    //</editor-fold>
-    
-    public void calcErrorBars() {
-        if (jocularMain.getCurrentSolution() == null) {
-            jocularMain.showErrorDialog(
-                "There is no solution to determine confidence intervals for.",
-                jocularMain.primaryStage
-            );
-            return;
-        }
-
-        boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
-        boolean solverServiceRunning = jocularMain.solverServiceRunning();
-        if (errBarServiceRunning || solverServiceRunning) {
-            jocularMain.showInformationDialog(
-                "There is already an error bar calculation or solution in progress",
-                jocularMain.primaryStage
-            );
-            return;
-        }
-
-        SqSolution sqSol = jocularMain.getCurrentSolution();
-
-        if (Double.isNaN(sqSol.sigmaA) || Double.isNaN(sqSol.sigmaB)) {
-            jocularMain.showErrorDialog("Noise levels missing.", jocularMain.primaryStage);
-            return;
-        }
-
-        if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
-                                        sqSol.sigmaB, sqSol.sigmaA,
-                                        sqSol.B, sqSol.A)) {
-            jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
-            prepareAndShowReport();
-
-            return;
-        }
-
-        double snrA = (sqSol.B - sqSol.A) / sqSol.sigmaA;
-        double sym = sqSol.sigmaA / sqSol.sigmaB;
-
-        double snrEff;
-        if (sym > 0.5) {
-            snrEff = snrA;
-        } else if (sym < 0.12) {
-            snrEff = 3.0 * snrA;
-        } else {
-            snrEff = 2.0 * snrA;
-        }
-
-        int numPointsInTrialSample;
-        if (snrEff >= 2.0) {
-            numPointsInTrialSample = 100;
-        } else if (snrEff >= 1.0) {
-            numPointsInTrialSample = 200;
-        } else if (snrEff >= 0.5) {
-            numPointsInTrialSample = 600;
-        } else if (snrEff >= 0.25) {
-            numPointsInTrialSample = 1800;
-        } else {
-            //jocularMain.showInformationDialog(String.format("SNR must be >= 0.25 but is %.2f", snrEff), jocularMain.primaryStage);
-            //return;
-            numPointsInTrialSample = 2000;
-        }
-
-        // Set up the parameters for a monte carlo estimation of confidence intervals.
-        TrialParams trialParams = new TrialParams();
-        trialParams.baselineLevel = sqSol.B;
-        trialParams.eventLevel = sqSol.A;
-        trialParams.numTrials = NUM_TRIALS_FOR_ERR_BAR_DETERMINATION;
-        trialParams.sampleWidth = numPointsInTrialSample;
-        trialParams.mode = MonteCarloMode.RANDOM;
-        trialParams.sigmaB = sqSol.sigmaB;
-        trialParams.sigmaA = sqSol.sigmaA;
-
-        progressLabel.setText("error bar calculation...");
-
-        jocularMain.errBarServiceStart(
-            trialParams,
-            this::handleSuccessfulErrBarService,
-            this::handleNonSuccessfulErrBarService,
-            this::handleNonSuccessfulErrBarService,
-            generalPurposeProgressBar.progressProperty()
-        );
+    //</editor-fold> Methods referenced in FXML code
+    //
+    public static void setMainApp(JocularMain main) {
+        jocularMain = main;
     }
 
+    //<editor-fold defaultstate="collapsed" desc="Report preparation methods">
     private void prepareAndShowReport() {
         if (!reportIsPossible()) {
             return;
@@ -845,6 +774,12 @@ public class RootViewController implements Initializable {
             minMagDrop, nominalMagDrop, maxMagDrop);
     }
 
+    private boolean reportIsPossible() {
+        return (jocularMain.getCurrentSolution() != null)
+            && (jocularMain.getCurrentErrBarValues() != null);
+    }
+    //</editor-fold> Report preparation methods
+
     private int getSelectedConfidenceInterval() {
         if (conInt68RadioButton.isSelected()) {
             return 68;
@@ -859,6 +794,98 @@ public class RootViewController implements Initializable {
             return 99;
         }
         return -1;
+    }
+
+    private boolean inSubframeTimingNoiseRegime(int n, double sigB, double sigA, double solutionB, double solutionA) {
+        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
+
+        if (bSFL <= eSFL) {
+            return false;
+        }
+        return true;
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Error Bar related methods">
+    public void calcErrorBars() {
+        if (jocularMain.getCurrentSolution() == null) {
+            jocularMain.showErrorDialog(
+                "There is no solution to determine confidence intervals for.",
+                jocularMain.primaryStage
+            );
+            return;
+        }
+
+        boolean errBarServiceRunning = jocularMain.errBarServiceRunning();
+        boolean solverServiceRunning = jocularMain.solverServiceRunning();
+        if (errBarServiceRunning || solverServiceRunning) {
+            jocularMain.showInformationDialog(
+                "There is already an error bar calculation or solution in progress",
+                jocularMain.primaryStage
+            );
+            return;
+        }
+
+        SqSolution sqSol = jocularMain.getCurrentSolution();
+
+        if (Double.isNaN(sqSol.sigmaA) || Double.isNaN(sqSol.sigmaB)) {
+            jocularMain.showErrorDialog("Noise levels missing.", jocularMain.primaryStage);
+            return;
+        }
+
+        if (inSubframeTimingNoiseRegime(jocularMain.getCurrentObservation().obsData.length,
+                                        sqSol.sigmaB, sqSol.sigmaA,
+                                        sqSol.B, sqSol.A)) {
+            jocularMain.setCurrentErrBarValues(getErrBarDataForSubframeCase());
+            prepareAndShowReport();
+
+            return;
+        }
+
+        double snrA = (sqSol.B - sqSol.A) / sqSol.sigmaA;
+        double sym = sqSol.sigmaA / sqSol.sigmaB;
+
+        double snrEff;
+        if (sym > 0.5) {
+            snrEff = snrA;
+        } else if (sym < 0.12) {
+            snrEff = 3.0 * snrA;
+        } else {
+            snrEff = 2.0 * snrA;
+        }
+
+        int numPointsInTrialSample;
+        if (snrEff >= 2.0) {
+            numPointsInTrialSample = 100;
+        } else if (snrEff >= 1.0) {
+            numPointsInTrialSample = 200;
+        } else if (snrEff >= 0.5) {
+            numPointsInTrialSample = 600;
+        } else if (snrEff >= 0.25) {
+            numPointsInTrialSample = 1800;
+        } else {
+            numPointsInTrialSample = 2000;
+        }
+
+        // Set up the parameters for a monte carlo estimation of confidence intervals.
+        TrialParams trialParams = new TrialParams();
+        trialParams.baselineLevel = sqSol.B;
+        trialParams.eventLevel = sqSol.A;
+        trialParams.numTrials = NUM_TRIALS_FOR_ERR_BAR_DETERMINATION;
+        trialParams.sampleWidth = numPointsInTrialSample;
+        trialParams.mode = MonteCarloMode.RANDOM;
+        trialParams.sigmaB = sqSol.sigmaB;
+        trialParams.sigmaA = sqSol.sigmaA;
+
+        progressLabel.setText("error bar calculation...");
+
+        jocularMain.errBarServiceStart(
+            trialParams,
+            this::handleSuccessfulErrBarService,
+            this::handleNonSuccessfulErrBarService,
+            this::handleNonSuccessfulErrBarService,
+            generalPurposeProgressBar.progressProperty()
+        );
     }
 
     private double sigmaAtCI(int confidenceInterval, double sigma) {
@@ -880,11 +907,6 @@ public class RootViewController implements Initializable {
                 throw new IllegalArgumentException("sigmaAtCI() invalid confidence interval: " + confidenceInterval);
         }
         return sigma * sigmaMultiplier;
-    }
-
-    private boolean reportIsPossible() {
-        return (jocularMain.getCurrentSolution() != null)
-            && (jocularMain.getCurrentErrBarValues() != null);
     }
 
     private void fillErrItemFields(ErrorBarItem errItem, int confidenceInterval, double sigmaRdg) {
@@ -954,16 +976,6 @@ public class RootViewController implements Initializable {
         return ans;
     }
 
-    private boolean inSubframeTimingNoiseRegime(int n, double sigB, double sigA, double solutionB, double solutionA) {
-        double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-        double eSFL = JocularUtils.calcAsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
-
-        if (bSFL <= eSFL) {
-            return false;
-        }
-        return true;
-    }
-
     private void handleNonSuccessfulErrBarService(WorkerStateEvent event) {
         resetProgressIndicator();
     }
@@ -1013,22 +1025,7 @@ public class RootViewController implements Initializable {
                              item.barMinus
         );
     }
-
-    private String getUserPreferredObsStyle() {
-        if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
-            return "obsPoints";
-        }
-
-        if (obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
-            return "obsData";
-        }
-
-        if (!obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
-            return "ObsPoints";
-        } else {
-            return "ObsData";
-        }
-    }
+    //</editor-fold> Error Bar related methods
 
     private boolean includedWithinMarkers(int index,
                                           XYChartMarker dLeft, XYChartMarker dRight,
@@ -1075,17 +1072,6 @@ public class RootViewController implements Initializable {
         return;
     }
 
-    /**
-     * a node which displays a value on hover, but is otherwise empty
-     */
-    class HoveredNode extends StackPane {
-
-        HoveredNode(int readingNumber, double intensity) {
-            setOnMouseEntered(e -> outputLabel.setText(String.format("RdgNbr %d Intensity %.2f", readingNumber, intensity)));
-            setOnMouseExited(e -> outputLabel.setText(""));
-        }
-    }
-
     class LogLcomparator implements Comparator<SqSolution> {
 
         @Override
@@ -1101,6 +1087,8 @@ public class RootViewController implements Initializable {
         progressLabel.setText("");
     }
 
+    //<editor-fold defaultstate="collapsed" desc="Solver Service methods">
+    //
     private void handleSolverCancelled(WorkerStateEvent event) {
         resetProgressIndicator();
     }
@@ -1185,6 +1173,10 @@ public class RootViewController implements Initializable {
         calcErrorBars();
     }
 
+    //
+    //</editor-fold> Solver service methods
+    //<editor-fold defaultstate="collapsed" desc="Text field validation routines">
+    //
     private double validateSigmaBtext() {
         return sigmaValue(sigmaBtext.getText(), "Baseline Noise");
     }
@@ -1281,12 +1273,44 @@ public class RootViewController implements Initializable {
         }
     }
 
+    //
+    //</editor-fold> Text field validation routines
+    //
     public void clearSolutionList() {
         solutionList.setItems(null);
         reportListView.setItems(null);
         jocularMain.setCurrentSolution(null);
         eraseSolutionAndRelatedSeries();
         repaintChart();
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Chart (main plot) related methods">
+    //
+    /**
+     * a node which displays a value on hover, but is otherwise empty
+     */
+    class HoveredNode extends StackPane {
+
+        HoveredNode(int readingNumber, double intensity) {
+            setOnMouseEntered(e -> outputLabel.setText(String.format("RdgNbr %d Intensity %.2f", readingNumber, intensity)));
+            setOnMouseExited(e -> outputLabel.setText(""));
+        }
+    }
+
+    private String getUserPreferredObsStyle() {
+        if (obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
+            return "obsPoints";
+        }
+
+        if (obsLightFontCheckbox.isSelected() && !obsPointsOnlyCheckbox.isSelected()) {
+            return "obsData";
+        }
+
+        if (!obsLightFontCheckbox.isSelected() && obsPointsOnlyCheckbox.isSelected()) {
+            return "ObsPoints";
+        } else {
+            return "ObsData";
+        }
     }
 
     private void eraseSolutionAndRelatedSeries() {
@@ -1667,11 +1691,6 @@ public class RootViewController implements Initializable {
         chart.getYAxis().setAutoRanging(true);
     }
 
-    private void makeMarkersVisible() {
-        hideToggleButton.setSelected(false);
-        hideUnhideMarkers();
-    }
-
     private void setupDisplayOfCoordinates() {
         Node chartBackground = chart.lookup(".chart-plot-background");
         chartBackground.setOnMouseMoved(this::showCoordinates);
@@ -1688,6 +1707,15 @@ public class RootViewController implements Initializable {
             chart.getXAxis().getValueForDisplay(mouseEvent.getX()),
             chart.getYAxis().getValueForDisplay(mouseEvent.getY())
         ));
+    }
+
+    //
+    //</editor-fold> Chart (main plot) related methods
+    //<editor-fold defaultstate="collapsed" desc="Chart marker related methods">
+    //
+    private void makeMarkersVisible() {
+        hideToggleButton.setSelected(false);
+        hideUnhideMarkers();
     }
 
     private void setupLeftClickResponder() {
@@ -1741,17 +1769,25 @@ public class RootViewController implements Initializable {
         }
     }
 
-    private void handleSuccess(WorkerStateEvent e) {
-        generalPurposeProgressBar.setProgress(0.0);
-        progressLabel.setText("");
-        System.out.println("taskResponse = " + e.getSource().getValue());
+    void createAndAddNamedVerticalMarkers() {
+        XYChartMarker trimLeftMarker = new XYChartMarker("trimLeft", smartChart).setColor(Color.BLUE).setWidth(2);
+        dLeftMarker = new XYChartMarker("dLeft", smartChart).setColor(Color.RED).setWidth(2);
+        dRightMarker = new XYChartMarker("dRight", smartChart).setColor(Color.RED).setWidth(2);
+        rLeftMarker = new XYChartMarker("rLeft", smartChart).setColor(Color.GREEN).setWidth(2);
+        rRightMarker = new XYChartMarker("rRight", smartChart).setColor(Color.GREEN).setWidth(2);
+        XYChartMarker trimRightMarker = new XYChartMarker("trimRight", smartChart).setColor(Color.BLUE).setWidth(2);
+
+        smartChart.addMarker(trimLeftMarker);
+        smartChart.addMarker(dLeftMarker);
+        smartChart.addMarker(dRightMarker);
+        smartChart.addMarker(rLeftMarker);
+        smartChart.addMarker(rRightMarker);
+        smartChart.addMarker(trimRightMarker);
     }
 
-    private void handleCancelled(WorkerStateEvent e) {
-        System.out.println("task was cancelled");
-        jocularMain.mainScene.setCursor(Cursor.DEFAULT);
-    }
-
+    //
+    //</editor-fold> Chart marker related methods
+    //
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
@@ -1781,26 +1817,4 @@ public class RootViewController implements Initializable {
         }.start();
 
     }
-
-    private XYChartMarker dLeftMarker;
-    private XYChartMarker dRightMarker;
-    private XYChartMarker rLeftMarker;
-    private XYChartMarker rRightMarker;
-
-    void createAndAddNamedVerticalMarkers() {
-        XYChartMarker trimLeftMarker = new XYChartMarker("trimLeft", smartChart).setColor(Color.BLUE).setWidth(2);
-        dLeftMarker = new XYChartMarker("dLeft", smartChart).setColor(Color.RED).setWidth(2);
-        dRightMarker = new XYChartMarker("dRight", smartChart).setColor(Color.RED).setWidth(2);
-        rLeftMarker = new XYChartMarker("rLeft", smartChart).setColor(Color.GREEN).setWidth(2);
-        rRightMarker = new XYChartMarker("rRight", smartChart).setColor(Color.GREEN).setWidth(2);
-        XYChartMarker trimRightMarker = new XYChartMarker("trimRight", smartChart).setColor(Color.BLUE).setWidth(2);
-
-        smartChart.addMarker(trimLeftMarker);
-        smartChart.addMarker(dLeftMarker);
-        smartChart.addMarker(dRightMarker);
-        smartChart.addMarker(rLeftMarker);
-        smartChart.addMarker(rRightMarker);
-        smartChart.addMarker(trimRightMarker);
-    }
-
 }
