@@ -23,9 +23,9 @@
 </effect></Rectangle><Label layoutX="44.0" layoutY="11.0" text="Set parameter values for sample observation creation" textFill="WHITE">
 <font>
 <Font name="System Bold" size="14.0" />
-</font></Label><Label fx:id="errorLabel" layoutX="75.353271484375" layoutY="326.0" text="       " textFill="RED" AnchorPane.leftAnchor="64.0" AnchorPane.topAnchor="326.0" /><ImageView fitHeight="16.0" fitWidth="16.0" layoutX="306.0" layoutY="295.0" onMouseClicked="#showRandGenSeedHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="296.0">
+</font></Label><Label fx:id="errorLabel" layoutX="75.353271484375" layoutY="326.0" text="       " textFill="RED" AnchorPane.leftAnchor="225.0" AnchorPane.topAnchor="295.0" /><ImageView fitHeight="16.0" fitWidth="16.0" layoutX="306.0" layoutY="295.0" onMouseClicked="#showRandGenSeedHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="326.0">
 <image>
 <Image url="@questionMark.png" />
-</image></ImageView><TextField fx:id="randSeedText" layoutX="272.0" layoutY="290.0" prefHeight="26.0" prefWidth="86.0" AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="292.0" /><Label layoutX="389.353271484375" layoutY="295.0" text="RandGenSeed" AnchorPane.leftAnchor="392.0" AnchorPane.topAnchor="296.0" /><CheckBox fx:id="showSampleLightcurveCheckbox" layoutX="63.0" layoutY="325.0" mnemonicParsing="false" selected="true" text="Display Light Curve" /><Label fx:id="falsePositiveLabel" layoutX="59.0" layoutY="360.0" text="False Positive Probability: " />
+</image></ImageView><TextField fx:id="randSeedText" layoutX="272.0" layoutY="290.0" prefHeight="26.0" prefWidth="86.0" AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="322.0" /><Label layoutX="389.353271484375" layoutY="295.0" text="RandGenSeed" AnchorPane.leftAnchor="392.0" AnchorPane.topAnchor="326.0" /><CheckBox fx:id="showSampleLightcurveCheckbox" layoutX="63.0" layoutY="325.0" mnemonicParsing="false" selected="true" text="Display Light Curve" /><Label fx:id="falsePositiveLabel" layoutX="59.0" layoutY="360.0" text="False Positive Probability: " />
     </children>
 </AnchorPane>

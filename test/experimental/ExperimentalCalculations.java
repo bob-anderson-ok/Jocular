@@ -11,6 +11,15 @@ public class ExperimentalCalculations {
     }
 
     @Test
+    public void someNaNstuff() {
+        int intD;
+        intD = (int) (6.7 - Double.NaN);
+        System.out.println("intD: " +intD);
+        
+        
+    }
+    
+    @Test
     public void showThreadCount() {
         System.out.println("Current thread count is " + Thread.activeCount());
         int processors = Runtime.getRuntime().availableProcessors();

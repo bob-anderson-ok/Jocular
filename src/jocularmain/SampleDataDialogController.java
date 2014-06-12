@@ -52,8 +52,8 @@ public class SampleDataDialogController {
     @FXML
     void doCreateNewSample() {
         if (jocularMain.solverServiceRunning()) {
-            jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
-                " observation is in progress.", jocularMain.errorBarPanelStage);
+            jocularMain.showInformationDialog("This operation is blocked: solution process on current"
+                + " observation is in progress.", jocularMain.errorBarPanelStage);
             return;
         }
         checkParametersAndDisplayIfValid();
@@ -76,16 +76,38 @@ public class SampleDataDialogController {
                 SqSolution sampleSolution = new SqSolution();
                 sampleSolution.B = baselineIntensity;
                 sampleSolution.A = eventIntensity;
-                sampleSolution.D = dTime;
-                sampleSolution.R = rTime;
+                if (dTime > -1.0) {
+                    sampleSolution.D = dTime;
+                } else {
+                    sampleSolution.D = Double.NaN;
+                }
+                if (rTime > numberOfDataPoints - 1) {
+                    sampleSolution.R = Double.NaN;
+                } else {
+                    sampleSolution.R = rTime;
+                }
+
                 double signal = baselineIntensity - eventIntensity;
+
+                int intD = (int) dTime;
+                int intR = (int) rTime;
+                if (intD < 0) {
+                    intD = -1;
+                }
+                if (intR > (numberOfDataPoints - 1)) {
+                    intR = numberOfDataPoints - 1;
+                }
+                int dur = intR - intD;
+                if (dur <= 0) {
+                    dur = 1;
+                }
                 double falsePos = JocularUtils.falsePositiveProbability(
-                    signal, 
-                    sigmaB, 
-                    (int) (rTime - dTime), 
+                    signal,
+                    sigmaB,
+                    dur,
                     numberOfDataPoints
                 );
-                
+
                 falsePositiveLabel.setText(String.format("False Positive Probability: %.4f", falsePos));
 
                 jocularMain.setCurrentObservation(sampleObs);
@@ -101,6 +123,12 @@ public class SampleDataDialogController {
             } catch (NumberFormatException e) {
                 errorLabel.setText("Error creating artificial data: " + e.getMessage());
             }
+        } else {
+            jocularMain.setCurrentObservation(null);
+            jocularMain.setCurrentSolution(null);
+            jocularMain.clearSolutionList();
+            jocularMain.setCurrentSolution(null);
+            jocularMain.repaintObservation();
         }
     }
 
@@ -129,7 +157,7 @@ public class SampleDataDialogController {
             numberOfDataPoints = Integer.parseInt(numberOfDataPointsText.getText());
 
             if (numberOfDataPoints < 5) {
-                errorLabel.setText("number of data points cannot be lesss than 5");
+                errorLabel.setText("number of data points cannot be less than 5");
                 return false;
             }
 
@@ -154,6 +182,13 @@ public class SampleDataDialogController {
                 return false;
             }
 
+            boolean dEdgePresent = !(dTime <= -1 || dTime > numberOfDataPoints - 2);
+            boolean rEdgePresent = !(rTime <= 0 || rTime > numberOfDataPoints - 1);
+            if (!(dEdgePresent || rEdgePresent)) {
+                errorLabel.setText("There is no edge in the data.");
+                return false;
+            }
+
             return true;
         } catch (NumberFormatException e) {
             errorLabel.setText("Number format error: " + e.getMessage());
@@ -162,7 +197,7 @@ public class SampleDataDialogController {
     }
 
     private Observation createSampleData() {
-        
+
         SampleDataGenerator dataGen = new SampleDataGenerator("artificial data");
 
         dataGen

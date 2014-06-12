@@ -768,19 +768,29 @@ public class RootViewController implements Initializable {
                 )
             );
         }
-        
+
         double signal = curSol.B - curSol.A;
-        
+        int numPoints = jocularMain.getCurrentObservation().obsData.length;
+        int dur;
+        if (Double.isNaN(curSol.R)) {
+            dur = numPoints - (int) curSol.D;
+        } else if (Double.isNaN(curSol.D)) {
+            dur = (int) curSol.R;
+        } else {
+            dur = (int) (curSol.R - curSol.D);
+        }
+        dur = Math.max(dur, 1);
+
         double falsePos = JocularUtils.falsePositiveProbability(
-            signal, 
-            curSol.sigmaB, 
-            (int)(curSol.R - curSol.D),
-            jocularMain.getCurrentObservation().obsData.length
+            signal,
+            curSol.sigmaB,
+            dur,
+            numPoints
         );
-        
+
         resultItems.add(
             String.format(
-                "false positive probabilty: %.4f", 
+                "false positive probability: %.4f",
                 falsePos
             )
         );
@@ -1178,13 +1188,16 @@ public class RootViewController implements Initializable {
 
         // Adding another header line.
         if (probabilitySqWaveOverLine > 1000.0) {
-            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line > 1000",
-                                    solutionStats.straightLineAICc,
-                                    solutionStats.straightLineLogL));
+            //items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line > 1000",
+            //                        solutionStats.straightLineAICc,
+            //                        solutionStats.straightLineLogL));
+            items.add(String.format("Relative probability of SqWave versus straight line > 1000"));
         } else {
-            items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line= %.1f",
-                                    solutionStats.straightLineAICc,
-                                    solutionStats.straightLineLogL,
+            //items.add(String.format("Straight line:  AICc=%11.2f  logL=%11.2f  relative probability of SqWave versus straight line= %.1f",
+            //                        solutionStats.straightLineAICc,
+            //                        solutionStats.straightLineLogL,
+            //                        probabilitySqWaveOverLine));
+            items.add(String.format("Relative probability of SqWave versus straight line= %.1f",
                                     probabilitySqWaveOverLine));
         }
 
@@ -1386,7 +1399,9 @@ public class RootViewController implements Initializable {
         clearMainPlot();
         sigmaAtext.setText("");
         sigmaBtext.setText("");
-        chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
+        if (observation != null) {
+            chartSeries.put(DataType.OBSDATA, getObservationSeries(observation));
+        }
         repaintChart();
     }
 

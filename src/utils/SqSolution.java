@@ -20,8 +20,10 @@ public class SqSolution {
 
     @Override
     public String toString() {
-        String tidy = String.format("[%5d,%5d] relLike=%5.2f AICc=%-11.2f logL=%-11.2f D=%-8.2f R=%-8.2f B=%-9.2f A=%-9.2f magDrop=%-7.2f k=%d", 
-                                    dTransitionIndex, rTransitionIndex, relLikelihood, aicc, logL, D, R, B, A, magDrop, kFactor);
+        //String tidy = String.format("[%5d,%5d] relLike=%5.2f AICc=%-11.2f logL=%-11.2f D=%-8.2f R=%-8.2f B=%-9.2f A=%-9.2f magDrop=%-7.2f k=%d", 
+        //                            dTransitionIndex, rTransitionIndex, relLikelihood, aicc, logL, D, R, B, A, magDrop, kFactor);
+        String tidy = String.format("[%5d,%5d] relLike=%5.2f D=%-8.2f R=%-8.2f B=%-9.2f A=%-9.2f magDrop=%-7.2f k=%d", 
+                                    dTransitionIndex, rTransitionIndex, relLikelihood, D, R, B, A, magDrop, kFactor);
         return tidy;
     }
 }
