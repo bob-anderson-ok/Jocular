@@ -39,6 +39,8 @@ public class SampleDataDialogController {
     Label errorLabel;
     @FXML
     CheckBox showSampleLightcurveCheckbox;
+    @FXML
+    Label falsePositiveLabel;
 
     @FXML
     private void handleKeyPress(KeyEvent key) {
@@ -48,7 +50,7 @@ public class SampleDataDialogController {
     }
 
     @FXML
-    void handleMouseClick() {
+    void doCreateNewSample() {
         if (jocularMain.solverServiceRunning()) {
             jocularMain.showInformationDialog("This operation is blocked: solution process on current" +
                 " observation is in progress.", jocularMain.errorBarPanelStage);
@@ -76,6 +78,15 @@ public class SampleDataDialogController {
                 sampleSolution.A = eventIntensity;
                 sampleSolution.D = dTime;
                 sampleSolution.R = rTime;
+                double signal = baselineIntensity - eventIntensity;
+                double falsePos = JocularUtils.falsePositiveProbability(
+                    signal, 
+                    sigmaB, 
+                    (int) (rTime - dTime), 
+                    numberOfDataPoints
+                );
+                
+                falsePositiveLabel.setText(String.format("False Positive Probability: %.4f", falsePos));
 
                 jocularMain.setCurrentObservation(sampleObs);
                 jocularMain.setCurrentSolution(sampleSolution);

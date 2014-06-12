@@ -1,18 +1,11 @@
 package utils;
 
-import java.io.File;
-import java.io.IOException;
 import static java.lang.Math.PI;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.Random;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.WritableImage;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javax.imageio.ImageIO;
-import jocularmain.JocularMain;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
 public interface JocularUtils {
 
@@ -138,6 +131,13 @@ public interface JocularUtils {
         double term3 = (value - reference) / sigma;
 
         return term1 + term2 - term3 * term3 / 2.0;
+    }
+    
+    static double falsePositiveProbability( double signal, double sigmaB, int dur, int numObsPoints) {
+        double sd = sigmaB / sqrt( dur);
+        NormalDistribution normDist = new NormalDistribution(0.0, sd);
+        double probabiltyOfFindingSignalAsAverage = normDist.cumulativeProbability(signal);
+        return (1.0 - Math.pow(probabiltyOfFindingSignalAsAverage,(double)(numObsPoints-dur)));
     }
     
 }

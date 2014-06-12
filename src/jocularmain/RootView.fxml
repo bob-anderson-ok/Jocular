@@ -137,7 +137,7 @@
 <ToggleGroup fx:id="conIntSelectionGroup" />
 </toggleGroup></RadioButton><RadioButton fx:id="conInt90RadioButton" layoutX="871.85205078125" layoutY="523.3999996185303" mnemonicParsing="false" onAction="#confidenceIntervalButtonClicked" selected="true" text="90" toggleGroup="$conIntSelectionGroup" /><RadioButton fx:id="conInt95RadioButton" layoutX="865.676025390625" layoutY="545.3999996185303" mnemonicParsing="false" onAction="#confidenceIntervalButtonClicked" text="95" toggleGroup="$conIntSelectionGroup" /><RadioButton fx:id="conInt99RadioButton" layoutX="872.028076171875" layoutY="569.3999996185303" mnemonicParsing="false" onAction="#confidenceIntervalButtonClicked" text="99" toggleGroup="$conIntSelectionGroup" />
 </children>
-</VBox><ListView fx:id="reportListView" layoutX="828.0" layoutY="464.0" prefHeight="200.0" prefWidth="320.0" AnchorPane.bottomAnchor="236.0" AnchorPane.leftAnchor="830.0" AnchorPane.rightAnchor="50.0">
+</VBox><ListView fx:id="reportListView" layoutX="828.0" layoutY="464.0" prefHeight="240.0" prefWidth="320.0" AnchorPane.bottomAnchor="236.0" AnchorPane.leftAnchor="830.0" AnchorPane.rightAnchor="50.0">
 <effect>
 <InnerShadow />
 </effect></ListView><Label layoutX="776.0" layoutY="624.0" prefWidth="80.0" rotate="-90.0" text="Report" AnchorPane.bottomAnchor="270.0">

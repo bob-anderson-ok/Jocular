@@ -756,6 +756,34 @@ public class RootViewController implements Initializable {
                 )
             );
         }
+        if (!(Double.isNaN(curSol.D) || Double.isNaN(curSol.R))) {
+            resultItems.add(
+                String.format(
+                    "Dur = %.2f  +%.2f/-%.2f @ %d%s",
+                    curSol.R - curSol.D,
+                    errBars.get("R" + conInterval).barPlus + errBars.get("D" + conInterval).barMinus,
+                    errBars.get("R" + conInterval).barMinus + errBars.get("D" + conInterval).barPlus,
+                    conInterval,
+                    "%"
+                )
+            );
+        }
+        
+        double signal = curSol.B - curSol.A;
+        
+        double falsePos = JocularUtils.falsePositiveProbability(
+            signal, 
+            curSol.sigmaB, 
+            (int)(curSol.R - curSol.D),
+            jocularMain.getCurrentObservation().obsData.length
+        );
+        
+        resultItems.add(
+            String.format(
+                "false positive probabilty: %.4f", 
+                falsePos
+            )
+        );
 
         reportListView.setItems(resultItems);
 

@@ -18,6 +18,17 @@ public class RandUtilsTest {
     final double SOME_SIGMA_VALUE = 2.789;
 
     @Test
+    public void falsePositiveProbability_shouldReturnSameValueAsCalculatedByRfunction() {
+        double signal = 7.0;
+        double sigmaB = 20.0;
+        int dur = 100;
+        int numObsPoints = 1000;
+        double falsePosProb = JocularUtils.falsePositiveProbability(signal, sigmaB, dur, numObsPoints);
+        // Compare with value independently calculated in R
+        assertThat(falsePosProb).isEqualTo(0.188921574, offset(1e-8));
+    }
+    
+    @Test
     public void generateGaussianNoise_shouldReturnArrayOfSpecifiedLength() {
         double[] result = JocularUtils.generateGaussianNoise(SOME_POSITIVE_INT, SOME_SIGMA_VALUE);
 
