@@ -375,6 +375,7 @@ public class RootViewController implements Initializable {
 
         rightTrimMarker.setInUse(false);
         leftTrimMarker.setInUse(false);
+        selectTheNoneRadioButton();
     }
 
     @FXML
@@ -398,10 +399,7 @@ public class RootViewController implements Initializable {
     private void eraseSelection() {
         if (!"none".equals(markerSelectedName)) {
             smartChart.getMarker(markerSelectedName).setInUse(false);
-
-            markerRBnone.setSelected(true);
-            markerRBnone.requestFocus();
-            markerSelectedName = "none";
+            selectTheNoneRadioButton();
         }
     }
 
@@ -576,6 +574,12 @@ public class RootViewController implements Initializable {
     //
     //<editor-fold defaultstate="collapsed" desc="Radiobutton Actions">
     //
+    private void selectTheNoneRadioButton() {
+        markerRBnone.setSelected(true);
+        markerRBnone.requestFocus();
+        markerSelectedName = "none";
+    }
+
     @FXML
     void noneRBaction() {
         markerSelectedName = "none";
@@ -685,7 +689,7 @@ public class RootViewController implements Initializable {
     public static void setMainApp(JocularMain main) {
         jocularMain = main;
     }
-
+    
     //<editor-fold defaultstate="collapsed" desc="Report preparation methods">
     private void prepareAndShowReport() {
         if (!reportIsPossible()) {
@@ -769,24 +773,7 @@ public class RootViewController implements Initializable {
             );
         }
 
-        double signal = curSol.B - curSol.A;
-        int numPoints = jocularMain.getCurrentObservation().obsData.length;
-        int dur;
-        if (Double.isNaN(curSol.R)) {
-            dur = numPoints - (int) curSol.D;
-        } else if (Double.isNaN(curSol.D)) {
-            dur = (int) curSol.R;
-        } else {
-            dur = (int) (curSol.R - curSol.D);
-        }
-        dur = Math.max(dur, 1);
-
-        double falsePos = JocularUtils.falsePositiveProbability(
-            signal,
-            curSol.sigmaB,
-            dur,
-            numPoints
-        );
+        double falsePos = falsePositiveProbabilityOfSolution( curSol );
 
         resultItems.add(
             String.format(
@@ -803,6 +790,31 @@ public class RootViewController implements Initializable {
         }
     }
 
+    private double falsePositiveProbabilityOfSolution(SqSolution curSol ) {
+        double signal = curSol.B - curSol.A;
+        int numPoints = jocularMain.getCurrentObservation().obsData.length;
+        int beginIndex = jocularMain.getCurrentObservation().readingNumbers[0];
+        int endIndex = jocularMain.getCurrentObservation().readingNumbers[numPoints-1];
+        
+        int dur;
+        if (Double.isNaN(curSol.R)) {
+            dur = endIndex - (int) curSol.D;
+        } else if (Double.isNaN(curSol.D)) {
+            dur = (int) curSol.R - beginIndex;
+        } else {
+            dur = (int) (curSol.R - curSol.D);
+        }
+        dur = Math.max(dur, 1);
+
+        double falsePos = JocularUtils.falsePositiveProbability(
+            signal,
+            curSol.sigmaB,
+            dur,
+            numPoints
+        );
+        return falsePos;
+    }
+    
     private String prepareMagDropReport(double B, double Bsd, double A, double Asd) {
         double nominalMagDrop = calcMagDrop(B, A);
         double minMagDrop = calcMagDrop(B - Bsd, A + Asd);
@@ -1145,7 +1157,6 @@ public class RootViewController implements Initializable {
     }
 
     private void handleSolverDone(WorkerStateEvent event) {
-        //printCurrentStateOfSolverServices();
         if (!jocularMain.solverServiceFinished()) {
             return;
         }
@@ -1208,7 +1219,9 @@ public class RootViewController implements Initializable {
             if (solution.relLikelihood < RELATIVE_LIKEHOOD_NEEDED_TO_BE_DISPLAYED) {
                 break;
             }
-            items.add(solution.toString());
+            double falsePositiveProb = falsePositiveProbabilityOfSolution(solution);
+            
+            items.add(solution.toString() + String.format(" fpp=%.4f", falsePositiveProb));
         }
 
         solutionList.setItems(items);
@@ -1356,10 +1369,10 @@ public class RootViewController implements Initializable {
     }
 
     private void eraseSolutionAndRelatedSeries() {
-        chartSeries.put(DataType.SOLUTION, null);
-        chartSeries.put(DataType.SUBFRAME_BAND, null);
-        chartSeries.put(DataType.UPPER_ENVELOPE, null);
-        chartSeries.put(DataType.LOWER_ENVELOPE, null);
+        chartSeries.remove(DataType.SOLUTION);
+        chartSeries.remove(DataType.SUBFRAME_BAND);
+        chartSeries.remove(DataType.UPPER_ENVELOPE);
+        chartSeries.remove(DataType.LOWER_ENVELOPE);
     }
 
     private XYChart.Series<Number, Number> getObservationSeries(Observation observation) {
@@ -1497,7 +1510,6 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.UPPER_ENVELOPE, series);
-            repaintChart();
 
             // Prepare points for lower envelope.
             series = new XYChart.Series<Number, Number>();
@@ -1517,7 +1529,6 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.LOWER_ENVELOPE, series);
-            repaintChart();
         } else if (Double.isNaN(D)) {
             // Process solution with only an R edge
             // Prepare points for upper envelope
@@ -1538,7 +1549,6 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.UPPER_ENVELOPE, series);
-            repaintChart();
 
             // Prepare points for lower envelope
             series = new XYChart.Series<Number, Number>();
@@ -1558,7 +1568,6 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.LOWER_ENVELOPE, series);
-            repaintChart();
         } else {
             // Process solution with both a D and an R
             // Prepare points for upper envelope.
@@ -1584,7 +1593,6 @@ public class RootViewController implements Initializable {
                 series.getData().add(data);
             }
             chartSeries.put(DataType.UPPER_ENVELOPE, series);
-            repaintChart();
 
             // Prepare points for lower envelope.
             series = new XYChart.Series<Number, Number>();
@@ -1623,14 +1631,12 @@ public class RootViewController implements Initializable {
                 }
             }
             chartSeries.put(DataType.LOWER_ENVELOPE, series);
-            repaintChart();
         }
     }
 
     public void repaintChart() {
         chart.getData().clear();
 
-        //System.out.println("Repainting chart...");
         XYChart.Series<Number, Number> series;
 
         Set<DataType> dataTypes = chartSeries.keySet();

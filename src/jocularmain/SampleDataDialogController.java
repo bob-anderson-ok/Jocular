@@ -157,7 +157,7 @@ public class SampleDataDialogController {
             numberOfDataPoints = Integer.parseInt(numberOfDataPointsText.getText());
 
             if (numberOfDataPoints < 5) {
-                errorLabel.setText("number of data points cannot be less than 5");
+                errorLabel.setText("num data points cannot be less than 5");
                 return false;
             }
 
@@ -173,7 +173,7 @@ public class SampleDataDialogController {
             }
 
             if (baselineIntensity < eventIntensity) {
-                errorLabel.setText("B (baseline intensity) cannot be less than A (event intensity)");
+                errorLabel.setText("B cannot be less than A");
                 return false;
             }
 

@@ -1,6 +1,5 @@
 package experimental;
 
-import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.junit.Test;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.offset;
@@ -15,8 +14,6 @@ public class ExperimentalCalculations {
         int intD;
         intD = (int) (6.7 - Double.NaN);
         System.out.println("intD: " +intD);
-        
-        
     }
     
     @Test
@@ -26,21 +23,21 @@ public class ExperimentalCalculations {
         System.out.println("Number of available processors is " + processors);
     }
     
-    @Test
-    public void chiSquaredCum() {
-        ChiSquaredDistribution chi2Dist = new ChiSquaredDistribution(6);
-        double chi2cum = chi2Dist.cumulativeProbability(4);
-        System.out.println("chi2cum: " + chi2cum);
-    }
-    
-    @Test
-    public void chiSquare() {
-        ChiSquaredDistribution chi2Dist = new ChiSquaredDistribution(100);
-        double bob1 = chi2Dist.density(100);
-        double bob2 = chi2Dist.density(99);
-        System.out.println("bob1: " + bob1);
-        System.out.println("bob2: " + bob2);
-    }
+//    @Test
+//    public void chiSquaredCum() {
+//        ChiSquaredDistribution chi2Dist = new ChiSquaredDistribution(6);
+//        double chi2cum = chi2Dist.cumulativeProbability(4);
+//        System.out.println("chi2cum: " + chi2cum);
+//    }
+//    
+//    @Test
+//    public void chiSquare() {
+//        ChiSquaredDistribution chi2Dist = new ChiSquaredDistribution(100);
+//        double bob1 = chi2Dist.density(100);
+//        double bob2 = chi2Dist.density(99);
+//        System.out.println("bob1: " + bob1);
+//        System.out.println("bob2: " + bob2);
+//    }
     
     @Test
     public void calculateSubframeTimingWindow() {

@@ -5,7 +5,7 @@ import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.Random;
-import org.apache.commons.math3.distribution.NormalDistribution;
+import jdistlib.Normal;
 
 public interface JocularUtils {
 
@@ -134,10 +134,13 @@ public interface JocularUtils {
     }
     
     static double falsePositiveProbability( double signal, double sigmaB, int dur, int numObsPoints) {
-        double sd = sigmaB / sqrt( dur);
-        NormalDistribution normDist = new NormalDistribution(0.0, sd);
-        double probabiltyOfFindingSignalAsAverage = normDist.cumulativeProbability(signal);
-        return (1.0 - Math.pow(probabiltyOfFindingSignalAsAverage,(double)(numObsPoints-dur)));
+        double sdA = sigmaB / sqrt( dur);
+        double sdB = sigmaB / sqrt(numObsPoints-dur);
+        Normal normDist = new Normal(0.0, sdA);
+        //NormalDistribution normDist = new NormalDistribution(0.0, sd);
+        //double probabilityOfFindingSignalAsAverage = normDist.cumulativeProbability(signal);
+        double probabilityOfFindingSignalAsAverage = normDist.cumulative(signal-sdB);
+        return (1.0 - Math.pow(probabilityOfFindingSignalAsAverage,(double)(numObsPoints-dur)));
     }
     
 }
