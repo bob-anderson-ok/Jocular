@@ -95,6 +95,6 @@
 <effect>
 <InnerShadow />
 </effect></ListView><ProgressBar fx:id="trialsProgressBar" layoutX="191.5" layoutY="581.1999998092651" prefWidth="200.0" progress="0.2" visible="false" />
-                <Button layoutX="580.0" layoutY="426.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" />
+                <Button layoutX="580.0" layoutY="426.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" /><CheckBox fx:id="recalcLevels" layoutX="420.0" layoutY="510.0" mnemonicParsing="false" text="Recalculate B and A levels" />
     </children>
 </AnchorPane>

@@ -431,8 +431,8 @@ public class RootViewController implements Initializable {
         if (solutionEnvelopeCheckbox.isSelected()) {
             showSolutionEnvelope();
         } else {
-            chartSeries.put(DataType.UPPER_ENVELOPE, null);
-            chartSeries.put(DataType.LOWER_ENVELOPE, null);
+            chartSeries.remove(DataType.UPPER_ENVELOPE);
+            chartSeries.remove(DataType.LOWER_ENVELOPE);
         }
         repaintChart();
     }
@@ -918,6 +918,7 @@ public class RootViewController implements Initializable {
         progressLabel.setText("error bar calculation...");
 
         jocularMain.errBarServiceStart(
+            false,
             trialParams,
             this::handleSuccessfulErrBarService,
             this::handleNonSuccessfulErrBarService,

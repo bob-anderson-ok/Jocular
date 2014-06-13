@@ -177,16 +177,15 @@ public class JocularMain extends Application {
     public void addSampleCurveToMainPlot(SqSolution solution) {
         rootViewController.addSampleCurveToMainPlot(solution);
     }
-    
+
     //<editor-fold defaultstate="collapsed" desc="Dialogs">
-    
     public void showHelpDialog(String helpFile) {
         try {
             URL fxmlLocation = getClass().getResource("HelpDialog.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
-            
+
             // Help dialogs are special in that we are not going to
             // give them an 'owner'.  That lets us move them around
             // the screen independently of RootView.  In particular, you
@@ -199,84 +198,84 @@ public class JocularMain extends Application {
             Stage helpStage = new Stage();
             openHelpScreenList.add(helpStage);
             helpStage.setOnCloseRequest(e -> openHelpScreenList.remove((Stage) e.getSource()));
-            
+
             helpStage.setTitle("Jocular documentation");
             helpStage.initModality(Modality.NONE);
             helpStage.setResizable(true);
-            
+
             WebView browser = (WebView) scene.lookup("#browser");
             WebEngine webEngine = browser.getEngine();
-            
+
             URL helpFileURL = getClass().getResource(helpFile);
             webEngine.load(helpFileURL.toExternalForm());
-            
+
             helpStage.setScene(scene);
             helpStage.show();
         } catch (Exception e) {
             System.out.println("in showHelpDialog(): " + e.toString());
         }
     }
-    
+
     public void showErrorDialog(String msg, Stage owner) {
         try {
             URL fxmlLocation = getClass().getResource("ErrorDialog.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
-            
+
             ErrorDialogController controller = fxmlLoader.getController();
             controller.showError(msg);
-            
+
             Stage stage = new Stage(StageStyle.UTILITY);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
-            
+
             stage.initOwner(owner);
             stage.setScene(scene);
-            
+
             stage.show();
         } catch (IOException e) {
             System.out.println("in showErrorDialog(): " + e.toString());
         }
     }
-    
+
     public void showInformationDialog(String msg, Stage owner) {
         try {
             URL fxmlLocation = getClass().getResource("InformationDialog.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
-            
+
             InformationDialogController controller = fxmlLoader.getController();
             controller.showInformation(msg);
-            
+
             Stage stage = new Stage(StageStyle.UTILITY);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
-            
+
             stage.initOwner(owner);
             stage.setScene(scene);
-            
+
             stage.show();
         } catch (IOException e) {
             System.out.println("in showInformationDialog(): " + e.toString());
         }
     }
-    
+
     private void buildSampleDataDialog() {
         try {
             URL fxmlLocation = getClass().getResource("SampleDataDialog.fxml");
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlLocation);
             AnchorPane page = fxmlLoader.load();
             Scene scene = new Scene(page);
-            
+
             Stage stage = new Stage(StageStyle.UTILITY);
             stage.initModality(Modality.NONE);
             stage.setResizable(false);
-            
+
             stage.initOwner(primaryStage);
             stage.setScene(scene);
-            
+
             // We do not 'show' the dialog on the initial build.
             // That is left to a call to showSampleDataDialog()
             // Instead, we save a private refence to the 'stage' so
@@ -287,15 +286,13 @@ public class JocularMain extends Application {
             System.out.println("in buildSampleDataDialog(): " + e.toString());
         }
     }
-    
+
     public void showSampleDataDialog() {
         sampleDataDialogStage.show();
     }
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Public methods involving current Observation">
-    
     /**
      *
      * @return the first readingNumber to the right of the trimmed observation.
@@ -331,9 +328,7 @@ public class JocularMain extends Application {
     }
 
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Public methods involving current Solution">
-    
     public SqSolution getCurrentSolution() {
         return currentSqSolution;
     }
@@ -346,27 +341,23 @@ public class JocularMain extends Application {
     public void addSolutionCurveToMainPlot(SqSolution solution) {
         rootViewController.addSolutionCurveToMainPlot(solution);
     }
-    
+
     public void clearSolutionList() {
         rootViewController.clearSolutionList();
     }
 
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Current Error Bar Table setter and getter">
-    
     public void setCurrentErrBarValues(HashMap<String, ErrorBarItem> errBarData) {
         this.errBarData = errBarData;
     }
-    
+
     public HashMap<String, ErrorBarItem> getCurrentErrBarValues() {
         return errBarData;
     }
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Solver Service Utility Routines">
-    
     public void setupSolverService(
         EventHandler<WorkerStateEvent> successHandler,
         EventHandler<WorkerStateEvent> cancelledHandler,
@@ -492,11 +483,9 @@ public class JocularMain extends Application {
         }
         return solutionStats;
     }
-    
-    //</editor-fold>
 
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Solver Service">
-    
     public class SolverService extends Service<Void> {
 
         // private variables requiring external initialization
@@ -634,12 +623,11 @@ public class JocularMain extends Application {
             };
         }
     }
-    
-    //</editor-fold>
 
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Error Bar Service Utility Routines">
-    
-    public void errBarServiceStart(TrialParams trialParams,
+    public void errBarServiceStart(boolean recalBandA,
+                                   TrialParams trialParams,
                                    EventHandler<WorkerStateEvent> successHandler,
                                    EventHandler<WorkerStateEvent> cancelledHandler,
                                    EventHandler<WorkerStateEvent> failedHandler,
@@ -652,6 +640,7 @@ public class JocularMain extends Application {
         for (ErrBarService ebs : multiCoreErrBarServices) {
             progressProperty.bind(ebs.progressProperty());
             ebs.settrialParams(trialParams);
+            ebs.setRecalcBandA(recalBandA);
             ebs.settrialsPerCore(numTrialsPerCore);
             ebs.setOnSucceeded(successHandler);
             ebs.setOnCancelled(cancelledHandler);
@@ -709,17 +698,16 @@ public class JocularMain extends Application {
             ebs.cancel();
         }
     }
-    
-    //</editor-fold>
 
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Error Bar Service">
-    
     private class ErrBarService extends Service<Void> {
 
         private TrialParams trialParams;
         private MonteCarloResult ans;
         private int extraTrials = 0;
         private int trialsPerCore = 0;
+        private boolean recalcBandA;
 
         public void settrialParams(TrialParams trialParams) {
             this.trialParams = trialParams;
@@ -731,6 +719,10 @@ public class JocularMain extends Application {
 
         public void settrialsPerCore(int trialsPerCore) {
             this.trialsPerCore = trialsPerCore;
+        }
+
+        public void setRecalcBandA(boolean recalcBandA) {
+            this.recalcBandA = recalcBandA;
         }
 
         public final MonteCarloResult getAnswer() {
@@ -800,14 +792,33 @@ public class JocularMain extends Application {
                                 + trialParams.baselineLevel;
                         }
 
+                        double A;
+                        double B;
+                        if (recalcBandA) {
+                            double sum;
+                            sum = 0.0;
+                            for ( int i = 0; i < centerIndex; i++ ) {
+                                sum += rdgs[i];
+                            }
+                            A = sum / centerIndex;
+                            sum = 0.0;
+                            for ( int i = centerIndex + 1; i < rdgs.length; i++ ) {
+                                sum += rdgs[i];
+                            }
+                            B = sum / (rdgs.length - centerIndex);
+                        } else {
+                            B = trialParams.baselineLevel;
+                            A = trialParams.eventLevel;
+                        }
+
                         // The test case has now been created.  Calculate the various arrays that depend on this case.
-                        double midLevel = (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
+                        double midLevel = (B + A) / 2.0;
                         double midSigma = (trialParams.sigmaA + trialParams.sigmaB) / 2.0;
 
                         logLstraightLine = 0.0;
                         for (int i = 0; i < trialParams.sampleWidth; i++) {
-                            logLB[i] = logL(rdgs[i], trialParams.baselineLevel, trialParams.sigmaB);
-                            logLA[i] = logL(rdgs[i], trialParams.eventLevel, trialParams.sigmaA);
+                            logLB[i] = logL(rdgs[i], B, trialParams.sigmaB);
+                            logLA[i] = logL(rdgs[i], A, trialParams.sigmaA);
                             if (logLB[i] > logLA[i]) {
                                 logLM[i] = logLB[i];
                                 offset[i] = -1;
@@ -872,7 +883,6 @@ public class JocularMain extends Application {
             return index;
         }
     }
-    
-    //</editor-fold>
 
+    //</editor-fold>
 }

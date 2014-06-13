@@ -65,6 +65,8 @@ public class ErrorBarFXMLController implements Initializable {
 
     @FXML
     CheckBox overplotCheckbox;
+    @FXML
+    CheckBox recalcLevels;
 
     @FXML
     RadioButton randomRadioButton;
@@ -118,6 +120,7 @@ public class ErrorBarFXMLController implements Initializable {
         trialsProgressBar.setVisible(true);
 
         jocularMain.errBarServiceStart(
+            recalcLevels.isSelected(),
             trialParams,
             this::handleErrBarServiceSucceeded,
             this::handleErrBarServiceNonSuccess,
