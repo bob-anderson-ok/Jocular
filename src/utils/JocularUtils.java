@@ -136,10 +136,11 @@ public interface JocularUtils {
     static double falsePositiveProbability( double signal, double sigmaB, int dur, int numObsPoints) {
         double sdA = sigmaB / sqrt( dur);
         double sdB = sigmaB / sqrt(numObsPoints-dur);
-        Normal normDist = new Normal(0.0, sdA);
+        double compositeSd = sqrt( sdA*sdA + sdB*sdB);
+        Normal normDist = new Normal(0.0, compositeSd);
         //NormalDistribution normDist = new NormalDistribution(0.0, sd);
         //double probabilityOfFindingSignalAsAverage = normDist.cumulativeProbability(signal);
-        double probabilityOfFindingSignalAsAverage = normDist.cumulative(signal-sdB);
+        double probabilityOfFindingSignalAsAverage = normDist.cumulative(signal);
         return (1.0 - Math.pow(probabilityOfFindingSignalAsAverage,(double)(numObsPoints-dur)));
     }
     
