@@ -144,4 +144,25 @@ public interface JocularUtils {
         return (1.0 - Math.pow(probabilityOfFindingSignalAsAverage,(double)(numObsPoints-dur)));
     }
     
+    static void blockIntegrateObservation(int offset, int binSize, Observation curObs) {
+        //Observation curObs = jocularMain.getCurrentObservation();
+        int numObsPoints = curObs.obsData.length;
+        int numFullBlocks = (numObsPoints - offset) / binSize;
+
+        double[] integratedObsData = new double[numFullBlocks];
+        int[] integratedObsReadingNumbers = new int[numFullBlocks];
+
+        int obsIndex = offset;
+        for (int i = 0; i < numFullBlocks; i++) {
+            double sum = 0.0;
+            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex];
+            for (int k = 0; k < binSize; k++) {
+                sum += curObs.obsData[obsIndex++];
+            }
+            integratedObsData[i] = sum / binSize;
+        }
+        curObs.obsData = integratedObsData;
+        curObs.readingNumbers = integratedObsReadingNumbers;
+    }
+    
 }

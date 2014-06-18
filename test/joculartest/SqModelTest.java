@@ -14,6 +14,7 @@ public class SqModelTest {
     }
 
     Observation specialObservation;
+    Observation binnedObservation;
     double sigmaB;
     double sigmaA;
 
@@ -49,6 +50,7 @@ public class SqModelTest {
 
         sigmaB = 2.0;
         sigmaA = 1.0;
+        
     }
 
     @Test

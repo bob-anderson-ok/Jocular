@@ -56,7 +56,7 @@
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Operations">
-                    <items>
+                    <items><MenuItem mnemonicParsing="false" onAction="#blockIntegrateData" text="Block integrate data" />
                         <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#doEstimateErrorBars" text="Open Error Bar Study Panel" /><MenuItem mnemonicParsing="false" onAction="#doShowSubframeTimingBand" text="Show Subframe Timing Band" />
                     </items>
                 </Menu>

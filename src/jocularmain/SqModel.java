@@ -5,8 +5,9 @@ import static utils.JocularUtils.logL;
 
 public class SqModel {
 
-    private int dTranIndex = Integer.MIN_VALUE;
-    private int rTranIndex = Integer.MAX_VALUE;
+    private int dTranNum = Integer.MIN_VALUE;
+    private int rTranNum = Integer.MAX_VALUE;
+    private int binSize = 1;
 
     private double logL = Double.NaN;
     private double dSolution = Double.NaN;
@@ -41,13 +42,18 @@ public class SqModel {
         return obs;
     }
 
-    public SqModel setDtransition(int dTranIndex) {
-        this.dTranIndex = dTranIndex;
+    public SqModel setDtransition(int dTranNum) {
+        this.dTranNum = dTranNum;
         return this;
     }
 
-    public SqModel setRtransition(int rTranIndex) {
-        this.rTranIndex = rTranIndex;
+    public SqModel setRtransition(int rTranNum) {
+        this.rTranNum = rTranNum;
+        return this;
+    }
+    
+    public SqModel setbinSize( int binSize ) {
+        this.binSize = binSize;
         return this;
     }
 
@@ -77,7 +83,7 @@ public class SqModel {
             return false;
         }
 
-        if (dTranIndex > rTranIndex) {
+        if (dTranNum > rTranNum) {
             return false;
         }
         return true;
@@ -131,16 +137,16 @@ public class SqModel {
 
         TransitionData ans = new TransitionData();
 
-        if (!inRange(dTranIndex)) {
+        if (!inRange(dTranNum)) {
             return ans;
         }
 
-        double obsValue = obs.obsData[dTranIndex - obs.readingNumbers[0]];
+        double obsValue = obs.obsData[(dTranNum - obs.readingNumbers[0]) / binSize];
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
         if (obsValue >= B) {
-            ans.position = dTranIndex;
+            ans.position = dTranNum;
             kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
@@ -149,7 +155,7 @@ public class SqModel {
         double logLagainstA = logL(obsValue, A, sigmaA);
 
         if (obsValue <= A) {
-            ans.position = dTranIndex - 1;
+            ans.position = dTranNum - binSize;
             kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
@@ -162,15 +168,15 @@ public class SqModel {
 
         if (((logLagainstM - margin) > logLagainstA) && ((logLagainstM - margin) > logLagainstB)) {
             // We have an AIC validated mid-value (sub frame timing justified)
-            ans.position = dTranIndex - 1 + ((obsValue - A) / (B - A));
+            ans.position = dTranNum - binSize + ((obsValue - A) / (B - A)) * binSize;
             ans.logLcontribution = logLagainstM;
             kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
-            ans.position = dTranIndex;
+            ans.position = dTranNum;
             kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
-            ans.position = dTranIndex - 1;
+            ans.position = dTranNum - binSize;
             kFactor++;
             ans.logLcontribution = logLagainstA;
         }
@@ -181,16 +187,16 @@ public class SqModel {
 
         TransitionData ans = new TransitionData();
 
-        if (!inRange(rTranIndex)) {
+        if (!inRange(rTranNum)) {
             return ans;
         }
 
-        double obsValue = obs.obsData[rTranIndex - obs.readingNumbers[0]];
+        double obsValue = obs.obsData[(rTranNum - obs.readingNumbers[0]) / binSize];
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
         if (obsValue >= B) {
-            ans.position = rTranIndex - 1;
+            ans.position = rTranNum - binSize;
             kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
@@ -199,7 +205,7 @@ public class SqModel {
         double logLagainstA = logL(obsValue, A, sigmaA);
 
         if (obsValue <= A) {
-            ans.position = rTranIndex;
+            ans.position = rTranNum;
             kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
@@ -212,15 +218,15 @@ public class SqModel {
 
         if (((logLagainstM - margin) > logLagainstA) && ((logLagainstM - margin) > logLagainstB)) {
             // We have an AIC validated mid-value (sub frame timing justified)
-            ans.position = rTranIndex - ((obsValue - A) / (B - A));
+            ans.position = rTranNum - ((obsValue - A) / (B - A)) * binSize;
             ans.logLcontribution = logLagainstM;
             kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
-            ans.position = rTranIndex - 1;
+            ans.position = rTranNum - binSize;
             kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
-            ans.position = rTranIndex;
+            ans.position = rTranNum;
             kFactor++;
             ans.logLcontribution = logLagainstA;
         }
@@ -269,11 +275,11 @@ public class SqModel {
         int ePtr = 0;
 
         for (int i = 0; i < obs.obsData.length; i++) {
-            if (obs.readingNumbers[i] < dTranIndex) {
+            if (obs.readingNumbers[i] < dTranNum) {
                 baselinePoints[bPtr++] = obs.obsData[i];
-            } else if (obs.readingNumbers[i] > dTranIndex && obs.readingNumbers[i] < rTranIndex) {
+            } else if (obs.readingNumbers[i] > dTranNum && obs.readingNumbers[i] < rTranNum) {
                 eventPoints[ePtr++] = obs.obsData[i];
-            } else if (obs.readingNumbers[i] > rTranIndex) {
+            } else if (obs.readingNumbers[i] > rTranNum) {
                 baselinePoints[bPtr++] = obs.obsData[i];
             }
         }
@@ -291,22 +297,24 @@ public class SqModel {
     }
 
     private void calculateNumberOfEventAndBaselinePoints() {
-        if (inRange(dTranIndex) && inRange(rTranIndex)) {
-            numEventPoints = rTranIndex - dTranIndex - 1;
-        } else if (inRange(rTranIndex)) {
-            numEventPoints = rTranIndex - trimOffset;
-        } else if (inRange(dTranIndex)) {
-            numEventPoints = obs.obsData.length - (dTranIndex - trimOffset) - 1;
+        if (inRange(dTranNum) && inRange(rTranNum)) {
+            numEventPoints = rTranNum - dTranNum - 1;
+        } else if (inRange(rTranNum)) {
+            numEventPoints = rTranNum - trimOffset;
+        } else if (inRange(dTranNum)) {
+            numEventPoints = obs.obsData.length - (dTranNum - trimOffset) - 1;
         } else {
             // Force a NaN return to the caller.
             numEventPoints = 0;
         }
+        
+        numEventPoints = numEventPoints / binSize;
 
         numBaselinePoints = obs.obsData.length - numEventPoints;
-        if (inRange(dTranIndex)) {
+        if (inRange(dTranNum)) {
             numBaselinePoints--;
         }
-        if (inRange(rTranIndex)) {
+        if (inRange(rTranNum)) {
             numBaselinePoints--;
         }
     }

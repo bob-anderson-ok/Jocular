@@ -1,5 +1,6 @@
 package jocularmain;
 
+import static java.lang.Math.ceil;
 import static java.lang.Math.sqrt;
 import java.net.URL;
 import java.util.ArrayList;
@@ -12,11 +13,9 @@ import java.util.Set;
 import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
@@ -452,6 +451,42 @@ public class RootViewController implements Initializable {
     //
     //<editor-fold defaultstate="collapsed" desc="Menu Item Actions">
     @FXML
+    public void blockIntegrateData() {
+        System.out.println("Block integrate requested");
+
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showInformationDialog("There is no observation to process.", jocularMain.primaryStage);
+            return;
+        }
+
+        if (!(dLeftMarker.isInUse() && dRightMarker.isInUse())) {
+            jocularMain.showErrorDialog("Left and right D markers have not been placed.", jocularMain.primaryStage);
+            return;
+        }
+
+        int leftBlockEdge = (int) ceil(dLeftMarker.getXValue());
+        int rightBlockEdge = (int) ceil(dRightMarker.getXValue());
+
+        // If the user intercahnged left and right marker placement, just fix it.
+        if (leftBlockEdge > rightBlockEdge) {
+            int temp = leftBlockEdge;
+            leftBlockEdge = rightBlockEdge;
+            rightBlockEdge = temp;
+        }
+
+        int binSize = rightBlockEdge - leftBlockEdge;
+
+        int offset = leftBlockEdge % binSize;
+
+        System.out.println(String.format("binSize = %d   offset = %d", binSize, offset));
+
+        JocularUtils.blockIntegrateObservation(offset, binSize, jocularMain.getCurrentObservation());
+        
+        getObservationSeries(jocularMain.getCurrentObservation());
+
+    }
+
+    @FXML
     public void doEstimateErrorBars() {
         jocularMain.showErrorBarTool();
     }
@@ -689,7 +724,7 @@ public class RootViewController implements Initializable {
     public static void setMainApp(JocularMain main) {
         jocularMain = main;
     }
-    
+
     //<editor-fold defaultstate="collapsed" desc="Report preparation methods">
     private void prepareAndShowReport() {
         if (!reportIsPossible()) {
@@ -773,7 +808,7 @@ public class RootViewController implements Initializable {
             );
         }
 
-        double falsePos = falsePositiveProbabilityOfSolution( curSol );
+        double falsePos = falsePositiveProbabilityOfSolution(curSol);
 
         resultItems.add(
             String.format(
@@ -790,12 +825,12 @@ public class RootViewController implements Initializable {
         }
     }
 
-    private double falsePositiveProbabilityOfSolution(SqSolution curSol ) {
+    private double falsePositiveProbabilityOfSolution(SqSolution curSol) {
         double signal = curSol.B - curSol.A;
         int numPoints = jocularMain.getCurrentObservation().obsData.length;
         int beginIndex = jocularMain.getCurrentObservation().readingNumbers[0];
-        int endIndex = jocularMain.getCurrentObservation().readingNumbers[numPoints-1];
-        
+        int endIndex = jocularMain.getCurrentObservation().readingNumbers[numPoints - 1];
+
         int dur;
         if (Double.isNaN(curSol.R)) {
             dur = endIndex - (int) curSol.D;
@@ -814,7 +849,7 @@ public class RootViewController implements Initializable {
         );
         return falsePos;
     }
-    
+
     private String prepareMagDropReport(double B, double Bsd, double A, double Asd) {
         double nominalMagDrop = calcMagDrop(B, A);
         double minMagDrop = calcMagDrop(B - Bsd, A + Asd);
@@ -845,6 +880,27 @@ public class RootViewController implements Initializable {
         }
         return -1;
     }
+
+//    private void blockIntegrateObservation(int offset, int binSize, Observation curObs) {
+//        //Observation curObs = jocularMain.getCurrentObservation();
+//        int numObsPoints = curObs.obsData.length;
+//        int numFullBlocks = (numObsPoints - offset) / binSize;
+//
+//        double[] integratedObsData = new double[numFullBlocks];
+//        int[] integratedObsReadingNumbers = new int[numFullBlocks];
+//
+//        int obsIndex = offset;
+//        for (int i = 0; i < numFullBlocks; i++) {
+//            double sum = 0.0;
+//            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex];
+//            for (int k = 0; k < binSize; k++) {
+//                sum += curObs.obsData[obsIndex++];
+//            }
+//            integratedObsData[i] = sum / binSize;
+//        }
+//        curObs.obsData = integratedObsData;
+//        curObs.readingNumbers = integratedObsReadingNumbers;
+//    }
 
     private boolean inSubframeTimingNoiseRegime(int n, double sigB, double sigA, double solutionB, double solutionA) {
         double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
@@ -1220,7 +1276,7 @@ public class RootViewController implements Initializable {
                 break;
             }
             double falsePositiveProb = falsePositiveProbabilityOfSolution(solution);
-            
+
             items.add(solution.toString() + String.format(" fpp=%.4f", falsePositiveProb));
         }
 

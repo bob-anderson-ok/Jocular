@@ -256,7 +256,6 @@ public class SampleDataGenerator {
             avg[numBlocks-1] = sum / endPointCount;
         }
         
-        
         // Reconstruct 
         obsIndex = 0;
         blockIndex = 0;
