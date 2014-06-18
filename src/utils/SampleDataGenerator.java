@@ -14,6 +14,9 @@ public class SampleDataGenerator {
     private double Aintensity = Double.NaN;
     private double Bintensity = Double.NaN;
     private int numDataPoints = INVALID_VALUE;
+    private int offset = 0;
+    private int binSize;
+    private double processingNoise = 0.0;
 
     private Observation filledObservation;
 
@@ -22,6 +25,21 @@ public class SampleDataGenerator {
             testSetName,
             Paths.get("..", "internally-generated-data")
         );
+    }
+
+    public SampleDataGenerator setoffset(int offset) {
+        this.offset = offset;
+        return this;
+    }
+
+    public SampleDataGenerator setbinSize(int binSize) {
+        this.binSize = binSize;
+        return this;
+    }
+
+    public SampleDataGenerator setprocessingNoise(double processingNoise) {
+        this.processingNoise = processingNoise;
+        return this;
     }
 
     public SampleDataGenerator setDevent(double dEventTime) {
@@ -173,11 +191,100 @@ public class SampleDataGenerator {
             double rTransitionValue = gaussianVariate(mSigma) + mValue;
             filledObservation.obsData[rTransitionIndex] = rTransitionValue;
         }
-        
+
+        if (binSize > 0) {
+            blockIntegrateFilledObservation();
+        }
+
         // Copy obsData[] to columnData[0][]
         System.arraycopy(filledObservation.obsData, 0,
                          filledObservation.columnData[0], 0,
                          numDataPoints);
+    }
+
+    private void blockIntegrateFilledObservation() {
+        int numFullBlocks;
+        int endPointCount;
+        int numBlocks;
+
+        numFullBlocks = (numDataPoints - offset) / binSize;
+        endPointCount = numDataPoints - offset - binSize * numFullBlocks;
+
+        numBlocks = numFullBlocks;
+        if (offset != 0) {
+            numBlocks += 1;
+        }
+        if (endPointCount != 0) {
+            numBlocks += 1;
+        }
+
+        double[] avg = new double[numBlocks];
+
+        int blockIndex = 0;
+        int obsIndex = 0;
+
+        if (offset != 0) {
+            double sum = 0.0;
+            for (int i = 0; i < offset; i++) {
+                sum += filledObservation.obsData[obsIndex++];
+            }
+            avg[0] = sum / offset;
+            blockIndex += 1;
+        }
+
+        for (int j = blockIndex; j < numBlocks - 1; j++) {
+            double sum = 0.0;
+            for (int i = 0; i < binSize; i++) {
+                sum += filledObservation.obsData[obsIndex++];
+            }
+            avg[j] = sum / binSize;
+        }
+
+        double endSum = 0.0;
+        
+        if ( endPointCount == 0) {
+            double sum = 0.0;
+            for (int i = 0; i < binSize; i++) {
+                sum += filledObservation.obsData[obsIndex++];
+            }
+            avg[numBlocks-1] = sum / binSize;
+        } else {
+            double sum = 0.0;
+            for (int i = 0; i < endPointCount; i++) {
+                sum += filledObservation.obsData[obsIndex++];
+            }
+            avg[numBlocks-1] = sum / endPointCount;
+        }
+        
+        
+        // Reconstruct 
+        obsIndex = 0;
+        blockIndex = 0;
+
+        if ( offset != 0) {
+            for ( int i = 0; i < offset; i++) {
+                filledObservation.obsData[obsIndex++] = avg[blockIndex] + gaussianVariate( processingNoise);
+            }
+            blockIndex++;
+        }
+        
+        for (int j = blockIndex; j < numBlocks - 1; j++) {
+            for (int i = 0; i < binSize; i++) {
+                filledObservation.obsData[obsIndex++] = avg[blockIndex] + gaussianVariate( processingNoise);
+            }
+            blockIndex++;
+        }
+        
+        if ( endPointCount == 0) {
+
+            for (int i = 0; i < binSize; i++) {
+                filledObservation.obsData[obsIndex++] = avg[blockIndex] + gaussianVariate( processingNoise);
+            }
+        } else {
+            for (int i = 0; i < endPointCount; i++) {
+                filledObservation.obsData[obsIndex++] = avg[blockIndex] + gaussianVariate( processingNoise);
+            }
+        }
     }
 
     private int calculateTransitionIndex(double eventTime) {

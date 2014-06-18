@@ -30,6 +30,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javax.imageio.ImageIO;
 import utils.ErrorBarItem;
+import utils.FileUtils;
 import utils.JocularUtils;
 import static utils.JocularUtils.aicc;
 import static utils.JocularUtils.logL;
@@ -112,6 +113,7 @@ public class JocularMain extends Application {
         // reference to JocularMain.
         RootViewController.setMainApp(this);
         SampleDataDialogController.setMainApp(this);
+        FileUtils.getInstance().setMainApp(this);
 
         // Create the sample data dialog only once.  Don't display
         // on build.  Only display when asked by a call to showSampleDataDialog()

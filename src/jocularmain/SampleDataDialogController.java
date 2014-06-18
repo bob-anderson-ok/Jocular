@@ -41,6 +41,46 @@ public class SampleDataDialogController {
     CheckBox showSampleLightcurveCheckbox;
     @FXML
     Label falsePositiveLabel;
+    @FXML
+    CheckBox simulateIntegratedCameraOutput;
+    @FXML
+    TextField binCountText;
+    @FXML
+    TextField offsetText;
+    @FXML
+    TextField processingNoiseText;
+
+    @FXML
+    void simulateIntegratedOutputClicked() {
+        if (simulateIntegratedCameraOutput.isSelected()) {
+            binCountText.setEditable(true);
+            offsetText.setEditable(true);
+            processingNoiseText.setEditable(true);
+            binCountText.setPromptText("enabled");
+            offsetText.setPromptText("enabled");
+            processingNoiseText.setPromptText("enabled");
+        } else {
+            binCountText.setEditable(false);
+            offsetText.setEditable(false);
+            processingNoiseText.setEditable(false);
+            binCountText.setPromptText("disabled");
+            offsetText.setPromptText("disabled");
+            processingNoiseText.setPromptText("disabled");
+            binCountText.setText("");
+            offsetText.setText("");
+            processingNoiseText.setText("");
+        }
+    }
+
+    @FXML
+    void showSimulatedIntegratedCameraOutputHelp() {
+        jocularMain.showHelpDialog("Help/integratedcameraoutput.help.html");
+    }
+
+    @FXML
+    void writeSampleToFile() {
+        System.out.println("write sample to file clicked");
+    }
 
     @FXML
     private void handleKeyPress(KeyEvent key) {
@@ -139,6 +179,9 @@ public class SampleDataDialogController {
     private double dTime;
     private double rTime;
     private int numberOfDataPoints;
+    private int offset;
+    private int binSize;
+    private double processingNoise;
 
     private boolean validateParameters() {
         errorLabel.setText("");
@@ -147,6 +190,31 @@ public class SampleDataDialogController {
             sigmaA = Double.parseDouble(sigmaAtext.getText());
             baselineIntensity = Double.parseDouble(baselineIntensityText.getText());
             eventIntensity = Double.parseDouble(eventIntensityText.getText());
+
+            if (!offsetText.getText().isEmpty()) {
+                offset = Integer.parseInt(offsetText.getText());
+            }
+            if (!binCountText.getText().isEmpty()) {
+                binSize = Integer.parseInt(binCountText.getText());
+            }
+            if (!processingNoiseText.getText().isEmpty()) {
+                processingNoise = Double.parseDouble(processingNoiseText.getText());
+            }
+            
+            if (binSize < 0) {
+                errorLabel.setText("bin count cannot be negative");
+                return false;
+            }
+
+            if (offset != 0 && (offset < 0 || offset >= binSize)) {
+                errorLabel.setText("offset must be > 0 and < bin count");
+                return false;
+            }
+
+            if (processingNoise < 0.0) {
+                errorLabel.setText("processing noise cannot be negative");
+                return false;
+            }
 
             if (dTimeText.getText().isEmpty()) {
                 dTime = Double.NaN;
@@ -208,6 +276,9 @@ public class SampleDataDialogController {
             .setAintensity(eventIntensity)
             .setBintensity(baselineIntensity)
             .setNumDataPoints(numberOfDataPoints)
+            .setoffset(offset)
+            .setbinSize(binSize)
+            .setprocessingNoise(processingNoise)
             .setParams();
 
         return dataGen.build();

@@ -25,7 +25,7 @@ public class RandUtilsTest {
         int numObsPoints = 1000;
         double falsePosProb = JocularUtils.falsePositiveProbability(signal, sigmaB, dur, numObsPoints);
         // Compare with value independently calculated in R
-        assertThat(falsePosProb).isEqualTo(0.188921574, offset(1e-8));
+        assertThat(falsePosProb).isEqualTo(0.3327574706, offset(1e-8));
     }
     
     @Test

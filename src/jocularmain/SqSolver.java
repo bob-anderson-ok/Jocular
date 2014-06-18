@@ -10,14 +10,12 @@ import utils.SqSolution;
 
 public class SqSolver {
 
-    //private static SolverService solverService = new SolverService();
     public static int[] dTranCandidates;  // made public to simplify testing
     public static int[] rTranCandidates;  // made public to simplify testing
 
     /* dLeft, dRight, rLeft, and rRight are made public to make it easier to
      * test the class.
      */
-    //private Observation obs;
     /**
      * is the left limit (inclusive) of candidate d transition indices.
      * <p>
@@ -176,7 +174,7 @@ public class SqSolver {
             n,
             minMagDrop,
             maxMagDrop,
-            progressProperty);
-
+            progressProperty
+        );
     }
 }
