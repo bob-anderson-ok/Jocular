@@ -412,7 +412,7 @@ public class JocularMain extends Application {
         int startIndex = 0;
 
         DoubleBinding progress = null;
-        
+
         for (SolverService solService : multiCoreSolverService) {
             int[] dTranChunk = new int[chunkSize];
             System.arraycopy(dTran, startIndex, dTranChunk, 0, chunkSize);
@@ -436,14 +436,14 @@ public class JocularMain extends Application {
             solService.setOnSucceeded(successHandler);
             solService.setOnCancelled(cancelledHandler);
             solService.setOnFailed(failedHandler);
-            
+
             DoubleBinding scaledProgress = solService.progressProperty().divide(nCores);
-            if ( progress == null) {
+            if (progress == null) {
                 progress = scaledProgress;
             } else {
                 progress = progress.add(scaledProgress);
             }
-            
+
             solService.reset();
             solService.restart();
         }
@@ -601,8 +601,12 @@ public class JocularMain extends Application {
                             continue;
                         }
 
-                        newSolution.logL = sqmodel
-                            .calcLogL(sigmaB, sigmaA);
+                        try {
+                            newSolution.logL = sqmodel
+                                .calcLogL(sigmaB, sigmaA);
+                        } catch (Exception e) {
+                            System.out.println("Exception: " + e.getMessage());
+                        }
 
                         if (Double.isNaN(newSolution.logL)) {
                             continue;
@@ -651,16 +655,16 @@ public class JocularMain extends Application {
         int numTrialsPerCore = totalTrials / numCores;
 
         DoubleBinding progress = null;
-        
+
         for (ErrBarService ebs : multiCoreErrBarServices) {
-            
+
             DoubleBinding scaledProgress = ebs.progressProperty().divide(numCores);
-            if ( progress == null) {
+            if (progress == null) {
                 progress = scaledProgress;
             } else {
                 progress = progress.add(scaledProgress);
             }
-            
+
             ebs.settrialParams(trialParams);
             ebs.setRecalcBandA(recalBandA);
             ebs.settrialsPerCore(numTrialsPerCore);
@@ -670,7 +674,6 @@ public class JocularMain extends Application {
         }
         progressProperty.bind(progress);
 
-        
         // If the numTrials was not an even multiple of the number of cores,
         // we need to add the remainder to one of the threads.
         multiCoreErrBarServices.get(0).setExtraTrials(totalTrials % numCores);
@@ -821,12 +824,12 @@ public class JocularMain extends Application {
                         if (recalcBandA) {
                             double sum;
                             sum = 0.0;
-                            for ( int i = 0; i < centerIndex; i++ ) {
+                            for (int i = 0; i < centerIndex; i++) {
                                 sum += rdgs[i];
                             }
                             A = sum / centerIndex;
                             sum = 0.0;
-                            for ( int i = centerIndex + 1; i < rdgs.length; i++ ) {
+                            for (int i = centerIndex + 1; i < rdgs.length; i++) {
                                 sum += rdgs[i];
                             }
                             B = sum / (rdgs.length - centerIndex);

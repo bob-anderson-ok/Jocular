@@ -6,6 +6,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import utils.JocularUtils;
+import utils.Observation;
 import utils.SqSolution;
 
 public class SqSolver {
@@ -67,10 +68,19 @@ public class SqSolver {
                                          XYChartMarker dLeftMarker,
                                          XYChartMarker dRightMarker,
                                          XYChartMarker rLeftMarker,
-                                         XYChartMarker rRightMarker) {
+                                         XYChartMarker rRightMarker
+    ) {
 
-        int leftLimit = jocularMain.getOutOfRangeOfObsOnTheLeft();
-        int rightLimit = jocularMain.getOutOfRangeOfObsOnTheRight();
+        // Figure out the parameters of any 'binning' that has happened.
+        Observation curObs = jocularMain.getCurrentObservation();
+        int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
+        int offset = curObs.readingNumbers[0];
+        
+        //int leftLimit = jocularMain.getOutOfRangeOfObsOnTheLeft();
+        //int rightLimit = jocularMain.getOutOfRangeOfObsOnTheRight();
+        
+        int leftLimit = curObs.readingNumbers[0] - binSize;
+        int rightLimit = curObs.readingNumbers[curObs.readingNumbers.length-1] + binSize;
 
         if (dLeftMarker.isInUse() != dRightMarker.isInUse()) {
             String errMsg = "D marker usage must be paired";
@@ -86,6 +96,7 @@ public class SqSolver {
 
         if (dLeftMarker.isInUse()) {
             dLeft = (int) Math.ceil(dLeftMarker.getXValue());
+            dLeft = Math.min(dLeft,rightLimit);
             dLeft = Math.max(dLeft, leftLimit);
         } else {
             dLeft = leftLimit;
@@ -94,12 +105,14 @@ public class SqSolver {
         if (dRightMarker.isInUse()) {
             dRight = (int) Math.floor(dRightMarker.getXValue());
             dRight = Math.min(dRight, rightLimit);
+            dRight = Math.max(dRight, leftLimit);
         } else {
             dRight = rightLimit;
         }
 
         if (rLeftMarker.isInUse()) {
             rLeft = (int) Math.ceil(rLeftMarker.getXValue());
+            rLeft = Math.min(rLeft,rightLimit);
             rLeft = Math.max(rLeft, leftLimit);
         } else {
             rLeft = leftLimit;
@@ -108,6 +121,7 @@ public class SqSolver {
         if (rRightMarker.isInUse()) {
             rRight = (int) Math.floor(rRightMarker.getXValue());
             rRight = Math.min(rRight, rightLimit);
+            rRight = Math.max(rRight, leftLimit);
         } else {
             rRight = rightLimit;
         }
@@ -130,15 +144,41 @@ public class SqSolver {
             throw new IllegalArgumentException(errMsg);
         }
 
-        dTranCandidates = new int[dRight - dLeft + 1];
-        rTranCandidates = new int[rRight - rLeft + 1];
+        //dTranCandidates = new int[dRight - dLeft + 1];
+        //rTranCandidates = new int[rRight - rLeft + 1];
 
-        for (int i = dLeft; i <= dRight; i++) {
-            dTranCandidates[i - dLeft] = i;
+        ArrayList<Integer> dTranBinned = new ArrayList<>();
+        if ( dLeft == leftLimit) {
+            dTranBinned.add(leftLimit);
         }
-
-        for (int i = rLeft; i <= rRight; i++) {
-            rTranCandidates[i - rLeft] = i;
+        for ( int i = 0; i < curObs.readingNumbers.length; i++) {
+            if ( (dRight >= curObs.readingNumbers[i]) && (curObs.readingNumbers[i] >= dLeft) ) {
+                dTranBinned.add(curObs.readingNumbers[i]);
+            }
+        }
+        if ( dRight == rightLimit) {
+            dTranBinned.add(rightLimit);
+        }
+        dTranCandidates = new int[dTranBinned.size()];
+        for (int i=0; i<dTranBinned.size(); i++) {
+            dTranCandidates[i] = dTranBinned.get(i);
+        }
+        
+        ArrayList<Integer> rTranBinned = new ArrayList<>();
+        if ( rLeft == leftLimit) {
+            rTranBinned.add(leftLimit);
+        }
+        for ( int i = 0; i < curObs.readingNumbers.length; i++) {
+            if ( (rRight >= curObs.readingNumbers[i]) && (curObs.readingNumbers[i] >= rLeft) ) {
+                rTranBinned.add(curObs.readingNumbers[i]);
+            }
+        }
+        if ( rRight == rightLimit) {
+            rTranBinned.add(rightLimit);
+        }
+        rTranCandidates = new int[rTranBinned.size()];
+        for (int i=0; i<rTranBinned.size(); i++) {
+            rTranCandidates[i] = rTranBinned.get(i);
         }
 
         int numTranPairsConsidered = dTranCandidates.length * rTranCandidates.length;

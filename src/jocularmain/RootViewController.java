@@ -223,9 +223,8 @@ public class RootViewController implements Initializable {
             sigmaB, sigmaA,
             minMagDrop, maxMagDrop,
             minEventSize, maxEventSize,
-            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker);
-
-        return;
+            dLeftMarker, dRightMarker, rLeftMarker, rRightMarker
+        );
     }
 
     @FXML
@@ -481,8 +480,11 @@ public class RootViewController implements Initializable {
         System.out.println(String.format("binSize = %d   offset = %d", binSize, offset));
 
         JocularUtils.blockIntegrateObservation(offset, binSize, jocularMain.getCurrentObservation());
-        
+
         getObservationSeries(jocularMain.getCurrentObservation());
+        
+        dLeftMarker.setInUse(false);
+        dRightMarker.setInUse(false);
 
     }
 
@@ -771,13 +773,16 @@ public class RootViewController implements Initializable {
         );
         resultItems.add(magDropReport);
 
+        Observation curObs = jocularMain.getCurrentObservation();
+        int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
+        
         if (!Double.isNaN(curSol.D)) {
             resultItems.add(
                 String.format(
                     "D = %.2f  +%.2f/-%.2f @ %d%s",
                     curSol.D,
-                    errBars.get("D" + conInterval).barPlus,
-                    errBars.get("D" + conInterval).barMinus,
+                    errBars.get("D" + conInterval).barPlus * binSize,
+                    errBars.get("D" + conInterval).barMinus * binSize,
                     conInterval,
                     "%"
                 )
@@ -788,8 +793,8 @@ public class RootViewController implements Initializable {
                 String.format(
                     "R = %.2f  +%.2f/-%.2f @ %d%s",
                     curSol.R,
-                    errBars.get("R" + conInterval).barPlus,
-                    errBars.get("R" + conInterval).barMinus,
+                    errBars.get("R" + conInterval).barPlus * binSize,
+                    errBars.get("R" + conInterval).barMinus * binSize,
                     conInterval,
                     "%"
                 )
@@ -800,8 +805,8 @@ public class RootViewController implements Initializable {
                 String.format(
                     "Dur = %.2f  +%.2f/-%.2f @ %d%s",
                     curSol.R - curSol.D,
-                    errBars.get("R" + conInterval).barPlus + errBars.get("D" + conInterval).barMinus,
-                    errBars.get("R" + conInterval).barMinus + errBars.get("D" + conInterval).barPlus,
+                    (errBars.get("R" + conInterval).barPlus + errBars.get("D" + conInterval).barMinus) * binSize,
+                    (errBars.get("R" + conInterval).barMinus + errBars.get("D" + conInterval).barPlus) * binSize,
                     conInterval,
                     "%"
                 )
@@ -880,27 +885,6 @@ public class RootViewController implements Initializable {
         }
         return -1;
     }
-
-//    private void blockIntegrateObservation(int offset, int binSize, Observation curObs) {
-//        //Observation curObs = jocularMain.getCurrentObservation();
-//        int numObsPoints = curObs.obsData.length;
-//        int numFullBlocks = (numObsPoints - offset) / binSize;
-//
-//        double[] integratedObsData = new double[numFullBlocks];
-//        int[] integratedObsReadingNumbers = new int[numFullBlocks];
-//
-//        int obsIndex = offset;
-//        for (int i = 0; i < numFullBlocks; i++) {
-//            double sum = 0.0;
-//            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex];
-//            for (int k = 0; k < binSize; k++) {
-//                sum += curObs.obsData[obsIndex++];
-//            }
-//            integratedObsData[i] = sum / binSize;
-//        }
-//        curObs.obsData = integratedObsData;
-//        curObs.readingNumbers = integratedObsReadingNumbers;
-//    }
 
     private boolean inSubframeTimingNoiseRegime(int n, double sigB, double sigA, double solutionB, double solutionA) {
         double bSFL = JocularUtils.calcBsideSubframeBoundary(n, sigB, sigA, solutionB, solutionA);
@@ -1033,10 +1017,13 @@ public class RootViewController implements Initializable {
         double frac;
         double D = curSol.D;
         double R = curSol.R;
+        
+        Observation curObs = jocularMain.getCurrentObservation();
+        int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
 
         if (!Double.isNaN(D)) {
 
-            frac = curSol.dTransitionIndex - D;
+            frac = (curSol.dTransitionIndex - D) / binSize;
             sigma = curSol.sigmaB - (curSol.sigmaB - curSol.sigmaA) * frac;
             double sigmaRdg = sigma / (curSol.B - curSol.A);
 
@@ -1059,7 +1046,7 @@ public class RootViewController implements Initializable {
         }
 
         if (!Double.isNaN(R)) {
-            frac = curSol.rTransitionIndex - R;
+            frac = (curSol.rTransitionIndex - R) / binSize;
             sigma = curSol.sigmaA + (curSol.sigmaB - curSol.sigmaA) * frac;
             double sigmaRdg = sigma / (curSol.B - curSol.A);
 

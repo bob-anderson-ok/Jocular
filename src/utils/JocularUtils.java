@@ -145,7 +145,6 @@ public interface JocularUtils {
     }
     
     static void blockIntegrateObservation(int offset, int binSize, Observation curObs) {
-        //Observation curObs = jocularMain.getCurrentObservation();
         int numObsPoints = curObs.obsData.length;
         int numFullBlocks = (numObsPoints - offset) / binSize;
 
@@ -155,7 +154,7 @@ public interface JocularUtils {
         int obsIndex = offset;
         for (int i = 0; i < numFullBlocks; i++) {
             double sum = 0.0;
-            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex];
+            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex] + binSize -1;
             for (int k = 0; k < binSize; k++) {
                 sum += curObs.obsData[obsIndex++];
             }

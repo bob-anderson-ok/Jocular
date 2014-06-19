@@ -102,7 +102,6 @@ public class SqModel {
             return Double.NaN;
         }
 
-        //calculateSigmas();
         double logLbaseline = calcBaselineLogL(sigmaB);
         double logLevent = calcEventLogL(sigmaA);
 
@@ -141,7 +140,9 @@ public class SqModel {
             return ans;
         }
 
-        double obsValue = obs.obsData[(dTranNum - obs.readingNumbers[0]) / binSize];
+        int obsIndex = (dTranNum - obs.readingNumbers[0]) / binSize;
+        //System.out.println("obsIndex: " + obsIndex);
+        double obsValue = obs.obsData[obsIndex];
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
@@ -250,6 +251,7 @@ public class SqModel {
     }
 
     private void calculateBandA() {
+        //System.out.println("in calculateBandA");
         if (numBaselinePoints == 0 || numEventPoints == 0) {
             throw new IllegalArgumentException(
                 "in SqModel.calculateAandB: numBaselinePoints=" + numBaselinePoints + "  numEventPoints=" + numEventPoints
@@ -268,6 +270,8 @@ public class SqModel {
     }
 
     private void generateBaselineAndEventArrays() {
+        
+        //System.out.println("in generateBaseLineAndEventArrays: dTranNum=" + dTranNum + " rTranNum=" + rTranNum);
         baselinePoints = new double[numBaselinePoints];
         eventPoints = new double[numEventPoints];
 
@@ -294,11 +298,12 @@ public class SqModel {
         numBaselinePoints = 0;
         numEventPoints = 0;
         kFactor = 2;
+        binSize = obs.readingNumbers[1] - obs.readingNumbers[0];
     }
 
     private void calculateNumberOfEventAndBaselinePoints() {
         if (inRange(dTranNum) && inRange(rTranNum)) {
-            numEventPoints = rTranNum - dTranNum - 1;
+            numEventPoints = (rTranNum - dTranNum) / binSize - 1;
         } else if (inRange(rTranNum)) {
             numEventPoints = rTranNum - trimOffset;
         } else if (inRange(dTranNum)) {
@@ -308,8 +313,6 @@ public class SqModel {
             numEventPoints = 0;
         }
         
-        numEventPoints = numEventPoints / binSize;
-
         numBaselinePoints = obs.obsData.length - numEventPoints;
         if (inRange(dTranNum)) {
             numBaselinePoints--;
@@ -317,6 +320,7 @@ public class SqModel {
         if (inRange(rTranNum)) {
             numBaselinePoints--;
         }
+        //System.out.println("nBase=" + numBaselinePoints + " nEvent=" + numEventPoints);
     }
 
     private boolean inRange(int index) {
