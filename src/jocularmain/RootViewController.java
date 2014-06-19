@@ -832,9 +832,13 @@ public class RootViewController implements Initializable {
 
     private double falsePositiveProbabilityOfSolution(SqSolution curSol) {
         double signal = curSol.B - curSol.A;
-        int numPoints = jocularMain.getCurrentObservation().obsData.length;
-        int beginIndex = jocularMain.getCurrentObservation().readingNumbers[0];
-        int endIndex = jocularMain.getCurrentObservation().readingNumbers[numPoints - 1];
+        
+        Observation curObs = jocularMain.getCurrentObservation();
+        int numPoints = curObs.obsData.length;
+        int beginIndex = curObs.readingNumbers[0];
+        int endIndex = curObs.readingNumbers[numPoints - 1];
+        
+        int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
 
         int dur;
         if (Double.isNaN(curSol.R)) {
@@ -844,7 +848,7 @@ public class RootViewController implements Initializable {
         } else {
             dur = (int) (curSol.R - curSol.D);
         }
-        dur = Math.max(dur, 1);
+        dur = Math.max(dur, 1) / binSize;
 
         double falsePos = JocularUtils.falsePositiveProbability(
             signal,

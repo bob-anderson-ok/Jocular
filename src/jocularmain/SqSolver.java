@@ -76,9 +76,6 @@ public class SqSolver {
         int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
         int offset = curObs.readingNumbers[0];
         
-        //int leftLimit = jocularMain.getOutOfRangeOfObsOnTheLeft();
-        //int rightLimit = jocularMain.getOutOfRangeOfObsOnTheRight();
-        
         int leftLimit = curObs.readingNumbers[0] - binSize;
         int rightLimit = curObs.readingNumbers[curObs.readingNumbers.length-1] + binSize;
 

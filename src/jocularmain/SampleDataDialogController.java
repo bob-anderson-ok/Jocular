@@ -193,12 +193,18 @@ public class SampleDataDialogController {
 
             if (!offsetText.getText().isEmpty()) {
                 offset = Integer.parseInt(offsetText.getText());
+            } else {
+                offset = 0;
             }
             if (!binCountText.getText().isEmpty()) {
                 binSize = Integer.parseInt(binCountText.getText());
+            } else {
+                binSize = 0;
             }
             if (!processingNoiseText.getText().isEmpty()) {
                 processingNoise = Double.parseDouble(processingNoiseText.getText());
+            } else {
+                processingNoise = 0.0;
             }
             
             if (binSize < 0) {

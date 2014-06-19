@@ -37,7 +37,7 @@ public class SqModel {
     public SqModel(Observation obs) {
         this.obs = obs;
     }
-    
+
     public Observation getObs() {
         return obs;
     }
@@ -51,8 +51,8 @@ public class SqModel {
         this.rTranNum = rTranNum;
         return this;
     }
-    
-    public SqModel setbinSize( int binSize ) {
+
+    public SqModel setbinSize(int binSize) {
         this.binSize = binSize;
         return this;
     }
@@ -70,16 +70,16 @@ public class SqModel {
         if (numBaselinePoints < 1 || numEventPoints < 1) {
             return false;
         }
-        
-        if ( numEventPoints < minEventSize ) {
+
+        if (numEventPoints < minEventSize) {
             return false;
         }
-        
-        if ( minEventSize > 0 && numEventPoints < minEventSize) {
+
+        if (minEventSize > 0 && numEventPoints < minEventSize) {
             return false;
         }
-        
-        if ( maxEventSize > 0 && numEventPoints > maxEventSize) {
+
+        if (maxEventSize > 0 && numEventPoints > maxEventSize) {
             return false;
         }
 
@@ -88,10 +88,10 @@ public class SqModel {
         }
         return true;
     }
-    
+
     public double calcLogL(double sigmaB, double sigmaA) {
 
-        if ( ! validTransitionPair() ) {
+        if (!validTransitionPair()) {
             return Double.NaN;
         }
 
@@ -118,7 +118,7 @@ public class SqModel {
         return sumLogL;
     }
 
-    public double straightLineLogL(double sigmaB) { 
+    public double straightLineLogL(double sigmaB) {
         double lineLevel = sumArray(obs.obsData) / obs.obsData.length;
         double ans = 0.0;
         for (int i = 0; i < obs.obsData.length; i++) {
@@ -128,6 +128,7 @@ public class SqModel {
     }
 
     class TransitionData {
+
         double position = Double.NaN;
         double logLcontribution = 0.0;
     }
@@ -146,8 +147,11 @@ public class SqModel {
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
+        double bAvgBias = -binSize / 4.0;
+        double aAvgBias = -3 * binSize / 4.0;
+
         if (obsValue >= B) {
-            ans.position = dTranNum;
+            ans.position = dTranNum + bAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
@@ -156,7 +160,7 @@ public class SqModel {
         double logLagainstA = logL(obsValue, A, sigmaA);
 
         if (obsValue <= A) {
-            ans.position = dTranNum - binSize;
+            ans.position = dTranNum + aAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
@@ -173,11 +177,11 @@ public class SqModel {
             ans.logLcontribution = logLagainstM;
             kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
-            ans.position = dTranNum;
+            ans.position = dTranNum + bAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
-            ans.position = dTranNum - binSize;
+            ans.position = dTranNum + aAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstA;
         }
@@ -196,8 +200,11 @@ public class SqModel {
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
+        double aAvgBias = -binSize / 4.0;
+        double bAvgBias = -3 * binSize / 4.0;
+
         if (obsValue >= B) {
-            ans.position = rTranNum - binSize;
+            ans.position = rTranNum + bAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
@@ -206,7 +213,7 @@ public class SqModel {
         double logLagainstA = logL(obsValue, A, sigmaA);
 
         if (obsValue <= A) {
-            ans.position = rTranNum;
+            ans.position = rTranNum + aAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
@@ -223,11 +230,11 @@ public class SqModel {
             ans.logLcontribution = logLagainstM;
             kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
-            ans.position = rTranNum - binSize;
+            ans.position = rTranNum + bAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
-            ans.position = rTranNum;
+            ans.position = rTranNum + aAvgBias;
             kFactor++;
             ans.logLcontribution = logLagainstA;
         }
@@ -270,7 +277,7 @@ public class SqModel {
     }
 
     private void generateBaselineAndEventArrays() {
-        
+
         //System.out.println("in generateBaseLineAndEventArrays: dTranNum=" + dTranNum + " rTranNum=" + rTranNum);
         baselinePoints = new double[numBaselinePoints];
         eventPoints = new double[numEventPoints];
@@ -305,14 +312,14 @@ public class SqModel {
         if (inRange(dTranNum) && inRange(rTranNum)) {
             numEventPoints = (rTranNum - dTranNum) / binSize - 1;
         } else if (inRange(rTranNum)) {
-            numEventPoints = rTranNum - trimOffset;
+            numEventPoints = (rTranNum - trimOffset) / binSize;
         } else if (inRange(dTranNum)) {
-            numEventPoints = obs.obsData.length - (dTranNum - trimOffset) - 1;
+            numEventPoints = obs.obsData.length - (dTranNum - trimOffset) / binSize - 1;
         } else {
             // Force a NaN return to the caller.
             numEventPoints = 0;
         }
-        
+
         numBaselinePoints = obs.obsData.length - numEventPoints;
         if (inRange(dTranNum)) {
             numBaselinePoints--;
