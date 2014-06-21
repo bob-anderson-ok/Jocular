@@ -1,11 +1,15 @@
 package jocularmain;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.FileChooser;
 import utils.Observation;
 import utils.JocularUtils;
 import utils.SampleDataGenerator;
@@ -79,7 +83,92 @@ public class SampleDataDialogController {
 
     @FXML
     void writeSampleToFile() {
-        System.out.println("write sample to file clicked");
+        if (!validateParameters()) {
+            jocularMain.showErrorDialog("Invalid or missing parameter settings.", jocularMain.primaryStage);
+            return;
+        }
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Write sample data");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Tangra file", "*.csv"));
+        fileChooser.setInitialFileName("*.csv");
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                FileWriter writer = new FileWriter(file);
+                writeHeaderLines(writer);
+                writeDataLines(writer);
+                writer.close();
+            } catch (IOException e) {
+                jocularMain.showErrorDialog(e.getMessage(), jocularMain.primaryStage);
+            }
+        }
+    }
+
+    private void writeHeaderLines(FileWriter writer) throws IOException {
+        writer.write("Tangra format file from Jocular sample data generator\n");
+        writer.write("\n");
+        writer.write("sigmaB = " + sigmaBtext.getText() + "\n");
+        writer.write("sigmaA = " + sigmaAtext.getText() + "\n");
+        writer.write("\n");
+        writer.write("baselineIntensity = " + baselineIntensityText.getText() + "\n");
+        writer.write("eventIntensity = " + eventIntensityText.getText() + "\n");
+        writer.write("\n");
+        if (!Double.isNaN(dTime)) {
+            writer.write("D (FrameNo) = " + dTimeText.getText() + "\n");
+        }
+        if (!Double.isNaN(rTime)) {
+            writer.write("R (FrameNo)= " + rTimeText.getText() + "\n");
+        }
+        writer.write("\n");
+        if (!Double.isNaN(dTime)) {
+            if ( dTime >=0.0) {
+            writer.write("D (time) = " + frameNumToUTC(dTime) + "\n");
+            } else {
+                writer.write("D (time) = -" + frameNumToUTC(-dTime) + "\n");
+            }
+        }
+        if (!Double.isNaN(rTime)) {
+            writer.write("R (time) = " + frameNumToUTC(rTime) + "\n");
+        }
+        writer.write("\n");
+        writer.write("numPoints = " + numberOfDataPointsText.getText() + "\n");
+        writer.write("\n");
+        if (simulateIntegratedCameraOutput.isSelected()) {
+            writer.write("binCount = " + binCountText.getText() + "\n");
+            writer.write("offset = " + offsetText.getText() + "\n");
+            writer.write("processNoise = " + processingNoiseText.getText() + "\n");
+            writer.write("\n");
+        }
+        if (!randSeedText.getText().isEmpty()) {
+            writer.write("randGenSeed = " + randSeedText.getText() + "\n");
+            writer.write("\n");
+        }
+        writer.write("FrameNo,Time (UT),Signal (1),Background (1)\n");
+    }
+
+    private String frameNumToUTC(double frameNum) {
+        double fNet = frameNum;
+        int hours = (int) Math.floor(fNet / 3600.0);
+        fNet = fNet - 3600 * hours;
+        int minutes = (int) Math.floor(fNet / 60.0);
+        double seconds = fNet - 60 * minutes;
+        return String.format("%02d:%02d:%06.3f", hours, minutes, seconds);
+    }
+
+    private void writeDataLines(FileWriter writer) throws IOException {
+        Observation curObs = jocularMain.getCurrentObservation();
+        for (int i = 0; i < curObs.obsData.length; i++) {
+            int frameNum = curObs.readingNumbers[i];
+            double obsValue = curObs.obsData[i];
+            String line = String.format(
+                "%d,%s,%.2f,0\n",
+                frameNum,
+                frameNumToUTC(frameNum),
+                obsValue
+            );
+            writer.write(line);
+        }
     }
 
     @FXML
@@ -206,7 +295,7 @@ public class SampleDataDialogController {
             } else {
                 processingNoise = 0.0;
             }
-            
+
             if (binSize < 0) {
                 errorLabel.setText("bin count cannot be negative");
                 return false;

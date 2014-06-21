@@ -28,7 +28,7 @@ public enum PlotType {
         mapSeriesNameToPlotType.put("ObsPoints", STYLE_ObsPoints);
         mapSeriesNameToPlotType.put("obsData", STYLE_obsData);
         mapSeriesNameToPlotType.put("obsPoints", STYLE_obsPoints);
-        mapSeriesNameToPlotType.put("Sample", STYLE_Sample);
+        mapSeriesNameToPlotType.put("UnderlyingLightCurve", STYLE_Sample);
         mapSeriesNameToPlotType.put("Solution", STYLE_Solution);
         mapSeriesNameToPlotType.put("SubframeBand", STYLE_SubframeBand);
         mapSeriesNameToPlotType.put("Secondary", STYLE_Secondary);

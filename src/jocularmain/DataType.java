@@ -6,7 +6,7 @@ public enum DataType {
     // we lookup the line and symbol color for a DataType
     
     OBSDATA("ObsData"),               // Observation data points
-    SAMPLE("Sample"),                 // Light curve underlying artificially generated sample data
+    SAMPLE("UnderlyingLightCurve"),   // Light curve underlying artificially generated sample data
     SOLUTION("Solution"),             // Solution light curve
     SECONDARY("Secondary"),           // Secondary observation data points
     SUBFRAME_BAND("SubframeBand"),    // Outline of subframe-timing band
