@@ -87,7 +87,7 @@ public class SampleDataDialogController {
             jocularMain.showErrorDialog("Invalid or missing parameter settings.", jocularMain.primaryStage);
             return;
         }
-        
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Write sample data");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Tangra file", "*.csv"));
@@ -115,15 +115,15 @@ public class SampleDataDialogController {
         writer.write("eventIntensity = " + eventIntensityText.getText() + "\n");
         writer.write("\n");
         if (!Double.isNaN(dTime)) {
-            writer.write("D (FrameNo) = " + dTimeText.getText() + "\n");
+            writer.write("D (FrameNum) = " + dTimeText.getText() + "\n");
         }
         if (!Double.isNaN(rTime)) {
-            writer.write("R (FrameNo)= " + rTimeText.getText() + "\n");
+            writer.write("R (FrameNum) = " + rTimeText.getText() + "\n");
         }
         writer.write("\n");
         if (!Double.isNaN(dTime)) {
-            if ( dTime >=0.0) {
-            writer.write("D (time) = " + frameNumToUTC(dTime) + "\n");
+            if (dTime >= 0.0) {
+                writer.write("D (time) = " + frameNumToUTC(dTime) + "\n");
             } else {
                 writer.write("D (time) = -" + frameNumToUTC(-dTime) + "\n");
             }
@@ -145,6 +145,7 @@ public class SampleDataDialogController {
             writer.write("\n");
         }
         writer.write("FrameNo,Time (UT),Signal (1),Background (1)\n");
+        //writer.write("No.,Signal1,Signal2,H,M,S,,,,/Frame,Object1,Object2,,,,,,,\n");
     }
 
     private String frameNumToUTC(double frameNum) {
@@ -154,6 +155,15 @@ public class SampleDataDialogController {
         int minutes = (int) Math.floor(fNet / 60.0);
         double seconds = fNet - 60 * minutes;
         return String.format("%02d:%02d:%06.3f", hours, minutes, seconds);
+    }
+
+    private String frameNumToHMS(double frameNum) {
+        double fNet = frameNum;
+        int hours = (int) Math.floor(fNet / 3600.0);
+        fNet = fNet - 3600 * hours;
+        int minutes = (int) Math.floor(fNet / 60.0);
+        double seconds = fNet - 60 * minutes;
+        return String.format("%02d,%02d,%06.3f", hours, minutes, seconds);
     }
 
     private void writeDataLines(FileWriter writer) throws IOException {

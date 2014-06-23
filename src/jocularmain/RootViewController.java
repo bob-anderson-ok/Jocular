@@ -132,6 +132,11 @@ public class RootViewController implements Initializable {
     TextField maxMagDropText;
 
     @FXML
+    TextField binSizeText;
+    @FXML
+    TextField binOffsetText;
+
+    @FXML
     ProgressBar generalPurposeProgressBar;
     @FXML
     Label progressLabel;
@@ -315,6 +320,20 @@ public class RootViewController implements Initializable {
             );
         }
     }
+    
+    @FXML
+    public void undoTrimAndBlockIntegrations() {
+        if (jocularMain.getCurrentObservation() == null) {
+            return;
+        }
+        
+        XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
+        XYChartMarker rightTrimMarker = smartChart.getMarker("trimRight");
+        rightTrimMarker.setInUse(false);
+        leftTrimMarker.setInUse(false);
+        selectTheNoneRadioButton();
+        applyTrims();
+    }
 
     @FXML
     public void applyTrims() {
@@ -450,11 +469,55 @@ public class RootViewController implements Initializable {
     //
     //<editor-fold defaultstate="collapsed" desc="Menu Item Actions">
     @FXML
-    public void blockIntegrateData() {
-        System.out.println("Block integrate requested");
-
+    public void performBlockIntegration() {
         if (jocularMain.getCurrentObservation() == null) {
             jocularMain.showInformationDialog("There is no observation to process.", jocularMain.primaryStage);
+            return;
+        }
+
+        Observation curObs = jocularMain.getCurrentObservation();
+        if ((curObs.readingNumbers[1] - curObs.readingNumbers[0]) > 1.0) {
+            jocularMain.showInformationDialog("The observation has already been block integrated.", jocularMain.primaryStage);
+            return;
+        }
+
+        if (validBinParameters()) {
+            int binSize = Integer.parseInt(binSizeText.getText());
+            int offset = Integer.parseInt(binOffsetText.getText());
+            JocularUtils.blockIntegrateObservation(offset, binSize, jocularMain.getCurrentObservation());
+            getObservationSeries(jocularMain.getCurrentObservation());
+        } else {
+            jocularMain.showErrorDialog("Invalid input values for bin size or offset.", jocularMain.primaryStage);
+        }
+    }
+
+    private boolean validBinParameters() {
+        try {
+            int binSize = Integer.parseInt(binSizeText.getText());
+            int offset = Integer.parseInt(binOffsetText.getText());
+            if ( binSize < 0 ) {
+                return false;
+            }
+            if ( offset >= binSize || offset < 0) {
+                return false;
+            }
+            
+        } catch (Exception e ) {
+            return false;
+        }
+        return true;
+    }
+
+    @FXML
+    public void blockIntegrateData() {
+        if (jocularMain.getCurrentObservation() == null) {
+            jocularMain.showInformationDialog("There is no observation to process.", jocularMain.primaryStage);
+            return;
+        }
+
+        Observation curObs = jocularMain.getCurrentObservation();
+        if ((curObs.readingNumbers[1] - curObs.readingNumbers[0]) > 1.0) {
+            jocularMain.showInformationDialog("The observation has already been block integrated.", jocularMain.primaryStage);
             return;
         }
 
@@ -477,25 +540,16 @@ public class RootViewController implements Initializable {
 
         int offset = leftBlockEdge % binSize;
 
-        System.out.println(String.format("binSize = %d   offset = %d", binSize, offset));
+        binSizeText.setText(String.format("%d", binSize));
+        binOffsetText.setText(String.format("%d", offset));
 
-        JocularUtils.blockIntegrateObservation(offset, binSize, jocularMain.getCurrentObservation());
-
-        getObservationSeries(jocularMain.getCurrentObservation());
-        
         dLeftMarker.setInUse(false);
         dRightMarker.setInUse(false);
-
     }
 
     @FXML
     public void doEstimateErrorBars() {
         jocularMain.showErrorBarTool();
-    }
-
-    @FXML
-    public void displayReportHelp() {
-        jocularMain.showHelpDialog("Help/report.help.html");
     }
 
     @FXML
@@ -689,6 +743,16 @@ public class RootViewController implements Initializable {
     //<editor-fold defaultstate="collapsed" desc="Help Displays">
     //
     @FXML
+    public void displayReportHelp() {
+        jocularMain.showHelpDialog("Help/report.help.html");
+    }
+
+    @FXML
+    public void displayBlockIntegrateHelp() {
+        jocularMain.showHelpDialog("Help/blockintegrate.help.html");
+    }
+
+    @FXML
     public void displayNoiseHelp() {
         jocularMain.showHelpDialog("Help/noisevalues.help.html");
     }
@@ -775,7 +839,7 @@ public class RootViewController implements Initializable {
 
         Observation curObs = jocularMain.getCurrentObservation();
         int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
-        
+
         if (!Double.isNaN(curSol.D)) {
             resultItems.add(
                 String.format(
@@ -832,12 +896,12 @@ public class RootViewController implements Initializable {
 
     private double falsePositiveProbabilityOfSolution(SqSolution curSol) {
         double signal = curSol.B - curSol.A;
-        
+
         Observation curObs = jocularMain.getCurrentObservation();
         int numPoints = curObs.obsData.length;
         int beginIndex = curObs.readingNumbers[0];
         int endIndex = curObs.readingNumbers[numPoints - 1];
-        
+
         int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
 
         int dur;
@@ -1021,7 +1085,7 @@ public class RootViewController implements Initializable {
         double frac;
         double D = curSol.D;
         double R = curSol.R;
-        
+
         Observation curObs = jocularMain.getCurrentObservation();
         int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
 

@@ -37,7 +37,7 @@
         <Label layoutX="191.0" layoutY="304.0" text="R limits" AnchorPane.bottomAnchor="432.0" AnchorPane.leftAnchor="220.0" />
         <Label layoutX="86.0" layoutY="307.0" text="trim" AnchorPane.bottomAnchor="432.0" AnchorPane.leftAnchor="83.0" />
         <Label layoutX="32.0" layoutY="498.0" text="Marker selection" AnchorPane.bottomAnchor="455.0" AnchorPane.leftAnchor="94.0" />
-        <HBox layoutX="309.33837890625" layoutY="469.0" AnchorPane.bottomAnchor="405.0" AnchorPane.leftAnchor="309.33837890625">
+        <HBox layoutX="302.0" layoutY="469.0" AnchorPane.bottomAnchor="405.0" AnchorPane.leftAnchor="302.0">
             <children>
                 <Button fx:id="eraseSelectionButton" layoutX="309.33837890625" layoutY="469.0" mnemonicParsing="false" onAction="#eraseSelection" text="Erase Marker" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="309.33837890625" />
                 <ToggleButton fx:id="hideToggleButton" layoutX="442.0" layoutY="469.0" mnemonicParsing="false" onAction="#hideUnhideMarkers" text="Hide/Unhide" AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="425.0" /><Button mnemonicParsing="false" onAction="#eraseAllMarkers" text="Erase All" />
@@ -56,8 +56,8 @@
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Operations">
-                    <items><MenuItem mnemonicParsing="false" onAction="#blockIntegrateData" text="Block integrate data" />
-                        <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#doEstimateErrorBars" text="Open Error Bar Study Panel" /><MenuItem mnemonicParsing="false" onAction="#doShowSubframeTimingBand" text="Show Subframe Timing Band" />
+                    <items><MenuItem mnemonicParsing="false" onAction="#doShowSubframeTimingBand" text="Show Subframe Timing Band" />
+                        <MenuItem mnemonicParsing="false" onAction="#showSampleDataDialog" text="Generate Sample Data" /><MenuItem mnemonicParsing="false" onAction="#doEstimateErrorBars" text="Open Error Bar Study Panel" /><MenuItem mnemonicParsing="false" onAction="#blockIntegrateData" text="Use D markers to set binning edges" />
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
@@ -149,9 +149,25 @@
 <Image url="jocularmain/questionMark.png" />
 </image>
 </ImageView>
-<VBox layoutX="378.0" layoutY="632.0" AnchorPane.bottomAnchor="232.0" AnchorPane.leftAnchor="378.0">
+<VBox layoutX="378.0" layoutY="632.0" AnchorPane.bottomAnchor="232.0" AnchorPane.leftAnchor="300.0">
 <children><Label fx:id="progressLabel" layoutX="378.0" layoutY="627.0" /><ProgressBar fx:id="generalPurposeProgressBar" layoutX="378.0" layoutY="646.0" prefWidth="200.0" progress="0.02" />
 </children>
-</VBox><Button layoutX="591.0" layoutY="640.0" mnemonicParsing="false" onAction="#cancelSolution" text="Cancel" AnchorPane.bottomAnchor="234.0" AnchorPane.leftAnchor="591.0" />
+</VBox><Button layoutX="591.0" layoutY="640.0" mnemonicParsing="false" onAction="#cancelSolution" text="Cancel" AnchorPane.bottomAnchor="234.0" AnchorPane.leftAnchor="510.0" />
+<HBox layoutX="585.0" layoutY="619.0" spacing="5.0" AnchorPane.bottomAnchor="230.0" AnchorPane.leftAnchor="730.0">
+<children>
+<VBox layoutX="585.853271484375" layoutY="619.0">
+<children><Label layoutX="585.853271484375" layoutY="619.0" text="bin size" /><TextField fx:id="binSizeText" layoutX="585.96875" layoutY="640.0" prefWidth="40.0" />
+</children>
+</VBox>
+<VBox layoutX="680.0" layoutY="628.0">
+<children><Label layoutX="683.353271484375" layoutY="628.0" text="bin offset" /><TextField fx:id="binOffsetText" layoutX="680.0" layoutY="648.0" prefWidth="40.0" />
+</children>
+</VBox>
+</children>
+</HBox><Button layoutX="647.0" layoutY="640.0" mnemonicParsing="false" onAction="#performBlockIntegration" text="Block integrate" AnchorPane.bottomAnchor="230.0" AnchorPane.leftAnchor="610.0" /><ImageView fitHeight="18.0" fitWidth="13.0" layoutX="594.0" layoutY="642.0" onMouseClicked="#displayBlockIntegrateHelp" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="242.0" AnchorPane.leftAnchor="594.0">
+<image>
+<Image url="jocularmain/questionMark.png" />
+</image>
+</ImageView><Button layoutX="302.0" layoutY="507.0" mnemonicParsing="false" onAction="#undoTrimAndBlockIntegrations" text="Un-do: trim/block integrations" AnchorPane.bottomAnchor="369.0" AnchorPane.leftAnchor="302.0" />
     </children>
 </AnchorPane>

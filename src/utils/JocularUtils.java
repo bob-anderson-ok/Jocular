@@ -18,7 +18,7 @@ public interface JocularUtils {
     static double gaussianVariate(double sigma) {
         return randomGenerator.nextGaussian() * sigma;
     }
-    
+
     static double[] generateGaussianNoise(int length, double sigma) {
 
         double[] result = new double[length];
@@ -26,7 +26,7 @@ public interface JocularUtils {
         for (int i = 0; i < length; i++) {
             result[i] = randomGenerator.nextGaussian() * sigma;
         }
-        
+
         return result;
     }
 
@@ -53,7 +53,7 @@ public interface JocularUtils {
 
         return Math.sqrt(squaredDifference / (values.length - 1));
     }
-    
+
     static double calcSigma(ArrayList<Double> values) {
         // Unbox the ArrayList<Double> into a double[]
         double[] pointsInEstimate = new double[values.size()];
@@ -69,17 +69,17 @@ public interface JocularUtils {
         double corr = 2.0 * k * (k + 1) / (n - k - 1);
         return aic + corr;
     }
-    
+
     static double calcMagDrop(double B, double A) {
-        if (B<=0.0||A<=0.0||A>B) {
+        if (B <= 0.0 || A <= 0.0 || A > B) {
             return Double.NaN;
         } else {
-            return (Math.log(B)-Math.log(A))/Math.log(2.512);
+            return (Math.log(B) - Math.log(A)) / Math.log(2.512);
         }
     }
 
     static double AicCorr(int n, int k) {
-        return 2.0 * k +(2.0 * k * (k + 1)) / (n - k - 1);
+        return 2.0 * k + (2.0 * k * (k + 1)) / (n - k - 1);
     }
 
     static double calcbAIC(double sigmaB, double sigmaA, double B, double A, double M) {
@@ -94,8 +94,8 @@ public interface JocularUtils {
         return term1 - 2.0 * Math.log(term2);
     }
 
-    static double calcBsideSubframeBoundary(int n,double sigmaB, double sigmaA, double B, double A) {
-        double aiccDelta = AicCorr(n,2) - AicCorr(n,1);  // Use this for finite sample size
+    static double calcBsideSubframeBoundary(int n, double sigmaB, double sigmaA, double B, double A) {
+        double aiccDelta = AicCorr(n, 2) - AicCorr(n, 1);  // Use this for finite sample size
         // aiccDelta = 2.0; // Use this for infinite sample size
         double M = B;
         double delta = (B - A) * 0.0001;
@@ -109,7 +109,7 @@ public interface JocularUtils {
     }
 
     static double calcAsideSubframeBoundary(int n, double sigmaB, double sigmaA, double B, double A) {
-        double aiccDelta = AicCorr(n,2) - AicCorr(n,1);  // Use this for finite sample size
+        double aiccDelta = AicCorr(n, 2) - AicCorr(n, 1);  // Use this for finite sample size
         // aiccDelta=2.0; // Use this for infinite sample size
         double M = A;
         double delta = (B - A) * 0.0001;
@@ -121,7 +121,7 @@ public interface JocularUtils {
         }
         return M;
     }
-    
+
     static double LOG_SQRT_TWO_PI = log(sqrt(2 * PI));
 
     static double logL(double value, double reference, double sigma) {
@@ -132,29 +132,35 @@ public interface JocularUtils {
 
         return term1 + term2 - term3 * term3 / 2.0;
     }
-    
-    static double falsePositiveProbability( double signal, double sigmaB, int dur, int numObsPoints) {
-        double sdA = sigmaB / sqrt( dur);
-        double sdB = sigmaB / sqrt(numObsPoints-dur);
-        double compositeSd = sqrt( sdA*sdA + sdB*sdB);
+
+    static double falsePositiveProbability(double signal, double sigmaB, int dur, int numObsPoints) {
+        double sdA = sigmaB / sqrt(dur);
+        double sdB = sigmaB / sqrt(numObsPoints - dur);
+        double compositeSd = sqrt(sdA * sdA + sdB * sdB);
         Normal normDist = new Normal(0.0, compositeSd);
         //NormalDistribution normDist = new NormalDistribution(0.0, sd);
         //double probabilityOfFindingSignalAsAverage = normDist.cumulativeProbability(signal);
         double probabilityOfFindingSignalAsAverage = normDist.cumulative(signal);
-        return (1.0 - Math.pow(probabilityOfFindingSignalAsAverage,(double)(numObsPoints-dur)));
+        return (1.0 - Math.pow(probabilityOfFindingSignalAsAverage, (double) (numObsPoints - dur)));
     }
-    
+
     static void blockIntegrateObservation(int offset, int binSize, Observation curObs) {
+        int trimOffset = curObs.getLeftTrimPoint();
+
+        if (trimOffset != Integer.MIN_VALUE) {
+            offset = binSize - (trimOffset - offset) % binSize;
+        }
+        
         int numObsPoints = curObs.obsData.length;
         int numFullBlocks = (numObsPoints - offset) / binSize;
-
+        
         double[] integratedObsData = new double[numFullBlocks];
         int[] integratedObsReadingNumbers = new int[numFullBlocks];
 
         int obsIndex = offset;
         for (int i = 0; i < numFullBlocks; i++) {
             double sum = 0.0;
-            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex] + binSize -1;
+            integratedObsReadingNumbers[i] = curObs.readingNumbers[obsIndex] + binSize - 1;
             for (int k = 0; k < binSize; k++) {
                 sum += curObs.obsData[obsIndex++];
             }
@@ -163,5 +169,5 @@ public interface JocularUtils {
         curObs.obsData = integratedObsData;
         curObs.readingNumbers = integratedObsReadingNumbers;
     }
-    
+
 }

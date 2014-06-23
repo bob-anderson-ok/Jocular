@@ -147,8 +147,10 @@ public class SqModel {
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
-        double bAvgBias = -binSize / 4.0;
-        double aAvgBias = -3 * binSize / 4.0;
+        //double bAvgBias = -binSize / 4.0;
+        //double aAvgBias = -3 * binSize / 4.0;
+        double bAvgBias = 0.0;
+        double aAvgBias = -binSize;
 
         if (obsValue >= B) {
             ans.position = dTranNum + bAvgBias;
@@ -200,8 +202,10 @@ public class SqModel {
 
         double logLagainstB = logL(obsValue, B, sigmaB);
 
-        double aAvgBias = -binSize / 4.0;
-        double bAvgBias = -3 * binSize / 4.0;
+        //double aAvgBias = -binSize / 4.0;
+        //double bAvgBias = -3 * binSize / 4.0;
+        double aAvgBias = 0.0;
+        double bAvgBias = -binSize;
 
         if (obsValue >= B) {
             ans.position = rTranNum + bAvgBias;

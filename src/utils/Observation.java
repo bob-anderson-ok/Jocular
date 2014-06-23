@@ -293,6 +293,10 @@ public class Observation {
         leftTrimPoint = newTrimValue;
         reloadObsAndSecData();
     }
+    
+    public int getLeftTrimPoint() {
+        return leftTrimPoint;
+    }
 
     public void setRightTrimPoint(int newTrimValue) {
         validateTrimValue(newTrimValue);
