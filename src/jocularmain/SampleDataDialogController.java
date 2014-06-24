@@ -38,6 +38,8 @@ public class SampleDataDialogController {
     @FXML
     TextField numberOfDataPointsText;
     @FXML
+    TextField timeDeltaText;
+    @FXML
     TextField randSeedText;
     @FXML
     Label errorLabel;
@@ -123,13 +125,13 @@ public class SampleDataDialogController {
         writer.write("\n");
         if (!Double.isNaN(dTime)) {
             if (dTime >= 0.0) {
-                writer.write("D (time) = " + frameNumToUTC(dTime) + "\n");
+                writer.write("D (time) = " + frameTimeToUTC(dTime) + "\n");
             } else {
-                writer.write("D (time) = -" + frameNumToUTC(-dTime) + "\n");
+                writer.write("D (time) = -" + frameTimeToUTC(-dTime) + "\n");
             }
         }
         if (!Double.isNaN(rTime)) {
-            writer.write("R (time) = " + frameNumToUTC(rTime) + "\n");
+            writer.write("R (time) = " + frameTimeToUTC(rTime) + "\n");
         }
         writer.write("\n");
         writer.write("numPoints = " + numberOfDataPointsText.getText() + "\n");
@@ -148,8 +150,8 @@ public class SampleDataDialogController {
         //writer.write("No.,Signal1,Signal2,H,M,S,,,,/Frame,Object1,Object2,,,,,,,\n");
     }
 
-    private String frameNumToUTC(double frameNum) {
-        double fNet = frameNum;
+    private String frameTimeToUTC(double frameTime) {
+        double fNet = frameTime;
         int hours = (int) Math.floor(fNet / 3600.0);
         fNet = fNet - 3600 * hours;
         int minutes = (int) Math.floor(fNet / 60.0);
@@ -157,8 +159,8 @@ public class SampleDataDialogController {
         return String.format("%02d:%02d:%06.3f", hours, minutes, seconds);
     }
 
-    private String frameNumToHMS(double frameNum) {
-        double fNet = frameNum;
+    private String frameTimeToHMS(double frameTime) {
+        double fNet = frameTime;
         int hours = (int) Math.floor(fNet / 3600.0);
         fNet = fNet - 3600 * hours;
         int minutes = (int) Math.floor(fNet / 60.0);
@@ -174,7 +176,7 @@ public class SampleDataDialogController {
             String line = String.format(
                 "%d,%s,%.2f,0\n",
                 frameNum,
-                frameNumToUTC(frameNum),
+                frameTimeToUTC(frameNum * timeDelta),
                 obsValue
             );
             writer.write(line);
@@ -281,6 +283,7 @@ public class SampleDataDialogController {
     private int offset;
     private int binSize;
     private double processingNoise;
+    private double timeDelta;
 
     private boolean validateParameters() {
         errorLabel.setText("");
@@ -289,6 +292,13 @@ public class SampleDataDialogController {
             sigmaA = Double.parseDouble(sigmaAtext.getText());
             baselineIntensity = Double.parseDouble(baselineIntensityText.getText());
             eventIntensity = Double.parseDouble(eventIntensityText.getText());
+
+            timeDelta = Double.parseDouble(timeDeltaText.getText());
+
+            if (timeDelta <= 0.0) {
+                errorLabel.setText("time between points <= 0.0");
+                return false;
+            }
 
             if (!offsetText.getText().isEmpty()) {
                 offset = Integer.parseInt(offsetText.getText());
