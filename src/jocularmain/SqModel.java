@@ -154,6 +154,7 @@ public class SqModel {
 
         if (obsValue >= B) {
             ans.position = dTranNum + bAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
@@ -163,6 +164,7 @@ public class SqModel {
 
         if (obsValue <= A) {
             ans.position = dTranNum + aAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
@@ -176,14 +178,17 @@ public class SqModel {
         if (((logLagainstM - margin) > logLagainstA) && ((logLagainstM - margin) > logLagainstB)) {
             // We have an AIC validated mid-value (sub frame timing justified)
             ans.position = dTranNum - binSize + ((obsValue - A) / (B - A)) * binSize;
+            ans.position += 1.0;
             ans.logLcontribution = logLagainstM;
             kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
             ans.position = dTranNum + bAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
             ans.position = dTranNum + aAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstA;
         }
@@ -209,6 +214,7 @@ public class SqModel {
 
         if (obsValue >= B) {
             ans.position = rTranNum + bAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstB;
             return ans;
@@ -218,6 +224,7 @@ public class SqModel {
 
         if (obsValue <= A) {
             ans.position = rTranNum + aAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstA;
             return ans;
@@ -231,14 +238,17 @@ public class SqModel {
         if (((logLagainstM - margin) > logLagainstA) && ((logLagainstM - margin) > logLagainstB)) {
             // We have an AIC validated mid-value (sub frame timing justified)
             ans.position = rTranNum - ((obsValue - A) / (B - A)) * binSize;
+            ans.position += 1.0;
             ans.logLcontribution = logLagainstM;
             kFactor += 2;
         } else if (logLagainstB > logLagainstA) {
             ans.position = rTranNum + bAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstB;
         } else {
             ans.position = rTranNum + aAvgBias;
+            ans.position += 1.0;
             kFactor++;
             ans.logLcontribution = logLagainstA;
         }

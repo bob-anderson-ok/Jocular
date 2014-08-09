@@ -320,13 +320,13 @@ public class RootViewController implements Initializable {
             );
         }
     }
-    
+
     @FXML
     public void undoTrimAndBlockIntegrations() {
         if (jocularMain.getCurrentObservation() == null) {
             return;
         }
-        
+
         XYChartMarker leftTrimMarker = smartChart.getMarker("trimLeft");
         XYChartMarker rightTrimMarker = smartChart.getMarker("trimRight");
         rightTrimMarker.setInUse(false);
@@ -495,14 +495,14 @@ public class RootViewController implements Initializable {
         try {
             int binSize = Integer.parseInt(binSizeText.getText());
             int offset = Integer.parseInt(binOffsetText.getText());
-            if ( binSize < 0 ) {
+            if (binSize < 0) {
                 return false;
             }
-            if ( offset >= binSize || offset < 0) {
+            if (offset >= binSize || offset < 0) {
                 return false;
             }
-            
-        } catch (Exception e ) {
+
+        } catch (Exception e) {
             return false;
         }
         return true;
@@ -800,7 +800,15 @@ public class RootViewController implements Initializable {
         SqSolution curSol = jocularMain.getCurrentSolution();
         HashMap<String, ErrorBarItem> errBars = jocularMain.getCurrentErrBarValues();
 
-        boolean subFrameTimingUsed = errBars.get("D68").subFrameTimingEstimate;
+        boolean subFrameTimingUsed = false;
+
+        if (!Double.isNaN(curSol.D)) {
+            subFrameTimingUsed = errBars.get("D68").subFrameTimingEstimate;
+        }
+
+        if (!Double.isNaN(curSol.R)) {
+            subFrameTimingUsed = errBars.get("R68").subFrameTimingEstimate;
+        }
 
         ObservableList<String> resultItems = FXCollections.observableArrayList();
 
@@ -1090,9 +1098,20 @@ public class RootViewController implements Initializable {
         int binSize = curObs.readingNumbers[1] - curObs.readingNumbers[0];
 
         if (!Double.isNaN(D)) {
+            double transitionObsValue = Double.NaN;
+            for (int i = 0; i < curObs.obsData.length; i++) {
+                if ( curObs.readingNumbers[i] == curSol.dTransitionIndex) {
+                    transitionObsValue = curObs.obsData[i];
+                    break;
+                }
+            }
+            //double transitionObsValue = curObs.obsData[curSol.dTransitionIndex];
+            sigma = curSol.sigmaA + 
+                (curSol.sigmaB - curSol.sigmaA) * 
+                (transitionObsValue-curSol.A) / (curSol.B - curSol.A);
 
-            frac = (curSol.dTransitionIndex - D) / binSize;
-            sigma = curSol.sigmaB - (curSol.sigmaB - curSol.sigmaA) * frac;
+            //frac = Math.abs((curSol.dTransitionIndex - D) / binSize);
+            //sigma = curSol.sigmaB - (curSol.sigmaB - curSol.sigmaA) * frac;
             double sigmaRdg = sigma / (curSol.B - curSol.A);
 
             ErrorBarItem errItem = new ErrorBarItem();
@@ -1114,8 +1133,19 @@ public class RootViewController implements Initializable {
         }
 
         if (!Double.isNaN(R)) {
-            frac = (curSol.rTransitionIndex - R) / binSize;
-            sigma = curSol.sigmaA + (curSol.sigmaB - curSol.sigmaA) * frac;
+            double transitionObsValue = Double.NaN;
+            for (int i = 0; i < curObs.obsData.length; i++) {
+                if ( curObs.readingNumbers[i] == curSol.rTransitionIndex) {
+                    transitionObsValue = curObs.obsData[i];
+                    break;
+                }
+            }
+            //double transitionObsValue = curObs.obsData[curSol.rTransitionIndex];
+            sigma = curSol.sigmaA + 
+                (curSol.sigmaB - curSol.sigmaA) * 
+                (transitionObsValue-curSol.A) / (curSol.B - curSol.A);
+            //frac = Math.abs((curSol.rTransitionIndex - R) / binSize);
+            //sigma = curSol.sigmaA + (curSol.sigmaB - curSol.sigmaA) * frac;
             double sigmaRdg = sigma / (curSol.B - curSol.A);
 
             ErrorBarItem errItem = new ErrorBarItem();

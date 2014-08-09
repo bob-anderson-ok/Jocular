@@ -161,11 +161,13 @@ public class SampleDataGenerator {
         int dTransitionIndex = -1;  // Set out-of-range to the left
         if (!Double.isNaN(dEventTime)) {
             dTransitionIndex = calculateTransitionIndex(dEventTime);
+            dTransitionIndex -=1;
         }
 
         int rTransitionIndex = filledObservation.lengthOfDataColumns;  // Set out-of-range to the right
         if (!Double.isNaN(rEventTime)) {
             rTransitionIndex = calculateTransitionIndex(rEventTime);
+            rTransitionIndex -= 1;
         }
 
         for (int i = 0; i < filledObservation.lengthOfDataColumns; i++) {

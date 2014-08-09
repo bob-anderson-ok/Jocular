@@ -44,6 +44,8 @@ import utils.SqSolution;
  */
 public class JocularMain extends Application {
 
+    public String version = "Jocular 0.81";
+
     private Observation obsInMainPlot = null;
     private SqSolution currentSqSolution = null;
     private HashMap<String, ErrorBarItem> errBarData;
@@ -103,7 +105,7 @@ public class JocularMain extends Application {
 
         scene.getStylesheets().add(this.getClass().getResource("JocularStyleSheet.css").toExternalForm());
 
-        primaryStage.titleProperty().set("Jocular 0.7");
+        primaryStage.titleProperty().set(version);
         primaryStage.setScene(scene);
         primaryStage.show();
 
