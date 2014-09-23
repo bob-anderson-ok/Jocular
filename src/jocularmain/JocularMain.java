@@ -650,7 +650,8 @@ public class JocularMain extends Application {
                                    EventHandler<WorkerStateEvent> successHandler,
                                    EventHandler<WorkerStateEvent> cancelledHandler,
                                    EventHandler<WorkerStateEvent> failedHandler,
-                                   DoubleProperty progressProperty) {
+                                   DoubleProperty progressProperty,
+                                   double[] timeCoeffs) {
 
         int totalTrials = trialParams.numTrials;
         int numCores = Runtime.getRuntime().availableProcessors();
@@ -668,6 +669,7 @@ public class JocularMain extends Application {
             }
 
             ebs.settrialParams(trialParams);
+            ebs.setTimeCoeffArray(timeCoeffs);
             ebs.setRecalcBandA(recalBandA);
             ebs.settrialsPerCore(numTrialsPerCore);
             ebs.setOnSucceeded(successHandler);
@@ -737,9 +739,16 @@ public class JocularMain extends Application {
         private int extraTrials = 0;
         private int trialsPerCore = 0;
         private boolean recalcBandA;
+        private double[] timeCoeff = new double[10];
 
         public void settrialParams(TrialParams trialParams) {
             this.trialParams = trialParams;
+        }
+        
+        public void setTimeCoeffArray(double[] coeffs) {
+            for ( int i = 0; i < timeCoeff.length; i++ ) {
+                timeCoeff[i] = coeffs[i];
+            }
         }
 
         public void setExtraTrials(int extraTrials) {
@@ -771,6 +780,9 @@ public class JocularMain extends Application {
                     double[] logLM = new double[trialParams.sampleWidth];
                     double[] logLT = new double[trialParams.sampleWidth];
                     double[] rdgs = new double[trialParams.sampleWidth];
+                    double[] noise = new double[trialParams.sampleWidth];
+                    double[] rawNoise = new double[rdgs.length + timeCoeff.length];
+                                     
                     int[] offset = new int[trialParams.sampleWidth];
 
                     double logLstraightLine = 0.0;
@@ -781,6 +793,13 @@ public class JocularMain extends Application {
                     for (int i = 0; i < histogram.length; i++) {
                         histogram[i] = 0;
                     }
+                    
+                    double sdCorr = 0.0;
+                    
+                    for ( int i = 0; i < timeCoeff.length; i++ ) {
+                        sdCorr += timeCoeff[i] * timeCoeff[i];
+                    }
+                    sdCorr = Math.sqrt(sdCorr);
 
                     int trialNum = 0;
 
@@ -792,32 +811,46 @@ public class JocularMain extends Application {
                         trialNum++;
                         updateProgress(trialNum, trialsPerCore);
 
+                        // Get our noise vector
+                        
+                        for (int i = 0; i < rawNoise.length; i++) {
+                            rawNoise[i] = ThreadLocalRandom.current().nextGaussian();
+                        }
+                        
+                        for (int i = 0; i < rdgs.length; i++) {
+                            noise[i] = 0.0;
+                            for(int j = 0; j < timeCoeff.length; j++) {
+                                noise[i] += rawNoise[i+j] * timeCoeff[j];                            
+                            }
+                            noise[i] = noise[i] / sdCorr;
+                        }
+                        
                         // Make a new sample
                         for (int i = 0; i < centerIndex; i++) {
-                            rdgs[i] = ThreadLocalRandom.current().nextGaussian() * trialParams.sigmaA
+                            rdgs[i] = noise[i] * trialParams.sigmaA
                                 + trialParams.eventLevel;
                         }
 
                         if (trialParams.mode == MonteCarloMode.LEFT_EDGE) {
-                            rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian() * trialParams.sigmaA
+                            rdgs[centerIndex] = noise[centerIndex] * trialParams.sigmaA
                                 + trialParams.eventLevel;
                         } else if (trialParams.mode == MonteCarloMode.RIGHT_EDGE) {
-                            rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian() * trialParams.sigmaB
+                            rdgs[centerIndex] = noise[centerIndex] * trialParams.sigmaB
                                 + trialParams.baselineLevel;
                         } else if (trialParams.mode == MonteCarloMode.MID_POINT) {
-                            rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian() * ((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
+                            rdgs[centerIndex] = noise[centerIndex] * ((trialParams.sigmaA + trialParams.sigmaB) / 2.0)
                                 + (trialParams.baselineLevel + trialParams.eventLevel) / 2.0;
                         } else if (trialParams.mode == MonteCarloMode.RANDOM) {
                             double frac = ThreadLocalRandom.current().nextDouble();
                             double level = trialParams.baselineLevel * (1.0 - frac) + trialParams.eventLevel * frac;
                             double noiseAtLevel = trialParams.sigmaB * (1.0 - frac) + trialParams.sigmaA * frac;
-                            rdgs[centerIndex] = ThreadLocalRandom.current().nextGaussian() * noiseAtLevel + level;
+                            rdgs[centerIndex] = noise[centerIndex] * noiseAtLevel + level;
                         } else {
                             throw new InternalError("Design error: MonteCarlo mode not implemented.");
                         }
 
                         for (int i = centerIndex + 1; i < rdgs.length; i++) {
-                            rdgs[i] = ThreadLocalRandom.current().nextGaussian() * trialParams.sigmaB
+                            rdgs[i] = noise[i] * trialParams.sigmaB
                                 + trialParams.baselineLevel;
                         }
 

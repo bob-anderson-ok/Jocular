@@ -84,7 +84,7 @@
             <effect>
                 <InnerShadow />
             </effect>
-        </ListView><ImageView fitHeight="20.0" fitWidth="20.0" layoutX="230.0" layoutY="560.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
+        </ListView><ImageView fitHeight="20.0" fitWidth="20.0" layoutX="189.0" layoutY="479.0" onMouseClicked="#showErrorBarHelp" pickOnBounds="true" preserveRatio="true">
 <image>
 <Image url="@questionMark.png" />
 </image></ImageView>
@@ -94,7 +94,25 @@
 </VBox><Label layoutX="20.0" layoutY="608.0" text="Distribution detail..." /><ListView fx:id="resultsListView" layoutX="250.0" layoutY="630.0" prefHeight="200.0" prefWidth="325.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="630.0">
 <effect>
 <InnerShadow />
-</effect></ListView><ProgressBar fx:id="trialsProgressBar" layoutX="191.5" layoutY="581.1999998092651" prefWidth="200.0" progress="0.2" visible="false" />
+</effect></ListView><ProgressBar fx:id="trialsProgressBar" layoutX="191.5" layoutY="601.1999998092651" prefWidth="200.0" progress="0.2" visible="false" />
                 <Button layoutX="580.0" layoutY="426.0" mnemonicParsing="false" onAction="#writePanelToFile" prefWidth="154.0" text="Write Panel To File" /><CheckBox fx:id="recalcLevels" layoutX="420.0" layoutY="510.0" mnemonicParsing="false" text="Recalculate B and A levels" />
+<HBox layoutX="342.0" layoutY="557.0" spacing="9.0">
+<children><TextField fx:id="temporalCoeff2" layoutX="342.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" /><TextField fx:id="temporalCoeff3" layoutX="396.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" /><TextField fx:id="temporalCoeff4" layoutX="450.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" /><TextField fx:id="temporalCoeff5" layoutX="505.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" />
+<TextField fx:id="temporalCoeff6" layoutX="560.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" />
+<TextField fx:id="temporalCoeff7" layoutX="614.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" />
+<TextField fx:id="temporalCoeff8" layoutX="668.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" />
+<TextField fx:id="temporalCoeff9" layoutX="723.0" layoutY="557.0" prefHeight="26.0" prefWidth="46.0" text="0.0" />
+<TextField fx:id="temporalCoeff10" layoutX="779.0" layoutY="558.0" prefHeight="26.0" prefWidth="46.0" text="0.0" />
+</children>
+</HBox>
+<HBox layoutX="349.353271484375" layoutY="541.0" spacing="18.5">
+<children><Label layoutX="347.353271484375" layoutY="541.0" text="Lag 1" /><Label layoutX="401.353271484375" layoutY="541.0" text="Lag 2" /><Label layoutX="455.353271484375" layoutY="541.0" text="Lag 3" /><Label layoutX="510.353271484375" layoutY="541.0" text="Lag 4" />
+<Label layoutX="565.0" layoutY="541.0" text="Lag 5" />
+<Label layoutX="619.0" layoutY="541.0" text="Lag 6" />
+<Label layoutX="673.0" layoutY="541.0" text="Lag 7" />
+<Label layoutX="728.0" layoutY="541.0" text="Lag 8" />
+<Label layoutX="780.0" layoutY="542.0" text="Lag 9" />
+</children>
+</HBox><Label layoutX="195.353271484375" layoutY="561.0" text="Temporal coefficients:" />
     </children>
 </AnchorPane>

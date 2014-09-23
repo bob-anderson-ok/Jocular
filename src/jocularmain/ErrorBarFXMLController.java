@@ -74,7 +74,26 @@ public class ErrorBarFXMLController implements Initializable {
     RadioButton leftEdgeRadioButton;
     @FXML
     RadioButton midPointRadioButton;
-
+    
+    @FXML
+    TextField temporalCoeff2;
+    @FXML
+    TextField temporalCoeff3;
+    @FXML
+    TextField temporalCoeff4;
+    @FXML
+    TextField temporalCoeff5;
+    @FXML
+    TextField temporalCoeff6;
+    @FXML
+    TextField temporalCoeff7;
+    @FXML
+    TextField temporalCoeff8;
+    @FXML
+    TextField temporalCoeff9;
+    @FXML
+    TextField temporalCoeff10;
+    
     @FXML
     ListView mainListView;
     @FXML
@@ -99,6 +118,19 @@ public class ErrorBarFXMLController implements Initializable {
         jocularMain.saveSnapshotToFile(wim, jocularMain.errorBarPanelStage);
     }
 
+    public void fillTimeCoeffs( double[] arrayToFill ) {
+        arrayToFill[0]  = 1.0;
+        arrayToFill[1]  = getTimeCoeff(temporalCoeff2.getText());
+        arrayToFill[2]  = getTimeCoeff(temporalCoeff3.getText());
+        arrayToFill[3]  = getTimeCoeff(temporalCoeff4.getText());
+        arrayToFill[4]  = getTimeCoeff(temporalCoeff5.getText());
+        arrayToFill[5]  = getTimeCoeff(temporalCoeff6.getText());
+        arrayToFill[6]  = getTimeCoeff(temporalCoeff7.getText());
+        arrayToFill[7]  = getTimeCoeff(temporalCoeff8.getText());
+        arrayToFill[8]  = getTimeCoeff(temporalCoeff9.getText());
+        arrayToFill[9]  = getTimeCoeff(temporalCoeff10.getText());
+    }
+    
     @FXML
     public void calculateDistribution() {
 
@@ -116,6 +148,9 @@ public class ErrorBarFXMLController implements Initializable {
         trialParams.sigmaB = sigmaB;
         trialParams.sigmaA = sigmaA;
 
+        double[] timeCoeffs = new double[10];
+        fillTimeCoeffs(timeCoeffs);
+        
         clearListViewsAndPlot();
         trialsProgressBar.setVisible(true);
 
@@ -125,7 +160,8 @@ public class ErrorBarFXMLController implements Initializable {
             this::handleErrBarServiceSucceeded,
             this::handleErrBarServiceNonSuccess,
             this::handleErrBarServiceNonSuccess,
-            trialsProgressBar.progressProperty()
+            trialsProgressBar.progressProperty(),
+            timeCoeffs
         );
     }
 
@@ -326,6 +362,16 @@ public class ErrorBarFXMLController implements Initializable {
 
     private double validateSigmaAtext() {
         return sigmaValue(sigmaAtext.getText(), "Event Noise");
+    }
+    
+    private double getTimeCoeff(String text) {
+        try {
+            if (text.isEmpty()) return 0.0;
+            double value = Double.parseDouble(text);
+            return value;
+        } catch(NumberFormatException e) {
+            return 0.0;
+        }
     }
 
     private double sigmaValue(String text, String sourceId) {
