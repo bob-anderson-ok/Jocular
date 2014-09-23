@@ -1045,13 +1045,20 @@ public class RootViewController implements Initializable {
 
         progressLabel.setText("error bar calculation...");
 
+        // For now, we assume that uncorrelated gaussian noise is to be used in Monte Carlo
+        // simultions to estimate error bars.
+        
+        double[] timeCoeffs = new double[10];
+        timeCoeffs[0] = 1.0;
+        
         jocularMain.errBarServiceStart(
             false,
             trialParams,
             this::handleSuccessfulErrBarService,
             this::handleNonSuccessfulErrBarService,
             this::handleNonSuccessfulErrBarService,
-            generalPurposeProgressBar.progressProperty()
+            generalPurposeProgressBar.progressProperty(),
+            timeCoeffs
         );
     }
 
